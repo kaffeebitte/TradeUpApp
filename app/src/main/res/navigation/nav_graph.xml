@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.example.tradeupapp.ui.home.HomeFragment"
+        android:label="Home" />
+
+    <fragment
+        android:id="@+id/nav_search"
+        android:name="com.example.tradeupapp.ui.search.SearchFragment"
+        android:label="Search" />
+
+    <fragment
+        android:id="@+id/nav_add"
+        android:name="com.example.tradeupapp.ui.add.AddItemFragment"
+        android:label="Add Item">
+        <action
+            android:id="@+id/action_nav_add_to_itemPreviewFragment"
+            app:destination="@id/itemPreviewFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_chat"
+        android:name="com.example.tradeupapp.ui.chat.ChatFragment"
+        android:label="Chat" />
+
+    <fragment
+        android:id="@+id/nav_profile"
+        android:name="com.example.tradeupapp.ui.profile.ProfileFragment"
+        android:label="Profile">
+        <action
+            android:id="@+id/action_nav_profile_to_accountSettingsFragment"
+            app:destination="@id/accountSettingsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_nav_profile_to_editProfileFragment"
+            app:destination="@id/editProfileFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_nav_profile_to_manageListingsFragment"
+            app:destination="@id/manageListingsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/accountSettingsFragment"
+        android:name="com.example.tradeupapp.ui.profile.AccountSettingsFragment"
+        android:label="Account Settings">
+        <action
+            android:id="@+id/action_accountSettingsFragment_to_deleteAccountFragment"
+            app:destination="@id/deleteAccountFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/deleteAccountFragment"
+        android:name="com.example.tradeupapp.ui.profile.DeleteAccountFragment"
+        android:label="Delete Account" />
+
+    <fragment
+        android:id="@+id/editProfileFragment"
+        android:name="com.example.tradeupapp.ui.profile.EditProfileFragment"
+        android:label="Edit Profile" />
+
+    <fragment
+        android:id="@+id/manageListingsFragment"
+        android:name="com.example.tradeupapp.ui.profile.ManageListingsFragment"
+        android:label="My Listings">
+        <action
+            android:id="@+id/action_manageListingsFragment_to_itemPreviewFragment"
+            app:destination="@id/itemPreviewFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_manageListingsFragment_to_nav_add"
+            app:destination="@id/nav_add"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/notificationFragment"
+        android:name="com.example.tradeupapp.ui.notification.NotificationFragment"
+        android:label="Notifications" />
+
+    <fragment
+        android:id="@+id/itemPreviewFragment"
+        android:name="com.example.tradeupapp.ui.add.ItemPreviewFragment"
+        android:label="Item Preview">
+        <argument
+            android:name="item"
+            app:argType="com.example.tradeupapp.models.ItemModel" />
+    </fragment>
+
+    <!-- Global actions -->
+    <action
+        android:id="@+id/action_global_to_auth"
+        app:destination="@id/loginFragment"
+        app:popUpTo="@id/nav_graph"
+        app:popUpToInclusive="true" />
+
+    <action
+        android:id="@+id/action_global_to_auth_deactivated"
+        app:destination="@id/loginFragment"
+        app:popUpTo="@id/nav_graph"
+        app:popUpToInclusive="true">
+        <argument
+            android:name="isDeactivated"
+            android:defaultValue="true"
+            app:argType="boolean" />
+    </action>
+</navigation>

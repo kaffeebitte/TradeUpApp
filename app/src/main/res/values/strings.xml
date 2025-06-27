@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">TradeUpApp</string>
+    <string name="email_verification_sent">A verification link has been sent to %1$s. Please check your inbox and follow the instructions to verify your account.</string>
+    <string name="resend_timer">You can request another email in %1$d seconds</string>
+</resources>
