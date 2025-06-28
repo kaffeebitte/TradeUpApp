@@ -1,41 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Custom brand colors -->
+    <color name="gunmetal">#2A2D34</color>
+    <color name="celestial_blue">#009DDC</color>
+    <color name="giants_orange">#F26430</color>
+    <color name="ultra_violet">#6761A8</color>
+    <color name="shamrock_green">#009B72</color>
+
+    <!-- For backward compatibility -->
+    <color name="colorPrimary">@color/celestial_blue</color>
+    <color name="colorPrimaryDark">@color/gunmetal</color>
+    <color name="colorAccent">@color/giants_orange</color>
+
     <!-- Material 3 Color System - Light Theme -->
-    <color name="md_theme_primary">#6750A4</color>
+    <!-- Primary: Celestial Blue - Main brand color -->
+    <color name="md_theme_primary">#009DDC</color>
     <color name="md_theme_onPrimary">#FFFFFF</color>
-    <color name="md_theme_primaryContainer">#EADDFF</color>
-    <color name="md_theme_onPrimaryContainer">#21005E</color>
+    <color name="md_theme_primaryContainer">#D0EEFF</color>
+    <color name="md_theme_onPrimaryContainer">#001E2B</color>
 
-    <color name="md_theme_secondary">#625B71</color>
+    <!-- Secondary: Ultra Violet - Supporting color -->
+    <color name="md_theme_secondary">#6761A8</color>
     <color name="md_theme_onSecondary">#FFFFFF</color>
-    <color name="md_theme_secondaryContainer">#E8DEF8</color>
-    <color name="md_theme_onSecondaryContainer">#1E192B</color>
+    <color name="md_theme_secondaryContainer">#E6DEFF</color>
+    <color name="md_theme_onSecondaryContainer">#21005E</color>
 
-    <color name="md_theme_tertiary">#7D5260</color>
+    <!-- Tertiary: Giants Orange - Accent color for calls-to-action -->
+    <color name="md_theme_tertiary">#F26430</color>
     <color name="md_theme_onTertiary">#FFFFFF</color>
-    <color name="md_theme_tertiaryContainer">#FFD8E4</color>
-    <color name="md_theme_onTertiaryContainer">#370B1E</color>
+    <color name="md_theme_tertiaryContainer">#FFDACC</color>
+    <color name="md_theme_onTertiaryContainer">#390C00</color>
 
+    <!-- Error colors - keeping standard error colors -->
     <color name="md_theme_error">#B3261E</color>
     <color name="md_theme_errorContainer">#F9DEDC</color>
     <color name="md_theme_onError">#FFFFFF</color>
     <color name="md_theme_onErrorContainer">#410E0B</color>
 
-    <color name="md_theme_background">#FFFBFE</color>
-    <color name="md_theme_onBackground">#1C1B1F</color>
+    <!-- Success color - using Shamrock Green -->
+    <color name="md_theme_success">#009B72</color>
+    <color name="md_theme_onSuccess">#FFFFFF</color>
+    <color name="md_theme_successContainer">#9FF4D9</color>
+    <color name="md_theme_onSuccessContainer">#002019</color>
 
-    <color name="md_theme_surface">#FFFBFE</color>
-    <color name="md_theme_onSurface">#1C1B1F</color>
-    <color name="md_theme_surfaceVariant">#E7E0EC</color>
-    <color name="md_theme_onSurfaceVariant">#49454F</color>
+    <!-- Background & Surface: Light with Gunmetal influence -->
+    <color name="md_theme_background">#F5F6F7</color>
+    <color name="md_theme_onBackground">#2A2D34</color>
 
-    <color name="md_theme_outline">#79747E</color>
-    <color name="md_theme_inverseOnSurface">#F4EFF4</color>
-    <color name="md_theme_inverseSurface">#313033</color>
-    <color name="md_theme_inversePrimary">#D0BCFF</color>
+    <color name="md_theme_surface">#FFFFFF</color>
+    <color name="md_theme_onSurface">#2A2D34</color>
+    <color name="md_theme_surfaceVariant">#E7E8EA</color>
+    <color name="md_theme_onSurfaceVariant">#44474E</color>
+
+    <!-- Other supporting colors -->
+    <color name="md_theme_outline">#74777E</color>
+    <color name="md_theme_inverseOnSurface">#F4F5F6</color>
+    <color name="md_theme_inverseSurface">#303338</color>
+    <color name="md_theme_inversePrimary">#75D1FF</color>
     <color name="md_theme_shadow">#000000</color>
-    <color name="md_theme_surfaceTint">#6750A4</color>
-    <color name="md_theme_outlineVariant">#CAC4D0</color>
+    <color name="md_theme_surfaceTint">#009DDC</color>
+    <color name="md_theme_outlineVariant">#C5C6C9</color>
     <color name="md_theme_scrim">#000000</color>
 
     <!-- Material 3 Color System - Dark Theme -->
@@ -112,4 +136,16 @@
     <!-- Notification Background Colors -->
     <color name="read_notification_background">#F5F5F5</color>
     <color name="unread_notification_background">#E1F5FE</color>
+
+    <!-- Gray Scale Colors -->
+    <color name="gray_50">#FAFAFA</color>
+    <color name="gray_100">#F5F5F5</color>
+    <color name="gray_200">#EEEEEE</color>
+    <color name="gray_300">#E0E0E0</color>
+    <color name="gray_400">#BDBDBD</color>
+    <color name="gray_500">#9E9E9E</color>
+    <color name="gray_600">#757575</color>
+    <color name="gray_700">#616161</color>
+    <color name="gray_800">#424242</color>
+    <color name="gray_900">#212121</color>
 </resources>

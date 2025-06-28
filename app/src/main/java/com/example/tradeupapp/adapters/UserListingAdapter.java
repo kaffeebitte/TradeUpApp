@@ -1,4 +1,4 @@
-package com.example.tradeupapp.ui.profile;
+package com.example.tradeupapp.adapters;
 
 import android.content.Context;
 import android.net.Uri;
@@ -52,7 +52,33 @@ public class UserListingAdapter extends RecyclerView.Adapter<UserListingAdapter.
         holder.price.setText("$" + item.getPrice());
 
         // Set status (using condition as status since there's no getStatus method)
-        holder.status.setText(item.getCondition() != null ? item.getCondition() : "Available");
+        String statusText = item.getStatus() != null ? item.getStatus() : "Available";
+        holder.status.setText(statusText);
+
+        // Set views and interactions counts
+        holder.views.setText(item.getViewCount() + " views");
+        holder.chats.setText(" • " + (item.getInteractionCount() / 2) + " chats");
+        holder.offers.setText(" • " + (item.getInteractionCount() / 2) + " offers");
+
+        // Đặt màu nền và chữ cho Chip dựa theo trạng thái
+        switch (statusText) {
+            case "Available":
+                holder.status.setChipBackgroundColorResource(R.color.md_theme_primaryContainer);
+                holder.status.setTextColor(context.getColor(R.color.md_theme_primary));
+                break;
+            case "Paused":
+                holder.status.setChipBackgroundColorResource(R.color.md_theme_secondaryContainer);
+                holder.status.setTextColor(context.getColor(R.color.md_theme_secondary));
+                break;
+            case "Sold":
+                holder.status.setChipBackgroundColorResource(R.color.md_theme_errorContainer);
+                holder.status.setTextColor(context.getColor(R.color.md_theme_error));
+                break;
+            default:
+                holder.status.setChipBackgroundColorResource(R.color.md_theme_surfaceVariant);
+                holder.status.setTextColor(context.getColor(R.color.black));
+                break;
+        }
 
         // Load first image (placeholder if null)
         if (item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) {
@@ -70,6 +96,8 @@ public class UserListingAdapter extends RecyclerView.Adapter<UserListingAdapter.
             holder.image.setImageResource(R.drawable.ic_image_placeholder);
         }
 
+
+
         holder.itemView.setOnClickListener(v -> listener.onView(item));
         holder.btnEdit.setOnClickListener(v -> listener.onEdit(item));
         holder.btnDelete.setOnClickListener(v -> listener.onDelete(item));
@@ -82,7 +110,7 @@ public class UserListingAdapter extends RecyclerView.Adapter<UserListingAdapter.
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         ShapeableImageView image;
-        TextView title, price;
+        TextView title, price, views, chats, offers;
         Chip status;
         MaterialButton btnEdit, btnDelete;
 
@@ -91,6 +119,9 @@ public class UserListingAdapter extends RecyclerView.Adapter<UserListingAdapter.
             image = itemView.findViewById(R.id.iv_item_image);
             title = itemView.findViewById(R.id.tv_item_title);
             price = itemView.findViewById(R.id.tv_item_price);
+            views = itemView.findViewById(R.id.tv_views);
+            chats = itemView.findViewById(R.id.tv_chats);
+            offers = itemView.findViewById(R.id.tv_offers);
             status = itemView.findViewById(R.id.chip_item_status);
             btnEdit = itemView.findViewById(R.id.btn_edit);
             btnDelete = itemView.findViewById(R.id.btn_delete);

@@ -9,97 +9,155 @@
     android:clickable="true"
     android:focusable="true"
     app:cardCornerRadius="16dp"
-    app:cardElevation="0dp"
-    app:strokeWidth="1dp"
-    app:strokeColor="?attr/colorOutlineVariant">
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
 
-    <LinearLayout
-        android:orientation="horizontal"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp">
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/iv_item_image"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
             android:scaleType="centerCrop"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
             tools:background="?attr/colorSurfaceVariant"
-            tools:src="@color/md_theme_surfaceVariant" />
+            tools:src="@color/md_theme_surfaceVariant"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <LinearLayout
-            android:orientation="vertical"
+        <TextView
+            android:id="@+id/tv_item_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            tools:text="MacBook Air M2"
+            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:layout_marginStart="16dp"
-            android:layout_weight="1">
+            app:layout_constraintStart_toEndOf="@id/iv_item_image"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <TextView
+            android:id="@+id/tv_item_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="$899"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+            android:textColor="?attr/colorPrimary"
+            android:textStyle="bold"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toEndOf="@id/iv_item_image"
+            app:layout_constraintTop_toBottomOf="@id/tv_item_title" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_item_status"
+            style="@style/Widget.Material3.Chip.Assist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Available"
+            app:chipStrokeWidth="0dp"
+            app:chipMinHeight="28dp"
+            app:chipCornerRadius="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tv_item_price"
+            app:layout_constraintBottom_toBottomOf="@id/tv_item_price" />
+
+        <LinearLayout
+            android:id="@+id/stats_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            app:layout_constraintStart_toEndOf="@id/iv_item_image"
+            app:layout_constraintTop_toBottomOf="@id/tv_item_price">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_eye_24"
+                app:tint="?attr/colorOnSurfaceVariant" />
 
             <TextView
-                android:id="@+id/tv_item_title"
+                android:id="@+id/tv_views"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:text="MacBook Air M2"
-                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                android:textColor="?attr/colorOnSurface"
-                android:maxLines="1"
-                android:ellipsize="end"/>
-
-            <TextView
-                android:id="@+id/tv_item_price"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                tools:text="$899"
-                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-                android:textColor="?attr/colorPrimary"
-                android:layout_marginTop="4dp" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_item_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                tools:text="Available"
+                android:text="123 views"
+                android:layout_marginStart="4dp"
                 android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
-                app:chipMinHeight="32dp"
-                app:chipBackgroundColor="?attr/colorSurfaceVariant"
-                app:chipStrokeWidth="0dp" />
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/tv_chats"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="8dp">
+                android:text=" • 4 chats"
+                android:layout_marginStart="8dp"
+                android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_edit"
-                    style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Edit"
-                    android:textColor="?attr/colorPrimary"
-                    android:minWidth="0dp"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="0dp"
-                    android:minHeight="36dp"
-                    app:icon="@drawable/ic_edit_24"
-                    app:iconSize="16dp"
-                    app:iconPadding="4dp"
-                    app:iconGravity="textStart" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_delete"
-                    style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Delete"
-                    android:textColor="?attr/colorError"
-                    android:minWidth="0dp"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="0dp"
-                    android:minHeight="36dp"
-                    android:layout_marginStart="8dp" />
-            </LinearLayout>
+            <TextView
+                android:id="@+id/tv_offers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" • 2 offers"
+                android:layout_marginStart="8dp"
+                android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
         </LinearLayout>
-    </LinearLayout>
+
+        <com.google.android.material.divider.MaterialDivider
+            android:id="@+id/divider"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/iv_item_image" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_edit"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit"
+            android:textColor="?attr/colorPrimary"
+            android:minWidth="0dp"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:minHeight="36dp"
+            app:icon="@drawable/ic_edit_24"
+            app:iconSize="18dp"
+            app:iconPadding="8dp"
+            app:iconGravity="textStart"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_delete"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Delete"
+            android:textColor="?attr/colorError"
+            android:minWidth="0dp"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:minHeight="36dp"
+            app:icon="@drawable/ic_delete_24"
+            app:iconSize="18dp"
+            app:iconPadding="8dp"
+            app:iconTint="?attr/colorError"
+            app:iconGravity="textStart"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

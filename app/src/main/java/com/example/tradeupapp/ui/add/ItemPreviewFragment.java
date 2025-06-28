@@ -16,6 +16,7 @@ import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.tradeupapp.R;
+import com.example.tradeupapp.adapters.ImagePhotoAdapter;
 import com.example.tradeupapp.models.ItemModel;
 import com.google.android.material.button.MaterialButton;
 

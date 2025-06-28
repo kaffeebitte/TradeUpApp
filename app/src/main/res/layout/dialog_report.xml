@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Report Reason"
+        android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
+
+    <com.google.android.material.radiobutton.MaterialRadioButton
+        android:id="@+id/rb_scam"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Scam/Fraud" />
+
+    <com.google.android.material.radiobutton.MaterialRadioButton
+        android:id="@+id/rb_inappropriate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Inappropriate Content" />
+
+    <com.google.android.material.radiobutton.MaterialRadioButton
+        android:id="@+id/rb_spam"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Spam" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_submit_report"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Submit"
+        android:layout_marginTop="16dp" />
+</LinearLayout>

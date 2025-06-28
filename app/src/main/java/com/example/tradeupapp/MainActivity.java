@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigationView;
     private MaterialToolbar toolbar;
     private FloatingActionButton fabAddItem;
+    private AppBarConfiguration appBarConfiguration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,27 +43,27 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.nav_host_fragment).post(() -> {
             navController = Navigation.findNavController(this, R.id.nav_host_fragment);
 
-            // Configure the bottom navigation with the nav controller
-            AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                    R.id.nav_home, R.id.nav_search, R.id.nav_chat, R.id.nav_profile)
+            // Initialize the AppBarConfiguration with your top-level destinations
+            appBarConfiguration = new AppBarConfiguration.Builder(
+                    R.id.nav_recommendations, R.id.nav_search, R.id.nav_chat, R.id.nav_profile)
                     .build();
 
             // Store the last selected item ID to track navigation state
-            final int[] currentNavItem = {R.id.nav_home}; // Default is home
+            final int[] currentNavItem = {R.id.nav_recommendations}; // Default is recommendations
 
             // Remove default setup and implement custom bottom navigation behavior
             bottomNavigationView.setOnItemSelectedListener(item -> {
                 int itemId = item.getItemId();
 
                 // Always clear backstack to main destinations when clicking bottom nav
-                if (itemId == R.id.nav_home || itemId == R.id.nav_search ||
+                if (itemId == R.id.nav_recommendations || itemId == R.id.nav_search ||
                         itemId == R.id.nav_chat || itemId == R.id.nav_profile) {
 
                     // Navigate to the start destination of the graph to clear everything
-                    navController.popBackStack(R.id.nav_home, false);
+                    navController.popBackStack(R.id.nav_recommendations, false);
 
-                    // If we're not going home, then navigate to the selected destination
-                    if (itemId != R.id.nav_home) {
+                    // If we're not going to recommendations, then navigate to the selected destination
+                    if (itemId != R.id.nav_recommendations) {
                         navController.navigate(itemId);
                     }
 
@@ -118,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onSupportNavigateUp() {
-        return NavigationUI.navigateUp(navController, (AppBarConfiguration) null)
+        return NavigationUI.navigateUp(navController, appBarConfiguration)
                 || super.onSupportNavigateUp();
     }
 }

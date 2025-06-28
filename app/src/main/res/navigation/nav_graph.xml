@@ -1,23 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/nav_home">
+    app:startDestination="@id/nav_recommendations">
 
     <fragment
         android:id="@+id/nav_home"
         android:name="com.example.tradeupapp.ui.home.HomeFragment"
-        android:label="Home" />
+        android:label="Home"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_nav_home_to_nav_search"
+            app:destination="@id/nav_search"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_home_to_nav_recommendations"
+            app:destination="@id/nav_recommendations"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_home_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_search"
         android:name="com.example.tradeupapp.ui.search.SearchFragment"
-        android:label="Search" />
+        android:label="Search"
+        tools:layout="@layout/fragment_search">
+        <action
+            android:id="@+id/action_nav_search_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
+    <!-- New Recommendations Fragment -->
+    <fragment
+        android:id="@+id/nav_recommendations"
+        android:name="com.example.tradeupapp.ui.recommendations.RecommendationsFragment"
+        android:label="Recommendations"
+        tools:layout="@layout/fragment_recommendations">
+        <action
+            android:id="@+id/action_nav_recommendations_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_recommendations_to_categoryListingFragment"
+            app:destination="@id/categoryListingFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <!-- New actions for "See All" buttons -->
+        <action
+            android:id="@+id/action_nav_recommendations_to_allCategoriesFragment"
+            app:destination="@id/allCategoriesFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_recommendations_to_recommendedListingFragment"
+            app:destination="@id/recommendedListingFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_recommendations_to_nearbyListingFragment"
+            app:destination="@id/nearbyListingFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_recommendations_to_recentListingFragment"
+            app:destination="@id/recentListingFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
+    <!-- New Category Listing Fragment -->
+    <fragment
+        android:id="@+id/categoryListingFragment"
+        android:name="com.example.tradeupapp.ui.category.CategoryListingFragment"
+        android:label="Category"
+        tools:layout="@layout/fragment_category_listing">
+        <argument
+            android:name="category"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_categoryListingFragment_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
+    <!-- Item Detail Fragment -->
+    <fragment
+        android:id="@+id/itemDetailFragment"
+        android:name="com.example.tradeupapp.ui.detail.ItemDetailFragment"
+        android:label="Item Details">
+        <argument
+            android:name="itemId"
+            app:argType="string" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_add"
         android:name="com.example.tradeupapp.ui.add.AddItemFragment"
-        android:label="Add Item">
+        android:label="Add Item"
+        tools:layout="@layout/fragment_add_item">
         <action
             android:id="@+id/action_nav_add_to_itemPreviewFragment"
             app:destination="@id/itemPreviewFragment"
@@ -25,6 +116,20 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/itemPreviewFragment"
+        android:name="com.example.tradeupapp.ui.add.ItemPreviewFragment"
+        android:label="Preview"
+        tools:layout="@layout/fragment_item_preview">
+        <action
+            android:id="@+id/action_itemPreviewFragment_to_nav_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@id/nav_home"
+            app:popUpToInclusive="true"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
     <fragment
@@ -107,14 +212,59 @@
         android:name="com.example.tradeupapp.ui.notification.NotificationFragment"
         android:label="Notifications" />
 
+
+    <!-- All Categories Fragment -->
     <fragment
-        android:id="@+id/itemPreviewFragment"
-        android:name="com.example.tradeupapp.ui.add.ItemPreviewFragment"
-        android:label="Item Preview">
-        <argument
-            android:name="item"
-            app:argType="com.example.tradeupapp.models.ItemModel" />
+        android:id="@+id/allCategoriesFragment"
+        android:name="com.example.tradeupapp.ui.category.AllCategoriesFragment"
+        android:label="All Categories"
+        tools:layout="@layout/fragment_all_categories">
+        <action
+            android:id="@+id/action_allCategoriesFragment_to_categoryListingFragment"
+            app:destination="@id/categoryListingFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
+
+    <!-- Recommended Listing Fragment -->
+    <fragment
+        android:id="@+id/recommendedListingFragment"
+        android:name="com.example.tradeupapp.ui.listings.RecommendedListingFragment"
+        android:label="Recommended For You"
+        tools:layout="@layout/fragment_listing">
+        <action
+            android:id="@+id/action_recommendedListingFragment_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
+    <!-- Nearby Listing Fragment -->
+    <fragment
+        android:id="@+id/nearbyListingFragment"
+        android:name="com.example.tradeupapp.ui.listings.NearbyListingFragment"
+        android:label="Near You"
+        tools:layout="@layout/fragment_listing">
+        <action
+            android:id="@+id/action_nearbyListingFragment_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
+    <!-- Recent Listing Fragment -->
+    <fragment
+        android:id="@+id/recentListingFragment"
+        android:name="com.example.tradeupapp.ui.listings.RecentListingFragment"
+        android:label="Recently Added"
+        tools:layout="@layout/fragment_listing">
+        <action
+            android:id="@+id/action_recentListingFragment_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
 
     <!-- Global actions -->
     <action

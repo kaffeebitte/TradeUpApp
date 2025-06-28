@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ItemModel implements Parcelable {
+    private String id;
     private String title;
     private String description;
     private double price;
@@ -17,6 +18,10 @@ public class ItemModel implements Parcelable {
     private String condition;
     private String location;
     private List<Uri> photoUris;
+    private String status; // e.g. "Available", "Paused", "Sold"
+    private int viewCount;
+    private int interactionCount;
+    private String tag; // Product tag for categorization
 
     public ItemModel() {
         photoUris = new ArrayList<>();
@@ -35,6 +40,7 @@ public class ItemModel implements Parcelable {
 
     // Parcelable implementation
     protected ItemModel(Parcel in) {
+        id = in.readString();
         title = in.readString();
         description = in.readString();
         price = in.readDouble();
@@ -43,6 +49,10 @@ public class ItemModel implements Parcelable {
         location = in.readString();
         photoUris = new ArrayList<>();
         in.readList(photoUris, Uri.class.getClassLoader());
+        status = in.readString();
+        viewCount = in.readInt();
+        interactionCount = in.readInt();
+        tag = in.readString();
     }
 
     public static final Creator<ItemModel> CREATOR = new Creator<ItemModel>() {
@@ -64,6 +74,7 @@ public class ItemModel implements Parcelable {
 
     @Override
     public void writeToParcel(@NonNull Parcel dest, int flags) {
+        dest.writeString(id);
         dest.writeString(title);
         dest.writeString(description);
         dest.writeDouble(price);
@@ -71,9 +82,21 @@ public class ItemModel implements Parcelable {
         dest.writeString(condition);
         dest.writeString(location);
         dest.writeList(photoUris);
+        dest.writeString(status);
+        dest.writeInt(viewCount);
+        dest.writeInt(interactionCount);
+        dest.writeString(tag);
     }
 
     // Getters and Setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -134,5 +157,37 @@ public class ItemModel implements Parcelable {
         if (uri != null && !photoUris.contains(uri)) {
             photoUris.add(uri);
         }
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public int getViewCount() {
+        return viewCount;
+    }
+
+    public void setViewCount(int viewCount) {
+        this.viewCount = viewCount;
+    }
+
+    public int getInteractionCount() {
+        return interactionCount;
+    }
+
+    public void setInteractionCount(int interactionCount) {
+        this.interactionCount = interactionCount;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 }

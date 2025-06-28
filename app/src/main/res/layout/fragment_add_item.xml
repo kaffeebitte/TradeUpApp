@@ -1,178 +1,300 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
-    android:clipToPadding="false"
-    android:scrollbars="none"
     android:background="?attr/colorSurface">
 
-    <LinearLayout
-        android:orientation="vertical"
+    <!-- Top App Bar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        app:elevation="0dp">
 
-        <TextView
-            android:id="@+id/tv_add_item_title"
-            android:text="Add new item"
-            android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
-            android:textColor="?attr/colorOnSurface"
-            android:layout_marginBottom="24dp"
-            android:layout_height="wrap_content"
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/add_item_toolbar"
             android:layout_width="match_parent"
-            android:contentDescription="Page title"/>
+            android:layout_height="?attr/actionBarSize"
+            android:tag="add_item_toolbar"
+            app:navigationIcon="@drawable/ic_back_24"
+            app:navigationIconTint="?attr/colorOnSurface"
+            app:title="Add New Item"
+            app:titleCentered="false"
+            app:titleTextAppearance="?attr/textAppearanceTitleLarge"
+            app:titleTextColor="?attr/colorOnSurface"
+            app:menu="@menu/menu_add_item" />
+    </com.google.android.material.appbar.AppBarLayout>
 
-        <!-- Title -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/til_title"
-            android:hint="Item Title"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:scrollbars="none"
+        android:paddingHorizontal="24dp"
+        android:paddingBottom="24dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_title"
+            android:paddingTop="16dp">
+
+            <!-- Section: Basic Information -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Basic Information"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorPrimary"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Title -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_title"
+                android:hint="Item Title"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text"
-                android:maxLength="100"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:layout_marginBottom="16dp"
+                app:counterEnabled="true"
+                app:counterMaxLength="100"
+                app:helperText="A clear title helps your item get found"
+                app:helperTextEnabled="true"
+                app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
 
-        <!-- Description -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/til_description"
-            android:hint="Description"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_description"
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLength="100"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Description -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_description"
+                android:hint="Description"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minLines="3"
-                android:gravity="top|start"
-                android:inputType="textMultiLine"
-                android:maxLength="1000"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:layout_marginBottom="16dp"
+                app:counterEnabled="true"
+                app:counterMaxLength="1000"
+                app:helperText="Describe your item in detail (condition, features, etc.)"
+                app:helperTextEnabled="true"
+                app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
 
-        <!-- Price -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/til_price"
-            android:hint="Price (USD)"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:prefixText="$"
-            android:layout_marginBottom="16dp">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_price"
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_description"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minLines="3"
+                    android:gravity="top|start"
+                    android:inputType="textMultiLine"
+                    android:maxLength="1000"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Section: Pricing and Category -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pricing and Category"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorPrimary"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Price -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_price"
+                android:hint="Price"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="numberDecimal"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                app:prefixText="$"
+                app:startIconDrawable="@drawable/ic_price_24"
+                app:startIconTint="?attr/colorPrimary"
+                android:layout_marginBottom="16dp"
+                app:helperText="Set a reasonable price to attract buyers"
+                app:helperTextEnabled="true"
+                app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
 
-        <!-- Category -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/til_category"
-            android:hint="Category"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
-            <AutoCompleteTextView
-                android:id="@+id/actv_category"
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_price"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Category -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_category"
+                android:hint="Category"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="none"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:layout_marginBottom="16dp"
+                app:startIconDrawable="@drawable/ic_category_24"
+                app:startIconTint="?attr/colorPrimary"
+                app:helperText="Choose the most relevant category"
+                app:helperTextEnabled="true"
+                app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
 
-        <!-- Condition -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/til_condition"
-            android:hint="Condition"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
-            <AutoCompleteTextView
-                android:id="@+id/actv_condition"
+                <AutoCompleteTextView
+                    android:id="@+id/actv_category"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Condition -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_condition"
+                android:hint="Condition"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="none"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:layout_marginBottom="16dp"
+                app:startIconDrawable="@drawable/ic_star_outline_24"
+                app:startIconTint="?attr/colorPrimary"
+                app:helperText="Be honest about the condition of your item"
+                app:helperTextEnabled="true"
+                app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
 
-        <!-- Location -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/til_location"
-            android:hint="Location"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:startIconDrawable="@drawable/ic_location_24"
-            app:startIconContentDescription="Location icon">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_location"
+                <AutoCompleteTextView
+                    android:id="@+id/actv_condition"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Tag -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_tag"
+                android:hint="Tag"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPostalAddress"
-                android:focusable="false"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:layout_marginBottom="16dp"
+                app:startIconDrawable="@drawable/ic_tag_24"
+                app:startIconTint="?attr/colorPrimary"
+                app:helperText="Add a tag to help buyers find your item"
+                app:helperTextEnabled="true"
+                app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
 
-        <!-- Photo Upload -->
-        <TextView
-            android:id="@+id/tv_photo_upload_label"
-            android:text="Upload Photos (Max: 10)"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp"
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent"/>
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_tag"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLength="30"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="none"
-            android:fadeScrollbars="false"
-            android:clipToPadding="false">
+            <!-- Section: Location -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Location"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorPrimary"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Location -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_location"
+                android:hint="Location"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:startIconDrawable="@drawable/ic_location_24"
+                app:startIconTint="?attr/colorPrimary"
+                app:startIconContentDescription="Location icon"
+                app:endIconMode="custom"
+                app:endIconDrawable="@drawable/ic_my_location_24"
+                app:endIconContentDescription="Use current location"
+                app:helperText="Tap to set your location or use current location"
+                app:helperTextEnabled="true"
+                app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_location"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPostalAddress"
+                    android:focusable="false"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Section: Photos -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Photos"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorPrimary"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tv_photo_upload_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Upload clear photos (1-10)"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="16dp" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recycler_photos"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:minHeight="120dp"
-                android:paddingStart="4dp"
-                android:paddingEnd="4dp"
                 android:clipToPadding="false"
                 android:orientation="horizontal"
                 android:overScrollMode="never"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/item_photo_upload"
-                tools:orientation="horizontal"/>
-        </HorizontalScrollView>
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="16dp"/>
+            <!-- Preview Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_preview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Preview Listing"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:layout_marginTop="32dp"
+                app:icon="@drawable/ic_eye_24"
+                app:iconGravity="textStart"
+                android:paddingVertical="16dp"
+                app:cornerRadius="16dp" />
 
-        <!-- Continue -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_continue"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="Next"
-            android:enabled="false"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="16dp"
-            app:cornerRadius="28dp"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-        <!-- Spacer to prevent bottom navigation from covering content -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="150dp"/>
+    <!-- Save FAB -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fab_save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="24dp"
+        android:text="Save Listing"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="?attr/colorOnPrimaryContainer"
+        app:icon="@drawable/ic_check_24"
+        app:iconTint="?attr/colorOnPrimaryContainer"
+        app:backgroundTint="?attr/colorPrimaryContainer" />
 
-    </LinearLayout>
-</ScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

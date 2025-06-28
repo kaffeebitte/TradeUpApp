@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Display styles -->
+    <style name="TextAppearance.TradeUp.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="fontFamily">@string/font_family_display</item>
+        <item name="android:fontFamily">@string/font_family_display</item>
+    </style>
+
+    <style name="TextAppearance.TradeUp.DisplayMedium" parent="TextAppearance.Material3.DisplayMedium">
+        <item name="fontFamily">@string/font_family_display</item>
+        <item name="android:fontFamily">@string/font_family_display</item>
+    </style>
+
+    <style name="TextAppearance.TradeUp.DisplaySmall" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="fontFamily">@string/font_family_display</item>
+        <item name="android:fontFamily">@string/font_family_display</item>
+    </style>
+
+    <!-- Headline styles -->
+    <style name="TextAppearance.TradeUp.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="fontFamily">@string/font_family_headline</item>
+        <item name="android:fontFamily">@string/font_family_headline</item>
+    </style>
+
+    <style name="TextAppearance.TradeUp.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="fontFamily">@string/font_family_headline</item>
+        <item name="android:fontFamily">@string/font_family_headline</item>
+    </style>
+
+    <style name="TextAppearance.TradeUp.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="fontFamily">@string/font_family_headline</item>
+        <item name="android:fontFamily">@string/font_family_headline</item>
+    </style>
+
+    <!-- Title styles -->
+    <style name="TextAppearance.TradeUp.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="fontFamily">@string/font_family_title</item>
+        <item name="android:fontFamily">@string/font_family_title</item>
+    </style>
+
+    <style name="TextAppearance.TradeUp.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="fontFamily">@string/font_family_title</item>
+        <item name="android:fontFamily">@string/font_family_title</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="TextAppearance.TradeUp.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
+        <item name="fontFamily">@string/font_family_title</item>
+        <item name="android:fontFamily">@string/font_family_title</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <!-- Body styles -->
+    <style name="TextAppearance.TradeUp.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="fontFamily">@string/font_family_body</item>
+        <item name="android:fontFamily">@string/font_family_body</item>
+    </style>
+
+    <style name="TextAppearance.TradeUp.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="fontFamily">@string/font_family_body</item>
+        <item name="android:fontFamily">@string/font_family_body</item>
+    </style>
+
+    <style name="TextAppearance.TradeUp.BodySmall" parent="TextAppearance.Material3.BodySmall">
+        <item name="fontFamily">@string/font_family_body</item>
+        <item name="android:fontFamily">@string/font_family_body</item>
+    </style>
+
+    <!-- Label styles -->
+    <style name="TextAppearance.TradeUp.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
+        <item name="fontFamily">@string/font_family_label</item>
+        <item name="android:fontFamily">@string/font_family_label</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="TextAppearance.TradeUp.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
+        <item name="fontFamily">@string/font_family_label</item>
+        <item name="android:fontFamily">@string/font_family_label</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="TextAppearance.TradeUp.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
+        <item name="fontFamily">@string/font_family_label</item>
+        <item name="android:fontFamily">@string/font_family_label</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+</resources>

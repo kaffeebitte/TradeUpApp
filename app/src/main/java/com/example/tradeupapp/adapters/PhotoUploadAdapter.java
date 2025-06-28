@@ -1,4 +1,4 @@
-package com.example.tradeupapp.ui.add;
+package com.example.tradeupapp.adapters;
 
 import android.net.Uri;
 import android.view.LayoutInflater;

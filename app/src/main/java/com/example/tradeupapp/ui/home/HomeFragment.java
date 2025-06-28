@@ -4,15 +4,22 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tradeupapp.R;
+import com.example.tradeupapp.adapters.ListingAdapter;
+import com.example.tradeupapp.models.ItemModel;
 import com.google.android.material.card.MaterialCardView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HomeFragment extends Fragment {
 
@@ -69,10 +76,51 @@ public class HomeFragment extends Fragment {
         // Thiết lập LayoutManager cho RecyclerView
         categoriesRecycler.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
         featuredItemsRecycler.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        nearbyItemsRecycler.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
 
-        // TODO: Thiết lập Adapter cho các RecyclerView
+        // Implement ListingAdapter for featured items
+        List<ItemModel> featuredItems = getDummyItems("Featured");
+        ListingAdapter featuredAdapter = new ListingAdapter(
+                requireContext(),
+                featuredItems,
+                item -> navigateToItemDetail(item)
+        );
+        featuredItemsRecycler.setAdapter(featuredAdapter);
+
+        // Implement ListingAdapter for nearby items
+        List<ItemModel> nearbyItems = getDummyItems("Nearby");
+        ListingAdapter nearbyAdapter = new ListingAdapter(
+                requireContext(),
+                nearbyItems,
+                item -> navigateToItemDetail(item)
+        );
+        nearbyItemsRecycler.setAdapter(nearbyAdapter);
+
+        // TODO: Implement CategoryAdapter for categories
         // categoriesRecycler.setAdapter(new CategoryAdapter(getCategoryList()));
-        // featuredItemsRecycler.setAdapter(new ItemAdapter(getFeaturedItems()));
-        // nearbyItemsRecycler.setAdapter(new ItemAdapter(getNearbyItems()));
+    }
+
+    private void navigateToItemDetail(ItemModel item) {
+        // Navigate to item detail page
+        Toast.makeText(requireContext(), "Selected: " + item.getTitle(), Toast.LENGTH_SHORT).show();
+        // TODO: Use proper navigation when item detail fragment is available
+        // Bundle args = new Bundle();
+        // args.putParcelable("selected_item", item);
+        // Navigation.findNavController(requireView()).navigate(R.id.action_nav_home_to_nav_item_detail, args);
+    }
+
+    // Helper method to create dummy items for testing
+    private List<ItemModel> getDummyItems(String prefix) {
+        List<ItemModel> items = new ArrayList<>();
+        for (int i = 1; i <= 5; i++) {
+            ItemModel item = new ItemModel();
+            item.setTitle(prefix + " Item " + i);
+            item.setPrice(50.0 * i);
+            item.setStatus("Available");
+            item.setViewCount(10 * i);
+            item.setInteractionCount(i);
+            items.add(item);
+        }
+        return items;
     }
 }

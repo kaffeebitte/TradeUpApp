@@ -12,6 +12,9 @@ import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -22,6 +25,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
@@ -29,11 +33,14 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tradeupapp.R;
+import com.example.tradeupapp.adapters.PhotoUploadAdapter;
 import com.example.tradeupapp.models.ItemModel;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textview.MaterialTextView;
@@ -44,16 +51,19 @@ import java.util.Locale;
 
 public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPhotoActionListener {
 
+    private MaterialToolbar toolbar;
     private TextInputLayout tilTitle;
     private TextInputLayout tilPrice;
     private TextInputLayout tilDescription;
     private TextInputLayout tilCategory;
     private TextInputLayout tilCondition;
     private TextInputLayout tilLocation;
+    private TextInputLayout tilTag;
     private TextInputEditText etTitle;
     private TextInputEditText etPrice;
     private TextInputEditText etDescription;
     private TextInputEditText etLocation;
+    private TextInputEditText etTag;
     private AutoCompleteTextView actvCategory;
     private AutoCompleteTextView actvCondition;
     private RecyclerView recyclerPhotos;
@@ -123,23 +133,30 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
     }
 
     private void initViews(View view) {
+        // Initialize toolbar using the tag we added
+        toolbar = view.findViewById(R.id.add_item_toolbar);
+        setupToolbar();
+
         tilTitle = view.findViewById(R.id.til_title);
         tilPrice = view.findViewById(R.id.til_price);
         tilDescription = view.findViewById(R.id.til_description);
         tilCategory = view.findViewById(R.id.til_category);
         tilCondition = view.findViewById(R.id.til_condition);
         tilLocation = view.findViewById(R.id.til_location);
+        tilTag = view.findViewById(R.id.til_tag);
 
         etTitle = view.findViewById(R.id.et_title);
         etPrice = view.findViewById(R.id.et_price);
         etDescription = view.findViewById(R.id.et_description);
         etLocation = view.findViewById(R.id.et_location);
+        etTag = view.findViewById(R.id.et_tag);
 
         actvCategory = view.findViewById(R.id.actv_category);
         actvCondition = view.findViewById(R.id.actv_condition);
 
         recyclerPhotos = view.findViewById(R.id.recycler_photos);
-        btnContinue = view.findViewById(R.id.btn_continue);
+        // Use the correct button ID from the layout
+        btnContinue = view.findViewById(R.id.btn_preview);
     }
 
     private void setupPhotoAdapter() {
@@ -258,7 +275,7 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
 
         // Kiểm tra mô tả
         if (etDescription.getText().toString().trim().isEmpty()) {
-            tilDescription.setError("Vui lòng nhập mô tả sản phẩm");
+            tilDescription.setError("Vui lòng nhập mô t��� sản phẩm");
             isValid = false;
         } else {
             tilDescription.setError(null);
@@ -289,6 +306,9 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
             item.setCategory(actvCategory.getText().toString());
             item.setCondition(actvCondition.getText().toString());
 
+            // Set tag for the item
+            item.setTag(etTag.getText().toString().trim());
+
             // Set location
             item.setLocation(etLocation.getText().toString().trim());
 
@@ -306,6 +326,36 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
 
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Error creating preview: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void setupToolbar() {
+        if (toolbar != null) {
+            // Check if the toolbar has the tag we added
+            if ("add_item_toolbar".equals(toolbar.getTag())) {
+                // We can now use the tag to identify this specific toolbar
+
+                // Set up the toolbar with AppCompatActivity
+                ((AppCompatActivity) requireActivity()).setSupportActionBar(toolbar);
+                ((AppCompatActivity) requireActivity()).getSupportActionBar().setDisplayShowTitleEnabled(true);
+
+                // Handle navigation icon click (back button)
+                toolbar.setNavigationOnClickListener(v -> {
+                    requireActivity().onBackPressed();
+                });
+
+                // Handle menu item clicks
+                toolbar.setOnMenuItemClickListener(item -> {
+                    int itemId = item.getItemId();
+                    if (itemId == R.id.action_save) {
+                        if (validateInput()) {
+                            showItemPreview();
+                        }
+                        return true;
+                    }
+                    return false;
+                });
+            }
         }
     }
 

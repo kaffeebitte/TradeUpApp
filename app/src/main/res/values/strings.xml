@@ -2,4 +2,28 @@
     <string name="app_name">TradeUpApp</string>
     <string name="email_verification_sent">A verification link has been sent to %1$s. Please check your inbox and follow the instructions to verify your account.</string>
     <string name="resend_timer">You can request another email in %1$d seconds</string>
+    <string name="no_items_found_in_category">No items found in %1$s category</string>
+
+    <!-- Buyer History -->
+    <string name="saved_items">Saved Items</string>
+    <string name="offers">Offers</string>
+    <string name="purchases">Purchases</string>
+    <string name="no_saved_items">You haven\'t saved any items yet</string>
+    <string name="no_offers">You haven\'t made any offers yet</string>
+    <string name="no_purchases">You haven\'t made any purchases yet</string>
+
+    <!-- Font families for typography -->
+    <string name="font_family_display">sans-serif</string>
+    <string name="font_family_headline">sans-serif</string>
+    <string name="font_family_title">sans-serif-medium</string>
+    <string name="font_family_body">sans-serif</string>
+    <string name="font_family_label">sans-serif-medium</string>
+
+    <!-- Report status options -->
+    <string-array name="report_status_options">
+        <item>Pending</item>
+        <item>Under Review</item>
+        <item>Resolved</item>
+        <item>Dismissed</item>
+    </string-array>
 </resources>

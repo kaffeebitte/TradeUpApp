@@ -49,7 +49,7 @@ public class LoginFragment extends Fragment {
         etPassword = view.findViewById(R.id.et_password);
         btnLogin = view.findViewById(R.id.btn_login);
         btnGoogleLogin = view.findViewById(R.id.btn_google_signin);
-        tvRegister = view.findViewById(R.id.tv_signup);
+        tvRegister = view.findViewById(R.id.tv_register);
         tvForgotPassword = view.findViewById(R.id.tv_forgot_password);
     }
 

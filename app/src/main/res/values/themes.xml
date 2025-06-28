@@ -1,8 +1,76 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.TradeUpApp" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- Customize material3 colors -->
+        <item name="colorPrimary">@color/md_theme_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_onPrimaryContainer</item>
+        <item name="colorSecondary">@color/md_theme_secondary</item>
+        <item name="colorOnSecondary">@color/md_theme_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md_theme_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md_theme_onSecondaryContainer</item>
+        <item name="colorTertiary">@color/md_theme_tertiary</item>
+        <item name="colorOnTertiary">@color/md_theme_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md_theme_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md_theme_onTertiaryContainer</item>
+        <item name="colorError">@color/md_theme_error</item>
+        <item name="colorErrorContainer">@color/md_theme_errorContainer</item>
+        <item name="colorOnError">@color/md_theme_onError</item>
+        <item name="colorOnErrorContainer">@color/md_theme_onErrorContainer</item>
+        <item name="android:colorBackground">@color/md_theme_background</item>
+        <item name="colorOnBackground">@color/md_theme_onBackground</item>
+        <item name="colorSurface">@color/md_theme_surface</item>
+        <item name="colorOnSurface">@color/md_theme_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md_theme_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md_theme_onSurfaceVariant</item>
+        <item name="colorOutline">@color/md_theme_outline</item>
+        <item name="colorOnSurfaceInverse">@color/md_theme_inverseOnSurface</item>
+        <item name="colorSurfaceInverse">@color/md_theme_inverseSurface</item>
+
+        <!-- Material shapes -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.TradeUp.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.TradeUp.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.TradeUp.LargeComponent</item>
+
+        <!-- Typography -->
+        <item name="textAppearanceDisplayLarge">@style/TextAppearance.TradeUp.DisplayLarge</item>
+        <item name="textAppearanceDisplayMedium">@style/TextAppearance.TradeUp.DisplayMedium</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.TradeUp.DisplaySmall</item>
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.TradeUp.HeadlineLarge</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.TradeUp.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.TradeUp.HeadlineSmall</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.TradeUp.TitleLarge</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.TradeUp.TitleMedium</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.TradeUp.TitleSmall</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.TradeUp.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.TradeUp.BodyMedium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.TradeUp.BodySmall</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.TradeUp.LabelLarge</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.TradeUp.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.TradeUp.LabelSmall</item>
+
+        <!-- Status bar and navigation bar -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
+    </style>
+
+    <!-- Shape appearances -->
+    <style name="ShapeAppearance.TradeUp.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="ShapeAppearance.TradeUp.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="ShapeAppearance.TradeUp.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
     </style>
 
     <style name="Theme.TradeUpApp" parent="Base.Theme.TradeUpApp" />

@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tradeupapp.R;
+import com.example.tradeupapp.adapters.NotificationAdapter;
 import com.example.tradeupapp.models.NotificationModel;
 
 import java.util.ArrayList;
