@@ -167,6 +167,30 @@
         android:layout_marginTop="24dp"
         android:layout_marginBottom="8dp" />
 
+    <!-- Location Selection -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_filter_location"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Select Location"
+        app:startIconDrawable="@drawable/ic_location_24"
+        app:startIconTint="?attr/colorPrimary"
+        app:endIconMode="custom"
+        app:endIconDrawable="@drawable/ic_my_location_24"
+        app:endIconTint="?attr/colorPrimary"
+        app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_filter_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            android:focusable="false"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:hint="Tap to select a location" />
+    </com.google.android.material.textfield.TextInputLayout>
+
     <!-- Max Distance -->
     <LinearLayout
         android:layout_width="match_parent"

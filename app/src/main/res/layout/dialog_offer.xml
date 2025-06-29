@@ -11,22 +11,78 @@
         android:text="Make an Offer"
         android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
 
+    <!-- Item info section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="16dp"
+        android:background="@android:color/background_light"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tv_item_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+            android:text="Item Title" />
+
+        <TextView
+            android:id="@+id/tv_item_price"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+            android:text="$0.00"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Offer amount input -->
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Your Offer Price"
+        android:hint="Your Offer"
         android:layout_marginTop="16dp">
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_offer_price"
+            android:id="@+id/et_offer_amount"
             android:inputType="numberDecimal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_submit_offer"
+    <!-- Message input -->
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Submit"
-        android:layout_marginTop="24dp" />
+        android:hint="Message to Seller (Optional)"
+        android:layout_marginTop="16dp">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_message"
+            android:inputType="textMultiLine"
+            android:minLines="2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Button row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="24dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancel"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Cancel" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_submit_offer"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Submit Offer" />
+    </LinearLayout>
 </LinearLayout>

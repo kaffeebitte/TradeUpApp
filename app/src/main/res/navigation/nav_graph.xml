@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/nav_home"
-        android:name="com.example.tradeupapp.ui.home.HomeFragment"
+        android:name="com.example.tradeupapp.features.home.ui.HomeFragment"
         android:label="Home"
         tools:layout="@layout/fragment_home">
         <action
@@ -29,7 +29,7 @@
 
     <fragment
         android:id="@+id/nav_search"
-        android:name="com.example.tradeupapp.ui.search.SearchFragment"
+        android:name="com.example.tradeupapp.features.search.ui.SearchFragment"
         android:label="Search"
         tools:layout="@layout/fragment_search">
         <action
@@ -42,7 +42,7 @@
     <!-- New Recommendations Fragment -->
     <fragment
         android:id="@+id/nav_recommendations"
-        android:name="com.example.tradeupapp.ui.recommendations.RecommendationsFragment"
+        android:name="com.example.tradeupapp.features.home.ui.RecommendationsFragment"
         android:label="Recommendations"
         tools:layout="@layout/fragment_recommendations">
         <action
@@ -81,7 +81,7 @@
     <!-- New Category Listing Fragment -->
     <fragment
         android:id="@+id/categoryListingFragment"
-        android:name="com.example.tradeupapp.ui.category.CategoryListingFragment"
+        android:name="com.example.tradeupapp.features.home.ui.CategoryListingFragment"
         android:label="Category"
         tools:layout="@layout/fragment_category_listing">
         <argument
@@ -97,16 +97,27 @@
     <!-- Item Detail Fragment -->
     <fragment
         android:id="@+id/itemDetailFragment"
-        android:name="com.example.tradeupapp.ui.detail.ItemDetailFragment"
+        android:name="com.example.tradeupapp.features.listing.ui.ItemDetailFragment"
         android:label="Item Details">
         <argument
             android:name="itemId"
             app:argType="string" />
+        <!-- Navigation actions for buttons -->
+        <action
+            android:id="@+id/action_itemDetailFragment_to_chatFragment"
+            app:destination="@id/nav_chat"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_itemDetailFragment_to_checkoutFragment"
+            app:destination="@id/checkoutFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
     <fragment
         android:id="@+id/nav_add"
-        android:name="com.example.tradeupapp.ui.add.AddItemFragment"
+        android:name="com.example.tradeupapp.features.listing.ui.AddItemFragment"
         android:label="Add Item"
         tools:layout="@layout/fragment_add_item">
         <action
@@ -116,11 +127,18 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_nav_add_to_mapPickerFragment"
+            app:destination="@id/mapPickerFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
         android:id="@+id/itemPreviewFragment"
-        android:name="com.example.tradeupapp.ui.add.ItemPreviewFragment"
+        android:name="com.example.tradeupapp.features.listing.ui.ItemPreviewFragment"
         android:label="Preview"
         tools:layout="@layout/fragment_item_preview">
         <action
@@ -134,12 +152,12 @@
 
     <fragment
         android:id="@+id/nav_chat"
-        android:name="com.example.tradeupapp.ui.chat.ChatFragment"
+        android:name="com.example.tradeupapp.features.chat.ui.ChatFragment"
         android:label="Chat" />
 
     <fragment
         android:id="@+id/nav_profile"
-        android:name="com.example.tradeupapp.ui.profile.ProfileFragment"
+        android:name="com.example.tradeupapp.features.profile.ui.ProfileFragment"
         android:label="Profile">
         <action
             android:id="@+id/action_nav_profile_to_accountSettingsFragment"
@@ -166,7 +184,7 @@
 
     <fragment
         android:id="@+id/accountSettingsFragment"
-        android:name="com.example.tradeupapp.ui.profile.AccountSettingsFragment"
+        android:name="com.example.tradeupapp.features.profile.ui.AccountSettingsFragment"
         android:label="Account Settings">
         <action
             android:id="@+id/action_accountSettingsFragment_to_deleteAccountFragment"
@@ -179,17 +197,17 @@
 
     <fragment
         android:id="@+id/deleteAccountFragment"
-        android:name="com.example.tradeupapp.ui.profile.DeleteAccountFragment"
+        android:name="com.example.tradeupapp.features.profile.ui.DeleteAccountFragment"
         android:label="Delete Account" />
 
     <fragment
         android:id="@+id/editProfileFragment"
-        android:name="com.example.tradeupapp.ui.profile.EditProfileFragment"
+        android:name="com.example.tradeupapp.features.profile.ui.EditProfileFragment"
         android:label="Edit Profile" />
 
     <fragment
         android:id="@+id/manageListingsFragment"
-        android:name="com.example.tradeupapp.ui.profile.ManageListingsFragment"
+        android:name="com.example.tradeupapp.features.profile.ui.ManageListingsFragment"
         android:label="My Listings">
         <action
             android:id="@+id/action_manageListingsFragment_to_itemPreviewFragment"
@@ -209,14 +227,14 @@
 
     <fragment
         android:id="@+id/notificationFragment"
-        android:name="com.example.tradeupapp.ui.notification.NotificationFragment"
+        android:name="com.example.tradeupapp.features.home.ui.NotificationFragment"
         android:label="Notifications" />
 
 
     <!-- All Categories Fragment -->
     <fragment
         android:id="@+id/allCategoriesFragment"
-        android:name="com.example.tradeupapp.ui.category.AllCategoriesFragment"
+        android:name="com.example.tradeupapp.features.home.ui.AllCategoriesFragment"
         android:label="All Categories"
         tools:layout="@layout/fragment_all_categories">
         <action
@@ -229,7 +247,7 @@
     <!-- Recommended Listing Fragment -->
     <fragment
         android:id="@+id/recommendedListingFragment"
-        android:name="com.example.tradeupapp.ui.listings.RecommendedListingFragment"
+        android:name="com.example.tradeupapp.features.listing.ui.RecommendedListingFragment"
         android:label="Recommended For You"
         tools:layout="@layout/fragment_listing">
         <action
@@ -242,7 +260,7 @@
     <!-- Nearby Listing Fragment -->
     <fragment
         android:id="@+id/nearbyListingFragment"
-        android:name="com.example.tradeupapp.ui.listings.NearbyListingFragment"
+        android:name="com.example.tradeupapp.features.listing.ui.NearbyListingFragment"
         android:label="Near You"
         tools:layout="@layout/fragment_listing">
         <action
@@ -255,7 +273,7 @@
     <!-- Recent Listing Fragment -->
     <fragment
         android:id="@+id/recentListingFragment"
-        android:name="com.example.tradeupapp.ui.listings.RecentListingFragment"
+        android:name="com.example.tradeupapp.features.listing.ui.RecentListingFragment"
         android:label="Recently Added"
         tools:layout="@layout/fragment_listing">
         <action
@@ -283,4 +301,25 @@
             android:defaultValue="true"
             app:argType="boolean" />
     </action>
+
+    <fragment
+        android:id="@+id/checkoutFragment"
+        android:name="com.example.tradeupapp.features.payment.ui.CheckoutFragment"
+        android:label="Checkout"
+        tools:layout="@layout/fragment_checkout">
+        <argument
+            android:name="item"
+            app:argType="com.example.tradeupapp.models.ItemModel" />
+        <argument
+            android:name="isBuyNow"
+            app:argType="boolean"
+            android:defaultValue="false" />
+    </fragment>
+
+    <!-- Map Picker Fragment -->
+    <fragment
+        android:id="@+id/mapPickerFragment"
+        android:name="com.example.tradeupapp.features.listing.ui.MapPickerFragment"
+        android:label="Select Location"
+        tools:layout="@layout/fragment_map_picker" />
 </navigation>

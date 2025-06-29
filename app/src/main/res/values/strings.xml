@@ -3,6 +3,7 @@
     <string name="email_verification_sent">A verification link has been sent to %1$s. Please check your inbox and follow the instructions to verify your account.</string>
     <string name="resend_timer">You can request another email in %1$d seconds</string>
     <string name="no_items_found_in_category">No items found in %1$s category</string>
+    <string name="item_image">Item image</string>
 
     <!-- Buyer History -->
     <string name="saved_items">Saved Items</string>
@@ -11,6 +12,17 @@
     <string name="no_saved_items">You haven\'t saved any items yet</string>
     <string name="no_offers">You haven\'t made any offers yet</string>
     <string name="no_purchases">You haven\'t made any purchases yet</string>
+
+    <!-- Item Detail Strings -->
+    <string name="error_item_not_found">Error: Item not found</string>
+    <string name="condition_format">Condition: %1$s</string>
+    <string name="location_format">Location: %1$s</string>
+    <string name="buy_now">Buy Now</string>
+    <string name="make_offer">Make Offer</string>
+    <string name="message_seller">Message Seller</string>
+    <string name="similar_items">Similar Items</string>
+    <string name="item_details">Item Details</string>
+    <string name="seller_information">Seller Information</string>
 
     <!-- Font families for typography -->
     <string name="font_family_display">sans-serif</string>

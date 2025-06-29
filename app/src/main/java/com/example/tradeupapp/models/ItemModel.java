@@ -7,10 +7,12 @@ import android.os.Parcelable;
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class ItemModel implements Parcelable {
     private String id;
+    private String userId; // ID of the user who posted the item
     private String title;
     private String description;
     private double price;
@@ -22,6 +24,7 @@ public class ItemModel implements Parcelable {
     private int viewCount;
     private int interactionCount;
     private String tag; // Product tag for categorization
+    private Date dateAdded; // Date when the item was added
 
     public ItemModel() {
         photoUris = new ArrayList<>();
@@ -41,6 +44,7 @@ public class ItemModel implements Parcelable {
     // Parcelable implementation
     protected ItemModel(Parcel in) {
         id = in.readString();
+        userId = in.readString();
         title = in.readString();
         description = in.readString();
         price = in.readDouble();
@@ -53,6 +57,7 @@ public class ItemModel implements Parcelable {
         viewCount = in.readInt();
         interactionCount = in.readInt();
         tag = in.readString();
+        dateAdded = new Date(in.readLong());
     }
 
     public static final Creator<ItemModel> CREATOR = new Creator<ItemModel>() {
@@ -75,6 +80,7 @@ public class ItemModel implements Parcelable {
     @Override
     public void writeToParcel(@NonNull Parcel dest, int flags) {
         dest.writeString(id);
+        dest.writeString(userId);
         dest.writeString(title);
         dest.writeString(description);
         dest.writeDouble(price);
@@ -86,6 +92,7 @@ public class ItemModel implements Parcelable {
         dest.writeInt(viewCount);
         dest.writeInt(interactionCount);
         dest.writeString(tag);
+        dest.writeLong(dateAdded.getTime());
     }
 
     // Getters and Setters
@@ -95,6 +102,14 @@ public class ItemModel implements Parcelable {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getTitle() {
@@ -189,5 +204,13 @@ public class ItemModel implements Parcelable {
 
     public void setTag(String tag) {
         this.tag = tag;
+    }
+
+    public Date getDateAdded() {
+        return dateAdded;
+    }
+
+    public void setDateAdded(Date dateAdded) {
+        this.dateAdded = dateAdded;
     }
 }

@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="?attr/colorSurface">
+
+    <!-- Draggable handle -->
+    <View
+        android:layout_width="32dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="?attr/colorOutlineVariant"
+        android:backgroundTint="?attr/colorOutlineVariant" />
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Filter Options"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            android:textColor="?attr/colorOnSurface" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_reset_filters"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reset"
+            android:textColor="?attr/colorPrimary" />
+    </LinearLayout>
+
+    <!-- Status filter -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Status"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:textColor="?attr/colorOnSurface"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chip_group_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:singleSelection="false"
+        app:selectionRequired="false">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_status_all"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="All"
+            android:checked="true" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_status_available"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Available" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_status_sold"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sold" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_status_reserved"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reserved" />
+    </com.google.android.material.chip.ChipGroup>
+
+    <!-- Date range filter -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Date Added"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:textColor="?attr/colorOnSurface"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chip_group_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:singleSelection="true">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_date_all"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="All Time"
+            android:checked="true" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_date_today"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Today" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_date_week"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="This Week" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_date_month"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="This Month" />
+    </com.google.android.material.chip.ChipGroup>
+
+    <!-- Price Range section -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Price Range"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:textColor="?attr/colorOnSurface"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Price Range -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Min Price"
+            android:layout_weight="1"
+            app:prefixText="$"
+            app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_min_price"
+                android:inputType="numberDecimal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Space android:layout_width="16dp" android:layout_height="0dp"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Max Price"
+            android:layout_weight="1"
+            app:prefixText="$"
+            app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_max_price"
+                android:inputType="numberDecimal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+
+    <!-- Sort By section -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sort By"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:textColor="?attr/colorOnSurface"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp" />
+
+    <RadioGroup
+        android:id="@+id/radio_group_sort"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/radio_sort_newest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Newest First"
+            android:checked="true"
+            android:paddingVertical="8dp" />
+
+        <RadioButton
+            android:id="@+id/radio_sort_oldest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Oldest First"
+            android:paddingVertical="8dp" />
+
+        <RadioButton
+            android:id="@+id/radio_sort_price_low"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Price: Low to High"
+            android:paddingVertical="8dp" />
+
+        <RadioButton
+            android:id="@+id/radio_sort_price_high"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Price: High to Low"
+            android:paddingVertical="8dp" />
+
+        <RadioButton
+            android:id="@+id/radio_sort_popular"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Most Popular"
+            android:paddingVertical="8dp" />
+    </RadioGroup>
+
+    <!-- Apply button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_apply_filters"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Apply Filters"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:layout_marginTop="24dp"
+        android:paddingVertical="16dp"
+        app:cornerRadius="16dp" />
+</LinearLayout>
