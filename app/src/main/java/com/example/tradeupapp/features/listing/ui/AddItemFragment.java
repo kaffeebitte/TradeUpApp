@@ -113,32 +113,6 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
                     }
                 });
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
-
-        // Set up observer for map picker result
-        setupMapPickerResultObserver();
-    }
-
-    private void setupMapPickerResultObserver() {
-        // Using the correct method to get NavController
-        NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
-        navController.getCurrentBackStackEntry().getSavedStateHandle().getLiveData("location_data").observe(
-                getViewLifecycleOwner(), result -> {
-                    if (result != null && result instanceof Bundle) {
-                        Bundle locationData = (Bundle) result;
-                        double latitude = locationData.getDouble("latitude");
-                        double longitude = locationData.getDouble("longitude");
-                        String address = locationData.getString("address");
-
-                        // Update the location field with the selected address
-                        etLocation.setText(address);
-
-                        // Store the coordinates for later use when creating the item
-                        etLocation.setTag(new double[]{latitude, longitude});
-
-                        // Clear the result to avoid reprocessing on navigation
-                        navController.getCurrentBackStackEntry().getSavedStateHandle().set("location_data", null);
-                    }
-                });
     }
 
     @Override
@@ -156,6 +130,9 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
 
         // Setup click listeners for buttons
         setupClickListeners();
+
+        // Set up observer for map picker result - moved from onCreate()
+        setupMapPickerResultObserver();
     }
 
     private void initViews(View view) {
@@ -392,24 +369,42 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
         }
     }
 
+    private void setupMapPickerResultObserver() {
+        // Using the correct method to get NavController
+        NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+        navController.getCurrentBackStackEntry().getSavedStateHandle().getLiveData("location_data").observe(
+                getViewLifecycleOwner(), result -> {
+                    if (result != null && result instanceof Bundle) {
+                        Bundle locationData = (Bundle) result;
+                        double latitude = locationData.getDouble("latitude");
+                        double longitude = locationData.getDouble("longitude");
+                        String address = locationData.getString("address");
+
+                        // Update the location field with the selected address
+                        etLocation.setText(address);
+
+                        // Store the coordinates for later use when creating the item
+                        etLocation.setTag(new double[]{latitude, longitude});
+
+                        // Clear the result to avoid reprocessing on navigation
+                        navController.getCurrentBackStackEntry().getSavedStateHandle().set("location_data", null);
+                    }
+                });
+    }
+
     @Override
     public void onAddPhotoClicked() {
-        // Handle add photo click
-        openPhotoPicker();
+        // Launch the photo picker intent
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        photoPickerLauncher.launch(intent);
     }
 
     @Override
     public void onPhotoRemoved(int position) {
-        // Handle remove photo click
+        // Remove the photo from the adapter
         photoAdapter.removePhoto(position);
     }
 
-    private void openPhotoPicker() {
-        // Create an intent to open the image gallery
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        // Launch the photo picker activity
-        photoPickerLauncher.launch(intent);
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,

@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
         android:name=".TradeUpApplication"
@@ -17,6 +18,10 @@
         android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.TradeUpApp">
 
+        <!-- Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDZvzOC0KGVPp0sZm6wPdqIsvt5PZLd_uk" />
 
         <activity
             android:name=".features.auth.ui.AuthActivity"
@@ -26,6 +31,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
 
         <activity
             android:name=".MainActivity"

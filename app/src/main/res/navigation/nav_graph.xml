@@ -322,4 +322,11 @@
         android:name="com.example.tradeupapp.features.listing.ui.MapPickerFragment"
         android:label="Select Location"
         tools:layout="@layout/fragment_map_picker" />
+
+    <!-- Login Fragment -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.tradeupapp.features.auth.ui.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_login" />
 </navigation>

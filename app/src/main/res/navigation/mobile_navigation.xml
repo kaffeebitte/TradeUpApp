@@ -25,7 +25,7 @@
     <!-- Search Screen -->
     <fragment
         android:id="@+id/nav_search"
-        android:name="com.example.tradeupapp.ui.search.SearchFragment"
+        android:name="com.example.tradeupapp.features.search.ui.SearchFragment"
         android:label="Search"
         tools:layout="@layout/fragment_search">
         <action
@@ -36,7 +36,7 @@
     <!-- Recommendations Screen -->
     <fragment
         android:id="@+id/nav_recommendations"
-        android:name="com.example.tradeupapp.ui.recommendations.RecommendationsFragment"
+        android:name="com.example.tradeupapp.features.home.ui.RecommendationsFragment"
         android:label="Recommendations"
         tools:layout="@layout/fragment_recommendations">
         <action
@@ -50,7 +50,7 @@
     <!-- Add Item Screen -->
     <fragment
         android:id="@+id/nav_add"
-        android:name="com.example.tradeupapp.ui.add.AddItemFragment"
+        android:name="com.example.tradeupapp.features.listing.ui.AddItemFragment"
         android:label="Add Listing"
         tools:layout="@layout/fragment_add_item">
         <action
@@ -61,7 +61,7 @@
     <!-- Item Preview Screen -->
     <fragment
         android:id="@+id/itemPreviewFragment"
-        android:name="com.example.tradeupapp.ui.add.ItemPreviewFragment"
+        android:name="com.example.tradeupapp.features.listing.ui.ItemPreviewFragment"
         android:label="Preview"
         tools:layout="@layout/fragment_item_preview">
         <action
@@ -74,7 +74,7 @@
     <!-- Item Detail Screen -->
     <fragment
         android:id="@+id/itemDetailFragment"
-        android:name="com.example.tradeupapp.ui.detail.ItemDetailFragment"
+        android:name="com.example.tradeupapp.features.listing.ui.ItemDetailFragment"
         android:label="Item Details"
         tools:layout="@layout/fragment_item_detail">
         <argument
@@ -85,7 +85,7 @@
     <!-- Category Listing Screen -->
     <fragment
         android:id="@+id/categoryListingFragment"
-        android:name="com.example.tradeupapp.ui.category.CategoryListingFragment"
+        android:name="com.example.tradeupapp.features.search.ui.CategoryListingFragment"
         android:label="Category"
         tools:layout="@layout/fragment_category_listing">
         <argument
@@ -99,7 +99,7 @@
     <!-- Profile Management Screens -->
     <fragment
         android:id="@+id/nav_profile"
-        android:name="com.example.tradeupapp.ui.profile.ProfileFragment"
+        android:name="com.example.tradeupapp.features.profile.ui.ProfileFragment"
         android:label="Profile"
         tools:layout="@layout/fragment_profile">
         <action
@@ -112,7 +112,7 @@
 
     <fragment
         android:id="@+id/manageListingsFragment"
-        android:name="com.example.tradeupapp.ui.profile.ManageListingsFragment"
+        android:name="com.example.tradeupapp.features.listing.ui.ManageListingsFragment"
         android:label="My Listings"
         tools:layout="@layout/fragment_manage_listings">
         <action
@@ -126,7 +126,7 @@
     <!-- Admin Dashboard Screen -->
     <fragment
         android:id="@+id/adminDashboardFragment"
-        android:name="com.example.tradeupapp.ui.admin.AdminDashboardFragment"
+        android:name="com.example.tradeupapp.features.admin.ui.AdminDashboardFragment"
         android:label="Admin Dashboard"
         tools:layout="@layout/fragment_admin_dashboard" />
 </navigation>

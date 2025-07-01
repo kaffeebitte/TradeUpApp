@@ -8,4 +8,4 @@
     android:background="?attr/colorSurface"
     android:paddingHorizontal="16dp"
     android:clipToPadding="false"
-    tools:listitem="@layout/item_purchase_card" />
+    tools:listitem="@layout/item_listing_card" />

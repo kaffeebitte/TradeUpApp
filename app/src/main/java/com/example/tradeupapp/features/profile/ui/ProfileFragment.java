@@ -16,9 +16,12 @@ import androidx.navigation.Navigation;
 
 import com.example.tradeupapp.R;
 import com.example.tradeupapp.features.auth.ui.AuthActivity;
+import com.example.tradeupapp.features.auth.utils.LogoutManager;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ProfileFragment extends Fragment {
@@ -36,6 +39,7 @@ public class ProfileFragment extends Fragment {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
+    private LogoutManager logoutManager;
 
     @Nullable
     @Override
@@ -50,6 +54,10 @@ public class ProfileFragment extends Fragment {
         // Initialize Firebase
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+
+        // Initialize logout manager
+        logoutManager = LogoutManager.getInstance();
+        logoutManager.initializeGoogleSignIn(requireContext());
 
         // Initialize views
         initViews(view);
@@ -78,14 +86,48 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupUserProfile() {
-        // TODO: Get user information from database or shared preferences
-        usernameTextView.setText("Nguyễn Văn A");
-        userEmailTextView.setText("nguyenvana@gmail.com");
-        userBioTextView.setText("I love trading electronics and books!");
-        userRatingTextView.setText("4.9 (150)");
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser != null) {
+            // Display actual user information
+            String displayName = currentUser.getDisplayName();
+            String email = currentUser.getEmail();
 
-        // TODO: Load user avatar
-        // Glide.with(this).load(userAvatarUrl).into(profileImageView);
+            if (displayName != null && !displayName.isEmpty()) {
+                usernameTextView.setText(displayName);
+            } else {
+                usernameTextView.setText("Người dùng");
+            }
+
+            if (email != null) {
+                userEmailTextView.setText(email);
+            }
+
+            // Show email verification status
+            if (!currentUser.isEmailVerified() && !isGoogleUser(currentUser)) {
+                userBioTextView.setText("⚠️ Email chưa được xác minh. Vui lòng kiểm tra hộp thư của bạn.");
+                userBioTextView.setTextColor(getResources().getColor(android.R.color.holo_orange_dark));
+            } else {
+                userBioTextView.setText("Tài khoản đã được xác minh ✓");
+                userBioTextView.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+            }
+
+            // TODO: Load user rating from Firestore
+            userRatingTextView.setText("4.9 (150)");
+
+            // TODO: Load user avatar
+            // Glide.with(this).load(userAvatarUrl).into(profileImageView);
+        }
+    }
+
+    private boolean isGoogleUser(FirebaseUser user) {
+        if (user.getProviderData() != null) {
+            for (com.google.firebase.auth.UserInfo userInfo : user.getProviderData()) {
+                if ("google.com".equals(userInfo.getProviderId())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void checkAdminStatus() {
@@ -104,37 +146,49 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupClickListeners() {
-        // Handle click on Edit Profile button
         editProfileButton.setOnClickListener(v -> {
-            // Navigate to edit profile screen
-            Navigation.findNavController(requireView()).navigate(R.id.action_nav_profile_to_editProfileFragment);
+            // TODO: Navigate to edit profile when navigation action is added
+            Toast.makeText(requireContext(), "Chỉnh sửa hồ sơ", Toast.LENGTH_SHORT).show();
         });
 
-        // Handle click on Account Settings button
         accountSettingsButton.setOnClickListener(v -> {
-            Navigation.findNavController(requireView()).navigate(R.id.action_nav_profile_to_accountSettingsFragment);
+            // TODO: Navigate to account settings when navigation action is added
+            Toast.makeText(requireContext(), "Cài đặt tài khoản", Toast.LENGTH_SHORT).show();
         });
 
-        // Handle click on My Listings button
         myListingsButton.setOnClickListener(v -> {
-            Navigation.findNavController(requireView()).navigate(R.id.action_nav_profile_to_manageListingsFragment);
+            // Navigate to user's listings
+            Toast.makeText(requireContext(), "Danh sách của tôi", Toast.LENGTH_SHORT).show();
         });
 
-        // Handle click on Admin Dashboard button
         adminDashboardButton.setOnClickListener(v -> {
-            Navigation.findNavController(requireView()).navigate(R.id.action_nav_profile_to_adminDashboardFragment);
+            // Navigate to admin dashboard
+            Toast.makeText(requireContext(), "Bảng điều khiển quản trị", Toast.LENGTH_SHORT).show();
         });
 
-        // Handle click on Logout button
-        logoutButton.setOnClickListener(v -> {
-            // TODO: Handle logout
-            // Show logout success message
-            Toast.makeText(requireContext(), "Đăng xuất thành công", Toast.LENGTH_SHORT).show();
+        logoutButton.setOnClickListener(v -> showLogoutDialog());
+    }
 
-            // Return to login screen
-            Intent intent = new Intent(requireContext(), AuthActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
+    private void showLogoutDialog() {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Đăng xuất")
+                .setMessage("Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?")
+                .setPositiveButton("Đăng xuất", (dialog, which) -> performLogout())
+                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private void performLogout() {
+        logoutManager.performLogout(requireContext(), new LogoutManager.LogoutCallback() {
+            @Override
+            public void onLogoutComplete() {
+                Toast.makeText(requireContext(), "Đã đăng xuất thành công", Toast.LENGTH_SHORT).show();
+
+                // Return to login screen
+                Intent intent = new Intent(requireContext(), AuthActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+            }
         });
     }
 }

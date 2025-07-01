@@ -4,12 +4,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -17,8 +20,18 @@ import androidx.navigation.Navigation;
 
 import com.example.tradeupapp.MainActivity;
 import com.example.tradeupapp.R;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 
 public class LoginFragment extends Fragment {
 
@@ -28,6 +41,10 @@ public class LoginFragment extends Fragment {
     private MaterialButton btnGoogleLogin;
     private TextView tvRegister;
     private TextView tvForgotPassword;
+
+    private FirebaseAuth mAuth;
+    private GoogleSignInClient mGoogleSignInClient;
+    private ActivityResultLauncher<Intent> googleSignInLauncher;
 
     @Nullable
     @Override
@@ -42,6 +59,15 @@ public class LoginFragment extends Fragment {
         initViews(view);
         setupTextWatchers();
         setupClickListeners(view);
+
+        // Initialize Firebase Auth
+        mAuth = FirebaseAuth.getInstance();
+
+        // Configure Google Sign-In
+        setupGoogleSignIn();
+
+        // Initialize the Activity Result Launcher for Google Sign-In
+        setupGoogleSignInLauncher();
     }
 
     private void initViews(View view) {
@@ -56,14 +82,10 @@ public class LoginFragment extends Fragment {
     private void setupTextWatchers() {
         TextWatcher textWatcher = new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // Not needed
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // Not needed
-            }
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
             @Override
             public void afterTextChanged(Editable s) {
@@ -79,8 +101,13 @@ public class LoginFragment extends Fragment {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
-        // Enable the login button only if both fields are not empty
-        btnLogin.setEnabled(!email.isEmpty() && !password.isEmpty());
+        // Enable the login button only if:
+        // 1. Email is not empty and has valid format
+        // 2. Password has at least 6 characters
+        boolean isEmailValid = !email.isEmpty() && isValidEmail(email);
+        boolean isPasswordValid = password.length() >= 6;
+
+        btnLogin.setEnabled(isEmailValid && isPasswordValid);
     }
 
     private void setupClickListeners(View view) {
@@ -106,32 +133,149 @@ public class LoginFragment extends Fragment {
         });
     }
 
+    @SuppressWarnings("deprecation")
+    private void setupGoogleSignIn() {
+        // Configure Google Sign-In to request the user's ID, email address, and basic profile
+        // Using the web client ID from google-services.json for com.example.tradeupapp
+        String webClientId = "966394665760-d73tf9klj68snprd3dukqmgbbo08hiun.apps.googleusercontent.com";
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(webClientId)
+                .requestEmail()
+                .build();
+
+        mGoogleSignInClient = GoogleSignIn.getClient(requireActivity(), gso);
+    }
+
+    private void setupGoogleSignInLauncher() {
+        googleSignInLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == requireActivity().RESULT_OK) {
+                        Intent data = result.getData();
+                        handleGoogleSignInResult(data);
+                    } else {
+                        // User cancelled the sign-in
+                        Toast.makeText(requireContext(), "Đăng nhập Google bị hủy", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+    }
+
+    @SuppressWarnings("deprecation")
+    private void handleGoogleSignInResult(Intent data) {
+        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+        try {
+            // Google Sign In was successful, authenticate with Firebase
+            GoogleSignInAccount account = task.getResult(ApiException.class);
+            if (account != null && account.getIdToken() != null) {
+                firebaseAuthWithGoogle(account.getIdToken());
+            } else {
+                Toast.makeText(requireContext(), "Không thể lấy thông tin từ Google", Toast.LENGTH_SHORT).show();
+            }
+        } catch (ApiException e) {
+            // Google Sign In failed
+            String errorMessage = "Đăng nhập Google thất bại";
+            if (e.getStatusCode() == 12501) {
+                errorMessage = "Người dùng hủy đăng nhập";
+            } else if (e.getStatusCode() == 7) {
+                errorMessage = "Lỗi kết nối mạng";
+            }
+            Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private boolean validateInput(String email, String password) {
         if (email.isEmpty()) {
             etEmail.setError("Email không được để trống");
+            etEmail.requestFocus();
+            return false;
+        }
+
+        if (!isValidEmail(email)) {
+            etEmail.setError("Định dạng email không hợp lệ");
+            etEmail.requestFocus();
             return false;
         }
 
         if (password.isEmpty()) {
             etPassword.setError("Mật khẩu không được để trống");
+            etPassword.requestFocus();
             return false;
         }
 
         return true;
     }
 
-    private void performLogin(String email, String password) {
-        // TODO: Implement authentication logic
-        Toast.makeText(requireContext(), "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+    private boolean isValidEmail(String email) {
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
 
-        // After successful login, navigate to main activity
-        Intent intent = new Intent(requireContext(), MainActivity.class);
-        startActivity(intent);
-        requireActivity().finish();
+    private void performLogin(String email, String password) {
+        // Show loading indicator or disable button
+        btnLogin.setEnabled(false);
+
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    btnLogin.setEnabled(true); // Re-enable button
+
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            // Check if the email is verified
+                            if (user.isEmailVerified()) {
+                                // Email is verified, allow login
+                                Toast.makeText(requireContext(), "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+                                navigateToMainActivity();
+                            } else {
+                                // Email is not verified, stay logged in but redirect to verification
+                                Toast.makeText(requireContext(),
+                                        "Vui lòng xác minh email của bạn trước khi tiếp tục",
+                                        Toast.LENGTH_LONG).show();
+
+                                // Navigate to email verification screen
+                                Bundle args = new Bundle();
+                                args.putString("email", email);
+                                Navigation.findNavController(requireView())
+                                        .navigate(R.id.action_loginFragment_to_emailVerificationFragment, args);
+                            }
+                        }
+                    } else {
+                        // Login failed
+                        String errorMessage = task.getException() != null ?
+                                task.getException().getMessage() :
+                                "Đăng nhập thất bại";
+                        Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     private void performGoogleSignIn() {
-        // TODO: Implement Google Sign-In
-        Toast.makeText(requireContext(), "Đăng nhập bằng Google", Toast.LENGTH_SHORT).show();
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        googleSignInLauncher.launch(signInIntent);
+    }
+
+    private void firebaseAuthWithGoogle(String idToken) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(requireActivity(), task -> {
+                    if (task.isSuccessful()) {
+                        // Sign in success
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            Toast.makeText(requireContext(), "Đăng nhập Google thành công", Toast.LENGTH_SHORT).show();
+                            navigateToMainActivity();
+                        }
+                    } else {
+                        // Sign in failed
+                        Toast.makeText(requireContext(), "Xác thực Firebase thất bại", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void navigateToMainActivity() {
+        Intent intent = new Intent(requireContext(), MainActivity.class);
+        startActivity(intent);
+        requireActivity().finish();
     }
 }
