@@ -81,7 +81,7 @@
     <!-- New Category Listing Fragment -->
     <fragment
         android:id="@+id/categoryListingFragment"
-        android:name="com.example.tradeupapp.features.home.ui.CategoryListingFragment"
+        android:name="com.example.tradeupapp.features.search.ui.CategoryListingFragment"
         android:label="Category"
         tools:layout="@layout/fragment_category_listing">
         <argument
@@ -207,7 +207,7 @@
 
     <fragment
         android:id="@+id/manageListingsFragment"
-        android:name="com.example.tradeupapp.features.profile.ui.ManageListingsFragment"
+        android:name="com.example.tradeupapp.features.listing.ui.ManageListingsFragment"
         android:label="My Listings">
         <action
             android:id="@+id/action_manageListingsFragment_to_itemPreviewFragment"
@@ -234,7 +234,7 @@
     <!-- All Categories Fragment -->
     <fragment
         android:id="@+id/allCategoriesFragment"
-        android:name="com.example.tradeupapp.features.home.ui.AllCategoriesFragment"
+        android:name="com.example.tradeupapp.features.search.ui.AllCategoriesFragment"
         android:label="All Categories"
         tools:layout="@layout/fragment_all_categories">
         <action
@@ -247,7 +247,7 @@
     <!-- Recommended Listing Fragment -->
     <fragment
         android:id="@+id/recommendedListingFragment"
-        android:name="com.example.tradeupapp.features.listing.ui.RecommendedListingFragment"
+        android:name="com.example.tradeupapp.features.home.ui.RecommendedListingFragment"
         android:label="Recommended For You"
         tools:layout="@layout/fragment_listing">
         <action
@@ -260,7 +260,7 @@
     <!-- Nearby Listing Fragment -->
     <fragment
         android:id="@+id/nearbyListingFragment"
-        android:name="com.example.tradeupapp.features.listing.ui.NearbyListingFragment"
+        android:name="com.example.tradeupapp.features.home.ui.NearbyListingFragment"
         android:label="Near You"
         tools:layout="@layout/fragment_listing">
         <action
@@ -273,7 +273,7 @@
     <!-- Recent Listing Fragment -->
     <fragment
         android:id="@+id/recentListingFragment"
-        android:name="com.example.tradeupapp.features.listing.ui.RecentListingFragment"
+        android:name="com.example.tradeupapp.features.home.ui.RecentListingFragment"
         android:label="Recently Added"
         tools:layout="@layout/fragment_listing">
         <action

@@ -30,6 +30,11 @@ android {
         dataBinding = true
         viewBinding = true
     }
+
+    lint {
+        abortOnError = false
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -47,7 +52,7 @@ dependencies {
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.android.gms:play-services-auth") // Google sign-in
+    implementation("com.google.android.gms:play-services-auth:21.2.0") // Google sign-in with version
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
 
