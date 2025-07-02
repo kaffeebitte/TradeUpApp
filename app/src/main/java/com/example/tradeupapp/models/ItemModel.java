@@ -13,10 +13,14 @@ import java.util.List;
 public class ItemModel implements Parcelable {
     private String id;
     private String userId; // ID of the user who posted the item
+    private String sellerId; // Explicit seller reference (same as userId for consistency)
     private String title;
     private String description;
     private double price;
+    private double originalPrice; // Original listing price for discount tracking
     private String category;
+    private String subcategory; // More specific categorization
+    private String categoryId; // Reference to categories collection
     private String condition;
     private String location;
     private List<Uri> photoUris;
@@ -26,12 +30,98 @@ public class ItemModel implements Parcelable {
     private String tag; // Product tag for categorization
     private Date dateAdded; // Date when the item was added
 
+    // Enhanced fields for marketplace functionality
+    private double weight; // Weight in kg for shipping
+    private Dimensions dimensions; // Size information
+    private List<String> shippingOptions; // Available shipping methods
+    private List<String> keyFeatures; // Searchable attributes
+    private boolean isPromoted; // Paid promotions
+    private Date promotionExpiry; // Promotion end date
+    private boolean negotiable; // Price negotiation allowed
+
+    // Add relationship field to connect with ListingModel
+    private String listingId; // Reference to original ListingModel if applicable
+    private String transactionId; // Reference to transaction that created this item record
+
+    // Inner class for dimensions
+    public static class Dimensions implements Parcelable {
+        private double length;
+        private double width;
+        private double height;
+
+        public Dimensions() {
+        }
+
+        public Dimensions(double length, double width, double height) {
+            this.length = length;
+            this.width = width;
+            this.height = height;
+        }
+
+        protected Dimensions(Parcel in) {
+            length = in.readDouble();
+            width = in.readDouble();
+            height = in.readDouble();
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeDouble(length);
+            dest.writeDouble(width);
+            dest.writeDouble(height);
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        public static final Creator<Dimensions> CREATOR = new Creator<Dimensions>() {
+            @Override
+            public Dimensions createFromParcel(Parcel in) {
+                return new Dimensions(in);
+            }
+
+            @Override
+            public Dimensions[] newArray(int size) {
+                return new Dimensions[size];
+            }
+        };
+
+        // Getters and setters
+        public double getLength() {
+            return length;
+        }
+
+        public void setLength(double length) {
+            this.length = length;
+        }
+
+        public double getWidth() {
+            return width;
+        }
+
+        public void setWidth(double width) {
+            this.width = width;
+        }
+
+        public double getHeight() {
+            return height;
+        }
+
+        public void setHeight(double height) {
+            this.height = height;
+        }
+    }
+
     public ItemModel() {
         photoUris = new ArrayList<>();
+        shippingOptions = new ArrayList<>();
+        keyFeatures = new ArrayList<>();
     }
 
     public ItemModel(String title, String description, double price, String category,
-                    String condition, String location, List<Uri> photoUris) {
+                     String condition, String location, List<Uri> photoUris) {
         this.title = title;
         this.description = description;
         this.price = price;
@@ -58,6 +148,19 @@ public class ItemModel implements Parcelable {
         interactionCount = in.readInt();
         tag = in.readString();
         dateAdded = new Date(in.readLong());
+        listingId = in.readString();
+        transactionId = in.readString();
+        sellerId = in.readString();
+        originalPrice = in.readDouble();
+        subcategory = in.readString();
+        categoryId = in.readString();
+        weight = in.readDouble();
+        dimensions = in.readParcelable(Dimensions.class.getClassLoader());
+        shippingOptions = in.createStringArrayList();
+        keyFeatures = in.createStringArrayList();
+        isPromoted = in.readByte() != 0;
+        promotionExpiry = new Date(in.readLong());
+        negotiable = in.readByte() != 0;
     }
 
     public static final Creator<ItemModel> CREATOR = new Creator<ItemModel>() {
@@ -93,6 +196,108 @@ public class ItemModel implements Parcelable {
         dest.writeInt(interactionCount);
         dest.writeString(tag);
         dest.writeLong(dateAdded.getTime());
+        dest.writeString(listingId);
+        dest.writeString(transactionId);
+        dest.writeString(sellerId);
+        dest.writeDouble(originalPrice);
+        dest.writeString(subcategory);
+        dest.writeString(categoryId);
+        dest.writeDouble(weight);
+        dest.writeParcelable(dimensions, flags);
+        dest.writeStringList(shippingOptions);
+        dest.writeStringList(keyFeatures);
+        dest.writeByte((byte) (isPromoted ? 1 : 0));
+        dest.writeLong(promotionExpiry != null ? promotionExpiry.getTime() : -1);
+        dest.writeByte((byte) (negotiable ? 1 : 0));
+    }
+
+    // Enhanced getters and setters
+    public String getSellerId() {
+        return sellerId;
+    }
+
+    public void setSellerId(String sellerId) {
+        this.sellerId = sellerId;
+    }
+
+    public double getOriginalPrice() {
+        return originalPrice;
+    }
+
+    public void setOriginalPrice(double originalPrice) {
+        this.originalPrice = originalPrice;
+    }
+
+    public String getSubcategory() {
+        return subcategory;
+    }
+
+    public void setSubcategory(String subcategory) {
+        this.subcategory = subcategory;
+    }
+
+    public String getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(String categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
+    }
+
+    public Dimensions getDimensions() {
+        return dimensions;
+    }
+
+    public void setDimensions(Dimensions dimensions) {
+        this.dimensions = dimensions;
+    }
+
+    public List<String> getShippingOptions() {
+        return shippingOptions;
+    }
+
+    public void setShippingOptions(List<String> shippingOptions) {
+        this.shippingOptions = shippingOptions;
+    }
+
+    public List<String> getKeyFeatures() {
+        return keyFeatures;
+    }
+
+    public void setKeyFeatures(List<String> keyFeatures) {
+        this.keyFeatures = keyFeatures;
+    }
+
+    public boolean isPromoted() {
+        return isPromoted;
+    }
+
+    public void setPromoted(boolean promoted) {
+        isPromoted = promoted;
+    }
+
+    public Date getPromotionExpiry() {
+        return promotionExpiry;
+    }
+
+    public void setPromotionExpiry(Date promotionExpiry) {
+        this.promotionExpiry = promotionExpiry;
+    }
+
+    public boolean isNegotiable() {
+        return negotiable;
+    }
+
+    public void setNegotiable(boolean negotiable) {
+        this.negotiable = negotiable;
     }
 
     // Getters and Setters
@@ -212,5 +417,21 @@ public class ItemModel implements Parcelable {
 
     public void setDateAdded(Date dateAdded) {
         this.dateAdded = dateAdded;
+    }
+
+    public String getListingId() {
+        return listingId;
+    }
+
+    public void setListingId(String listingId) {
+        this.listingId = listingId;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
     }
 }

@@ -1,0 +1,200 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isValidUser() {
+      return isAuthenticated() &&
+             request.auth.token.email_verified == true;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own profile and other users' public profiles
+      allow read: if isAuthenticated();
+
+      // Users can only create/update their own profile
+      allow create: if isOwner(userId) &&
+                       isValidUser() &&
+                       request.resource.data.keys().hasAll(['email', 'displayName']) &&
+                       request.resource.data.email == request.auth.token.email;
+
+      allow update: if isOwner(userId) &&
+                       isValidUser() &&
+                       // Prevent changing critical fields
+                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['email', 'id', 'joinDate']);
+
+      // Users cannot delete their profiles (use soft delete with isActive field)
+      allow delete: if false;
+    }
+
+    // Items collection
+    match /items/{itemId} {
+      // Anyone can read available items
+      allow read: if isAuthenticated();
+
+      // Only authenticated users can create items
+      allow create: if isValidUser() &&
+                       isOwner(request.resource.data.userId) &&
+                       request.resource.data.keys().hasAll(['title', 'description', 'price', 'category', 'userId', 'sellerId']) &&
+                       request.resource.data.userId == request.resource.data.sellerId;
+
+      // Only item owner can update their items
+      allow update: if isValidUser() &&
+                       isOwner(resource.data.userId) &&
+                       // Prevent changing ownership
+                       request.resource.data.userId == resource.data.userId &&
+                       request.resource.data.sellerId == resource.data.sellerId;
+
+      // Only item owner can delete their items
+      allow delete: if isValidUser() && isOwner(resource.data.userId);
+    }
+
+    // Categories collection (read-only for users)
+    match /categories/{categoryId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only admins can modify categories via server-side code
+    }
+
+    // Chats collection
+    match /chats/{chatId} {
+      // Only chat participants can read the chat
+      allow read: if isAuthenticated() &&
+                     request.auth.uid in resource.data.participants;
+
+      // Users can create chats if they're a participant
+      allow create: if isValidUser() &&
+                       request.auth.uid in request.resource.data.participants &&
+                       request.resource.data.participants.size() == 2;
+
+      // Only participants can update chat metadata
+      allow update: if isValidUser() &&
+                       request.auth.uid in resource.data.participants &&
+                       request.resource.data.participants == resource.data.participants;
+
+      // Chat messages subcollection
+      match /messages/{messageId} {
+        // Only chat participants can read messages
+        allow read: if isAuthenticated() &&
+                       request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+
+        // Only chat participants can send messages
+        allow create: if isValidUser() &&
+                         request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants &&
+                         isOwner(request.resource.data.senderId);
+
+        // Messages cannot be updated or deleted (immutable)
+        allow update, delete: if false;
+      }
+    }
+
+    // Offers collection
+    match /offers/{offerId} {
+      // Item owner and offer maker can read the offer
+      allow read: if isAuthenticated() && (
+                     isOwner(resource.data.buyerId) ||
+                     isOwner(resource.data.sellerId)
+                  );
+
+      // Only authenticated users can make offers
+      allow create: if isValidUser() &&
+                       isOwner(request.resource.data.buyerId) &&
+                       request.resource.data.keys().hasAll(['itemId', 'buyerId', 'sellerId', 'amount']);
+
+      // Only offer maker can update their offers (before acceptance)
+      allow update: if isValidUser() &&
+                       isOwner(resource.data.buyerId) &&
+                       resource.data.status == 'pending';
+
+      // Offers cannot be deleted
+      allow delete: if false;
+    }
+
+    // Transactions collection
+    match /transactions/{transactionId} {
+      // Only buyer and seller can read transaction details
+      allow read: if isAuthenticated() && (
+                     isOwner(resource.data.buyerId) ||
+                     isOwner(resource.data.sellerId)
+                  );
+
+      // Transactions are created by server-side code only
+      allow create: if false;
+
+      // Only participants can update transaction status in specific scenarios
+      allow update: if isValidUser() && (
+                       isOwner(resource.data.buyerId) ||
+                       isOwner(resource.data.sellerId)
+                    ) &&
+                    // Only allow updating specific status fields
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'completedAt']);
+
+      // Transactions cannot be deleted
+      allow delete: if false;
+    }
+
+    // Reviews collection
+    match /reviews/{reviewId} {
+      // Anyone can read reviews
+      allow read: if isAuthenticated();
+
+      // Only transaction participants can create reviews
+      allow create: if isValidUser() &&
+                       isOwner(request.resource.data.reviewerId) &&
+                       request.resource.data.keys().hasAll(['transactionId', 'reviewerId', 'reviewedUserId', 'rating']);
+
+      // Reviews cannot be updated or deleted (immutable)
+      allow update, delete: if false;
+    }
+
+    // Notifications collection
+    match /notifications/{notificationId} {
+      // Users can only read their own notifications
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Notifications are created by server-side code
+      allow create: if false;
+
+      // Users can mark their notifications as read
+      allow update: if isValidUser() &&
+                       isOwner(resource.data.userId) &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead', 'readAt']);
+
+      // Users can delete their own notifications
+      allow delete: if isValidUser() && isOwner(resource.data.userId);
+    }
+
+    // Reports collection
+    match /reports/{reportId} {
+      // Only the reporter can read their own reports
+      allow read: if isAuthenticated() && isOwner(resource.data.reporterId);
+
+      // Authenticated users can create reports
+      allow create: if isValidUser() &&
+                       isOwner(request.resource.data.reporterId) &&
+                       request.resource.data.keys().hasAll(['reporterId', 'reportedUserId', 'reason']);
+
+      // Reports cannot be updated or deleted by users
+      allow update, delete: if false;
+    }
+
+    // Admin logs collection (server-side only)
+    match /admin_logs/{logId} {
+      allow read, write: if false;
+    }
+
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

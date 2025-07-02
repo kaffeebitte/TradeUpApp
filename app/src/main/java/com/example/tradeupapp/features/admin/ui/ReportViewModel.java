@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.tradeupapp.models.Report;
+import com.example.tradeupapp.models.ReportModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -28,19 +28,29 @@ public class ReportViewModel extends ViewModel {
 
         String reporterId = auth.getCurrentUser().getUid();
 
-        Report report = new Report(reporterId, reportedItemId, reportedUserId, reason, null);
+        ReportModel report;
+
+        if (reportedItemId != null && !reportedItemId.isEmpty()) {
+            // This is a listing report
+            report = new ReportModel(reporterId, reportedUserId, reportedItemId,
+                    ReportModel.Reason.fromString(reason), null);
+        } else {
+            // This is a user report
+            report = new ReportModel(reporterId, reportedUserId,
+                    ReportModel.Reason.fromString(reason), null);
+        }
 
         db.collection("reports")
-            .add(report)
-            .addOnSuccessListener(documentReference -> {
-                // Update the report with its generated ID
-                String reportId = documentReference.getId();
-                documentReference.update("id", reportId);
+                .add(report)
+                .addOnSuccessListener(documentReference -> {
+                    // Update the report with its generated ID
+                    String reportId = documentReference.getId();
+                    documentReference.update("id", reportId);
 
-                reportSubmissionResult.setValue(true);
-            })
-            .addOnFailureListener(e -> {
-                reportSubmissionResult.setValue(false);
-            });
+                    reportSubmissionResult.setValue(true);
+                })
+                .addOnFailureListener(e -> {
+                    reportSubmissionResult.setValue(false);
+                });
     }
 }

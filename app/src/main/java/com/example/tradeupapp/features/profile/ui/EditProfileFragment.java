@@ -29,6 +29,7 @@ public class EditProfileFragment extends Fragment {
     private TextInputEditText nameEditText;
     private TextInputEditText bioEditText;
     private TextInputEditText contactEditText;
+    private TextInputEditText locationEditText;
     private MaterialButton saveButton;
 
     private ActivityResultLauncher<Intent> imagePickerLauncher;
@@ -63,6 +64,7 @@ public class EditProfileFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         initViews(view);
+        setupToolbar(view);
         loadUserData();
         setupListeners();
     }
@@ -73,18 +75,45 @@ public class EditProfileFragment extends Fragment {
         nameEditText = view.findViewById(R.id.et_name);
         bioEditText = view.findViewById(R.id.et_bio);
         contactEditText = view.findViewById(R.id.et_contact);
+        locationEditText = view.findViewById(R.id.et_location);
         saveButton = view.findViewById(R.id.btn_save);
     }
 
     private void loadUserData() {
-        // TODO: Load user data from database or shared preferences
-        // For now, we'll use some placeholder data
-        nameEditText.setText("Nguyễn Văn A");
-        bioEditText.setText("I love trading electronics and books!");
-        contactEditText.setText("0123456789");
+        // Get user data from arguments
+        Bundle args = getArguments();
+        if (args != null && args.containsKey("user")) {
+            com.example.tradeupapp.models.User user = (com.example.tradeupapp.models.User) args.getSerializable("user");
+            if (user != null) {
+                // Set user data to UI elements
+                nameEditText.setText(user.getDisplayName());
+                bioEditText.setText(user.getBio());
+                contactEditText.setText(user.getPhoneNumber());
 
-        // TODO: Load user avatar
-        // Glide.with(this).load(userAvatarUrl).into(avatarImageView);
+                // Convert GeoPoint to String for location
+                if (user.getLocation() != null) {
+                    String locationStr = String.format("%.5f, %.5f",
+                            user.getLocation().getLatitude(),
+                            user.getLocation().getLongitude());
+                    locationEditText.setText(locationStr);
+                } else {
+                    locationEditText.setText("");
+                }
+
+                // Load user avatar if available
+                if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
+                    try {
+                        com.bumptech.glide.Glide.with(this)
+                            .load(user.getPhotoUrl())
+                            .placeholder(R.drawable.ic_user_24)
+                            .into(avatarImageView);
+                    } catch (Exception e) {
+                        // Fallback if Glide fails
+                        avatarImageView.setImageResource(R.drawable.ic_user_24);
+                    }
+                }
+            }
+        }
     }
 
     private void setupListeners() {
@@ -109,6 +138,7 @@ public class EditProfileFragment extends Fragment {
         String name = nameEditText.getText().toString().trim();
         String bio = bioEditText.getText().toString().trim();
         String contact = contactEditText.getText().toString().trim();
+        String locationText = locationEditText.getText().toString().trim();
 
         // Validate input
         if (name.isEmpty()) {
@@ -116,12 +146,112 @@ public class EditProfileFragment extends Fragment {
             return;
         }
 
-        // TODO: Save user data to database or shared preferences
+        // Get the current user
+        com.google.firebase.auth.FirebaseUser firebaseUser = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser == null) {
+            Toast.makeText(requireContext(), "You need to be logged in to update your profile", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // Show success message
-        Toast.makeText(requireContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
+        // Show loading state
+        saveButton.setEnabled(false);
+        saveButton.setText("Saving...");
 
-        // Navigate back
-        Navigation.findNavController(requireView()).navigateUp();
+        // Get reference to the user document
+        String uid = firebaseUser.getUid();
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+        com.google.firebase.firestore.DocumentReference userRef = db.collection("users").document(uid);
+
+        // Create a map with the updated fields
+        java.util.Map<String, Object> updates = new java.util.HashMap<>();
+        updates.put("displayName", name);
+        updates.put("bio", bio);
+        updates.put("phoneNumber", contact);
+        updates.put("updatedAt", new java.util.Date());
+
+        // Parse location string to GeoPoint if possible
+        if (!locationText.isEmpty()) {
+            try {
+                // Try to parse the location string (format: "latitude, longitude")
+                String[] coordinates = locationText.split(",");
+                if (coordinates.length == 2) {
+                    double latitude = Double.parseDouble(coordinates[0].trim());
+                    double longitude = Double.parseDouble(coordinates[1].trim());
+
+                    // Create a GeoPoint object and add it to updates
+                    com.google.firebase.firestore.GeoPoint geoPoint =
+                            new com.google.firebase.firestore.GeoPoint(latitude, longitude);
+                    updates.put("location", geoPoint);
+                }
+            } catch (NumberFormatException e) {
+                // If parsing fails, don't update the location
+                Toast.makeText(requireContext(), "Invalid location format. Location not updated.",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        // If user selected a new image, upload it first
+        if (selectedImageUri != null) {
+            uploadImageToCloudinary(selectedImageUri, uid, updates, userRef);
+        } else {
+            // Otherwise just update the text fields
+            updateUserProfile(userRef, updates);
+        }
+    }
+
+    private void uploadImageToCloudinary(Uri imageUri, String userId, java.util.Map<String, Object> updates, com.google.firebase.firestore.DocumentReference userRef) {
+        // Get instance of CloudinaryManager
+        com.example.tradeupapp.utils.CloudinaryManager cloudinaryManager = com.example.tradeupapp.utils.CloudinaryManager.getInstance();
+
+        // Upload image to Cloudinary
+        cloudinaryManager.uploadImage(imageUri, new com.example.tradeupapp.utils.CloudinaryManager.ImageUploadCallback() {
+            @Override
+            public void onSuccess(String imageUrl) {
+                // Add the Cloudinary URL to the updates
+                updates.put("photoUrl", imageUrl);
+
+                // Update Firestore document with all data including the image URL
+                updateUserProfile(userRef, updates);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                // Handle upload error
+                requireActivity().runOnUiThread(() -> {
+                    saveButton.setEnabled(true);
+                    saveButton.setText("Save Changes");
+                    Toast.makeText(requireContext(), "Failed to upload image: " + errorMessage, Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+
+    private void updateUserProfile(com.google.firebase.firestore.DocumentReference userRef, java.util.Map<String, Object> updates) {
+        userRef.update(updates)
+            .addOnSuccessListener(aVoid -> {
+                // Update successful
+                saveButton.setEnabled(true);
+                saveButton.setText("Save Changes");
+
+                // Show success message
+                Toast.makeText(requireContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
+
+                // Navigate back
+                Navigation.findNavController(requireView()).navigateUp();
+            })
+            .addOnFailureListener(e -> {
+                // Handle any errors
+                saveButton.setEnabled(true);
+                saveButton.setText("Save Changes");
+                Toast.makeText(requireContext(), "Failed to update profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+
+    private void setupToolbar(View view) {
+        androidx.appcompat.widget.Toolbar toolbar = view.findViewById(R.id.toolbar);
+        toolbar.setNavigationOnClickListener(v -> {
+            // Navigate back when the back button is clicked
+            Navigation.findNavController(requireView()).navigateUp();
+        });
     }
 }

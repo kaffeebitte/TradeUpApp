@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -26,7 +27,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tradeupapp.R;
-import com.example.tradeupapp.features.chat.adapter.ChatAdapter;
+import com.example.tradeupapp.shared.adapters.ChatAdapter;
 import com.example.tradeupapp.models.ChatMessage;
 
 import java.util.ArrayList;
@@ -40,6 +41,10 @@ public class ChatFragment extends Fragment {
     private EditText messageEditText;
     private ImageButton sendButton;
     private ImageButton attachmentButton;
+    private ImageButton emojiButton;
+    private View imagePreviewContainer;
+    private ImageButton removeImageButton;
+    private ImageView imagePreview;
     private Toolbar toolbar;
     private ChatAdapter chatAdapter;
     private List<ChatMessage> messageList;
@@ -51,7 +56,10 @@ public class ChatFragment extends Fragment {
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     selectedImageUri = result.getData().getData();
-                    Toast.makeText(requireContext(), "Ảnh đã được đính kèm", Toast.LENGTH_SHORT).show();
+                    // Show the selected image in the preview
+                    imagePreview.setImageURI(selectedImageUri);
+                    imagePreviewContainer.setVisibility(View.VISIBLE);
+                    Toast.makeText(requireContext(), "Image attached", Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -100,9 +108,22 @@ public class ChatFragment extends Fragment {
         messageEditText = view.findViewById(R.id.message_edit_text);
         sendButton = view.findViewById(R.id.send_button);
         attachmentButton = view.findViewById(R.id.attachment_button);
+        emojiButton = view.findViewById(R.id.emoji_button);
+        imagePreviewContainer = view.findViewById(R.id.image_preview_container);
+        removeImageButton = view.findViewById(R.id.remove_image_button);
+        imagePreview = view.findViewById(R.id.image_preview);
 
         // Setup attachment button click listener
         attachmentButton.setOnClickListener(v -> openGallery());
+
+        // Setup remove image button click listener
+        removeImageButton.setOnClickListener(v -> {
+            selectedImageUri = null;
+            imagePreview.setImageURI(null);
+            imagePreviewContainer.setVisibility(View.GONE);
+        });
+
+        // TODO: Setup emoji button click listener
     }
 
     private void setupRecyclerView() {

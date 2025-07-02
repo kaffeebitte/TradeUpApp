@@ -1,15 +1,102 @@
+# Android Studio/IntelliJ IDEA
 *.iml
 .gradle
 /local.properties
+/.idea/
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.idea/deploymentTargetDropDown.xml
+/.idea/compiler.xml
+/.idea/gradle.xml
+/.idea/misc.xml
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+
+# Firebase/Google Cloud credentials and sensitive files
+**/serviceAccountKey.json
+**/google-services.json
+**/*-secret.json
+**/*-secrets.json
+**/*secret*.json
+**/*key*.json
+**/*.keystore
+**/*.jks
+**/key.properties
+**/keys.properties
+**/*.p12
+**/*.pem
+**/*.der
+**/.env*
+**/.secret*
+
+# Firebase local emulator files
+**/firebase-debug.log
+**/firestore-debug.log
+**/ui-debug.log
+**/.firebase/
+**/pglite-debug.log
+
+# Node modules and logs
+**/node_modules/
+**/npm-debug.log
+**/yarn-debug.log
+**/yarn-error.log
+**/package-lock.json
+**/yarn.lock
+
+# Compiled output
+**/dist/
+**/tmp/
+**/out-tsc/
+**/bazel-out/
+
+# Android build outputs
+**/bin/
+**/gen/
+**/out/
+**/release/
+
+# Gradle specific
+.gradle/
+/build/
+**/build/
+gradlew.bat
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+
+# Temporary files
+*~
+*.tmp
+*.bak
+*.swp
+*.log
+.temp/
+.tmp/
+
+# Generated files
+jacoco.exec
+lint-report.html
+lint-report.xml
+lint-results.xml
+
+# Tools
+/bfg.jar
+/sensitive-files.txt
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

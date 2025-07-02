@@ -6,6 +6,7 @@ import android.os.StrictMode;
 
 import androidx.appcompat.app.AppCompatDelegate;
 
+import com.example.tradeupapp.utils.CloudinaryManager;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
@@ -25,6 +26,9 @@ public class TradeUpApplication extends Application {
 
         // Initialize Firebase
         FirebaseApp.initializeApp(this);
+
+        // Initialize Cloudinary
+        CloudinaryManager.initialize(this);
 
         // Configure Firestore for better performance
         configureFirestore();

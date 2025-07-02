@@ -1,66 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="24dp"
+    android:background="?attr/colorSurface">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Make an Offer"
-        android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+        android:textAppearance="?attr/textAppearanceTitleLarge"
+        android:textColor="?attr/colorOnSurface" />
 
     <!-- Item info section -->
-    <LinearLayout
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="16dp"
-        android:background="@android:color/background_light"
-        android:padding="12dp">
+        style="@style/Widget.Material3.CardView.Outlined"
+        android:layout_marginTop="16dp">
 
-        <TextView
-            android:id="@+id/tv_item_title"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-            android:text="Item Title" />
+            android:orientation="vertical"
+            android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tv_item_price"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-            android:text="$0.00"
-            android:layout_marginTop="4dp" />
-    </LinearLayout>
+            <TextView
+                android:id="@+id/tv_item_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:text="Item Title" />
+
+            <TextView
+                android:id="@+id/tv_item_price"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorPrimary"
+                android:text="$0.00"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- Offer amount input -->
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/et_offer_layout"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Your Offer"
+        app:prefixText="$"
         android:layout_marginTop="16dp">
+
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_offer_amount"
             android:inputType="numberDecimal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodyLarge"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Message input -->
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/et_message_layout"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Message to Seller (Optional)"
         android:layout_marginTop="16dp">
+
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_message"
             android:inputType="textMultiLine"
             android:minLines="2"
+            android:gravity="top|start"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodyMedium"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Button row -->
@@ -80,6 +100,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_submit_offer"
+            style="@style/Widget.Material3.Button.ElevatedButton"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"

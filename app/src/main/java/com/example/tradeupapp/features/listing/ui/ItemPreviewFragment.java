@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,7 +15,7 @@ import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.tradeupapp.R;
-import com.example.tradeupapp.features.listing.adapter.ImagePhotoAdapter;
+import com.example.tradeupapp.shared.adapters.ImagePhotoAdapter;
 import com.example.tradeupapp.models.ItemModel;
 import com.google.android.material.button.MaterialButton;
 
@@ -111,7 +110,7 @@ public class ItemPreviewFragment extends Fragment {
 
             // Navigate back to home screen
             NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
-            navController.navigate(R.id.nav_home);
+            navController.navigate(R.id.nav_recommendations);
         });
     }
 }

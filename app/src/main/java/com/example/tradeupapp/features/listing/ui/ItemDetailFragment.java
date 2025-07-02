@@ -1,6 +1,5 @@
 package com.example.tradeupapp.features.listing.ui;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -19,7 +18,8 @@ import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.tradeupapp.R;
-import com.example.tradeupapp.features.listing.adapter.ImageSliderAdapter;
+import com.example.tradeupapp.core.services.FirebaseService;
+import com.example.tradeupapp.shared.adapters.ImageSliderAdapter;
 import com.example.tradeupapp.features.listing.viewmodel.ItemDetailViewModel;
 import com.example.tradeupapp.models.ItemModel;
 import com.google.android.material.button.MaterialButton;
@@ -39,17 +39,23 @@ public class ItemDetailFragment extends Fragment {
     private TabLayout tabLayoutIndicators;
     private MaterialButton btnBuyNow, btnMakeOffer, btnMessage;
     private ItemDetailViewModel viewModel;
+    private FirebaseService firebaseService;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         viewModel = new ViewModelProvider(this).get(ItemDetailViewModel.class);
+        firebaseService = FirebaseService.getInstance();
 
         // Get item from arguments
         if (getArguments() != null && getArguments().containsKey("item")) {
             item = getArguments().getParcelable("item");
             viewModel.setItem(item);
+        } else if (getArguments() != null && getArguments().containsKey("itemId")) {
+            // Load item by ID from Firebase
+            String itemId = getArguments().getString("itemId");
+            loadItemFromFirebase(itemId);
         }
     }
 
@@ -83,11 +89,40 @@ public class ItemDetailFragment extends Fragment {
             if (itemModel != null) {
                 item = itemModel;
                 updateUI();
-            } else if (isUsingDummyData()) {
-                setupDummyData();
-                updateUI();
             } else {
-                showError();
+                // Try to load from Firebase if no item data
+                String itemId = getArguments() != null ? getArguments().getString("itemId") : null;
+                if (itemId != null) {
+                    loadItemFromFirebase(itemId);
+                } else {
+                    showError();
+                }
+            }
+        });
+    }
+
+    private void loadItemFromFirebase(String itemId) {
+        if (itemId == null || itemId.isEmpty()) {
+            showError();
+            return;
+        }
+
+        firebaseService.getItemById(itemId, new FirebaseService.ItemCallback() {
+            @Override
+            public void onSuccess(ItemModel itemModel) {
+                if (getActivity() != null && isAdded()) {
+                    item = itemModel;
+                    viewModel.setItem(item);
+                    updateUI();
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null && isAdded()) {
+                    Toast.makeText(getActivity(), "Error loading item: " + error, Toast.LENGTH_SHORT).show();
+                    showError();
+                }
             }
         });
     }
@@ -141,15 +176,15 @@ public class ItemDetailFragment extends Fragment {
         toolbar = view.findViewById(R.id.toolbar);
 
         // Initialize item detail views
-        itemTitle = view.findViewById(R.id.item_title);
-        itemPrice = view.findViewById(R.id.item_price);
-        itemDescription = view.findViewById(R.id.item_description);
-        itemCondition = view.findViewById(R.id.item_condition);
-        itemLocation = view.findViewById(R.id.item_location);
+        itemTitle = view.findViewById(R.id.tv_item_title);
+        itemPrice = view.findViewById(R.id.tv_item_price);
+        itemDescription = view.findViewById(R.id.tv_description);
+        itemCondition = view.findViewById(R.id.chip_condition);
+        itemLocation = view.findViewById(R.id.tv_item_location);
 
         // Initialize image slider
-        imageViewPager = view.findViewById(R.id.view_pager_images);
-        tabLayoutIndicators = view.findViewById(R.id.tab_layout_indicators);
+        imageViewPager = view.findViewById(R.id.item_images_viewpager);
+        tabLayoutIndicators = view.findViewById(R.id.image_indicator);
 
         // Initialize buttons
         btnBuyNow = view.findViewById(R.id.btn_buy_now);
@@ -180,9 +215,13 @@ public class ItemDetailFragment extends Fragment {
     }
 
     private void showError() {
-        Toast.makeText(requireContext(), R.string.error_item_not_found, Toast.LENGTH_SHORT).show();
-        // Navigate back safely after a short delay
-        mainHandler.postDelayed(this::safeNavigateBack, 500);
+        if (getActivity() != null && isAdded()) {
+            Toast.makeText(getActivity(), "Item not found", Toast.LENGTH_SHORT).show();
+            // Navigate back or show error state
+            if (getView() != null) {
+                Navigation.findNavController(getView()).popBackStack();
+            }
+        }
     }
 
     private void setupButtonClickListeners() {
@@ -225,57 +264,6 @@ public class ItemDetailFragment extends Fragment {
     private void safeNavigate(int actionId, Bundle args) {
         if (isAdded() && getView() != null) {
             Navigation.findNavController(requireView()).navigate(actionId, args);
-        }
-    }
-
-    // Method to check if we should use dummy data
-    private boolean isUsingDummyData() {
-        return true; // For now, always use dummy data
-    }
-
-    // Setup dummy data for testing
-    private void setupDummyData() {
-        if (item == null) {
-            item = new ItemModel();
-            item.setId("dummy_item_123");
-            item.setUserId("dummy_user_456");
-            item.setTitle("Bàn học gỗ cao cấp");
-            item.setDescription("Bàn học gỗ cao cấp, màu nâu, có ngăn kéo, phù hợp cho học sinh, sinh viên và người làm việc tại nhà.");
-            item.setPrice(850000);
-            item.setCategory("Đồ nội thất");
-            item.setCondition("Còn mới 90%");
-            item.setLocation("Quận 1, TP.HCM");
-            item.setStatus("Available");
-
-            // Add dummy image URIs - use existing drawable resources
-            try {
-                Uri dummyUri1 = Uri.parse("android.resource://" + requireContext().getPackageName() + "/" + R.drawable.ic_image_placeholder);
-                item.addPhotoUri(dummyUri1);
-
-                // Add a second image to demonstrate the slider
-                Uri dummyUri2 = Uri.parse("android.resource://" + requireContext().getPackageName() + "/" + R.drawable.sample_item_image);
-                item.addPhotoUri(dummyUri2);
-            } catch (Exception e) {
-                // Fallback in case resource doesn't exist
-                // Log error but continue without images
-                e.printStackTrace();
-            }
-
-            // Update the ViewModel with our dummy data
-            viewModel.setItem(item);
-        }
-
-        // Always ensure ViewPager has an adapter, regardless of photo status
-        if (isAdded()) {
-            ImageSliderAdapter imageAdapter = new ImageSliderAdapter(
-                    requireContext(),
-                    item.getPhotoUris() != null ? item.getPhotoUris() : new ArrayList<>());
-            imageViewPager.setAdapter(imageAdapter);
-
-            // Always set up indicators for the image slider
-            new TabLayoutMediator(tabLayoutIndicators, imageViewPager, (tab, position) -> {
-                // No text for tabs, they are just indicators
-            }).attach();
         }
     }
 }

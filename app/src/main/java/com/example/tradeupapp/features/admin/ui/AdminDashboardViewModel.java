@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.tradeupapp.models.Report;
+import com.example.tradeupapp.models.ReportModel;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -13,11 +13,11 @@ import java.util.List;
 
 public class AdminDashboardViewModel extends ViewModel {
 
-    private final MutableLiveData<List<Report>> reports = new MutableLiveData<>();
+    private final MutableLiveData<List<ReportModel>> reports = new MutableLiveData<>();
     private final MutableLiveData<Boolean> statusUpdateResult = new MutableLiveData<>();
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    public LiveData<List<Report>> getReports() {
+    public LiveData<List<ReportModel>> getReports() {
         return reports;
     }
 
@@ -30,9 +30,9 @@ public class AdminDashboardViewModel extends ViewModel {
             .orderBy("createdAt")
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
-                List<Report> reportList = new ArrayList<>();
+                List<ReportModel> reportList = new ArrayList<>();
                 for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                    Report report = document.toObject(Report.class);
+                    ReportModel report = document.toObject(ReportModel.class);
                     reportList.add(report);
                 }
                 reports.setValue(reportList);

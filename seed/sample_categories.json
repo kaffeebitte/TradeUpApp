@@ -1,0 +1,121 @@
+{
+  "categories": [
+    {
+      "id": "cat_001",
+      "name": "Electronics",
+      "description": "Phones, laptops, tablets, and electronic devices",
+      "icon": "ic_category_electronics",
+      "itemCount": 25,
+      "isActive": true,
+      "sortOrder": 1,
+      "subcategories": [
+        "Smartphones",
+        "Laptops",
+        "Tablets",
+        "Cameras",
+        "Audio",
+        "Gaming",
+        "Wearables",
+        "Musical Instruments"
+      ]
+    },
+    {
+      "id": "cat_002",
+      "name": "Vehicles",
+      "description": "Cars, motorcycles, bicycles and transportation",
+      "icon": "ic_category_vehicles",
+      "itemCount": 18,
+      "isActive": true,
+      "sortOrder": 2,
+      "subcategories": [
+        "Motorcycles",
+        "Bicycles",
+        "Cars",
+        "Scooters",
+        "Parts & Accessories"
+      ]
+    },
+    {
+      "id": "cat_003",
+      "name": "Clothing",
+      "description": "Fashion, accessories and apparel",
+      "icon": "ic_category_clothing",
+      "itemCount": 32,
+      "isActive": true,
+      "sortOrder": 3,
+      "subcategories": [
+        "Men's Fashion",
+        "Women's Fashion",
+        "Shoes",
+        "Bags",
+        "Accessories",
+        "Watches"
+      ]
+    },
+    {
+      "id": "cat_004",
+      "name": "Home & Garden",
+      "description": "Furniture, appliances and home items",
+      "icon": "ic_category_home",
+      "itemCount": 22,
+      "isActive": true,
+      "sortOrder": 4,
+      "subcategories": [
+        "Home Appliances",
+        "Furniture",
+        "Kitchen",
+        "Garden",
+        "Decor",
+        "Tools"
+      ]
+    },
+    {
+      "id": "cat_005",
+      "name": "Books",
+      "description": "Books, magazines and educational materials",
+      "icon": "ic_category_books",
+      "itemCount": 15,
+      "isActive": true,
+      "sortOrder": 5,
+      "subcategories": [
+        "Fiction",
+        "Non-Fiction",
+        "Textbooks",
+        "Comics",
+        "Children's Books"
+      ]
+    },
+    {
+      "id": "cat_006",
+      "name": "Sports & Outdoors",
+      "description": "Sports equipment and outdoor gear",
+      "icon": "ic_category_sports",
+      "itemCount": 12,
+      "isActive": true,
+      "sortOrder": 6,
+      "subcategories": [
+        "Fitness",
+        "Outdoor",
+        "Sports Equipment",
+        "Camping",
+        "Water Sports"
+      ]
+    },
+    {
+      "id": "cat_007",
+      "name": "Toys & Games",
+      "description": "Toys, games and collectibles",
+      "icon": "ic_category_toys",
+      "itemCount": 8,
+      "isActive": true,
+      "sortOrder": 7,
+      "subcategories": [
+        "Action Figures",
+        "Board Games",
+        "Educational Toys",
+        "Collectibles",
+        "Puzzles"
+      ]
+    }
+  ]
+}

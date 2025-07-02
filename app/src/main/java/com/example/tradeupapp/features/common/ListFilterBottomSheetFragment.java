@@ -104,65 +104,56 @@ public class ListFilterBottomSheetFragment extends BottomSheetDialogFragment {
 
         // Reset filters button
         btnResetFilters.setOnClickListener(v -> {
-            resetFilters();
+            // Clear status selections
+            for (int i = 0; i < chipGroupStatus.getChildCount(); i++) {
+                Chip chip = (Chip) chipGroupStatus.getChildAt(i);
+                chip.setChecked(false);
+            }
+
+            // Clear date range selections
+            for (int i = 0; i < chipGroupDate.getChildCount(); i++) {
+                Chip chip = (Chip) chipGroupDate.getChildAt(i);
+                chip.setChecked(false);
+            }
+
+            // Clear price range
+            etMinPrice.setText("");
+            etMaxPrice.setText("");
+
+            // Reset sort options to default (usually first option)
+            if (radioGroupSort.getChildCount() > 0) {
+                ((RadioButton) radioGroupSort.getChildAt(0)).setChecked(true);
+            }
         });
     }
 
     private List<String> getSelectedStatuses() {
         List<String> selectedStatuses = new ArrayList<>();
-        // Check which status chips are selected
         for (int i = 0; i < chipGroupStatus.getChildCount(); i++) {
             Chip chip = (Chip) chipGroupStatus.getChildAt(i);
             if (chip.isChecked()) {
                 selectedStatuses.add(chip.getText().toString());
             }
         }
-
-        // If "All" is selected or no chip is selected, include all statuses
-        if (selectedStatuses.isEmpty() || selectedStatuses.contains("All")) {
-            selectedStatuses.clear();
-            selectedStatuses.add("All");
-        }
-
         return selectedStatuses;
     }
 
     private String getSelectedDateRange() {
-        // Check which date range chip is selected
         for (int i = 0; i < chipGroupDate.getChildCount(); i++) {
             Chip chip = (Chip) chipGroupDate.getChildAt(i);
             if (chip.isChecked()) {
                 return chip.getText().toString();
             }
         }
-        return "All Time"; // Default
+        return ""; // No date range selected
     }
 
     private String getSelectedSortOption() {
-        // Get selected radio button for sort option
         int selectedId = radioGroupSort.getCheckedRadioButtonId();
         if (selectedId != -1) {
-            RadioButton radioButton = radioGroupSort.findViewById(selectedId);
+            RadioButton radioButton = getView().findViewById(selectedId);
             return radioButton.getText().toString();
         }
-        return "Newest First"; // Default
-    }
-
-    private void resetFilters() {
-        // Reset status chips
-        ((Chip) chipGroupStatus.findViewById(R.id.chip_status_all)).setChecked(true);
-        ((Chip) chipGroupStatus.findViewById(R.id.chip_status_available)).setChecked(false);
-        ((Chip) chipGroupStatus.findViewById(R.id.chip_status_sold)).setChecked(false);
-        ((Chip) chipGroupStatus.findViewById(R.id.chip_status_reserved)).setChecked(false);
-
-        // Reset date chip
-        ((Chip) chipGroupDate.findViewById(R.id.chip_date_all)).setChecked(true);
-
-        // Reset price inputs
-        etMinPrice.setText("");
-        etMaxPrice.setText("");
-
-        // Reset sort option
-        ((RadioButton) radioGroupSort.findViewById(R.id.radio_sort_newest)).setChecked(true);
+        return "Newest"; // Default sort option
     }
 }

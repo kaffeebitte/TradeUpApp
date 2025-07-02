@@ -1,4 +1,4 @@
-package com.example.tradeupapp.adapters;
+package com.example.tradeupapp.shared.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,8 +42,18 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public void onBindViewHolder(@NonNull NotificationViewHolder holder, int position) {
         NotificationModel notification = notifications.get(position);
         holder.titleTextView.setText(notification.getTitle());
-        holder.messageTextView.setText(notification.getMessage());
-        holder.timeTextView.setText(notification.getTime());
+        holder.messageTextView.setText(notification.getBody()); // Use getBody() instead of getMessage()
+
+        // Format timestamp to a readable string
+        String formattedTime = "Just now";
+        if (notification.getCreatedAt() != null) {
+            formattedTime = android.text.format.DateUtils.getRelativeTimeSpanString(
+                    notification.getCreatedAt().toDate().getTime(),
+                    System.currentTimeMillis(),
+                    android.text.format.DateUtils.MINUTE_IN_MILLIS
+            ).toString();
+        }
+        holder.timeTextView.setText(formattedTime);
 
         // Change background color based on read status
         if (notification.isRead()) {
@@ -53,7 +63,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         }
 
         holder.itemView.setOnClickListener(v -> {
-            notification.setRead(true);
+            notification.markAsRead(); // Use markAsRead() instead of setRead(true)
             notifyItemChanged(position);
             if (listener != null) {
                 listener.onNotificationClick(notification, position);

@@ -32,6 +32,7 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 @SuppressWarnings("deprecation")
 public class RegisterFragment extends Fragment {
@@ -39,6 +40,7 @@ public class RegisterFragment extends Fragment {
     private TextInputEditText etEmail;
     private TextInputEditText etPassword;
     private TextInputEditText etConfirmPassword;
+    private TextInputEditText etName; // Added: field for user to enter their name
     private MaterialButton btnRegister;
     private MaterialButton btnGoogleRegister;
     private TextView tvLogin;
@@ -46,6 +48,7 @@ public class RegisterFragment extends Fragment {
     private FirebaseAuth mAuth;
     private GoogleSignInClient mGoogleSignInClient;
     private ActivityResultLauncher<Intent> googleSignInLauncher;
+    private FirebaseFirestore db;
 
     @Nullable
     @Override
@@ -63,6 +66,7 @@ public class RegisterFragment extends Fragment {
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         // Configure Google Sign-In
         setupGoogleSignIn();
@@ -75,6 +79,7 @@ public class RegisterFragment extends Fragment {
         etEmail = view.findViewById(R.id.et_email);
         etPassword = view.findViewById(R.id.et_password);
         etConfirmPassword = view.findViewById(R.id.et_confirm_password);
+        etName = view.findViewById(R.id.et_name); // Initialize name field
         btnRegister = view.findViewById(R.id.btn_register);
         btnGoogleRegister = view.findViewById(R.id.btn_google_register); // Fixed: was btn_google_signin
         tvLogin = view.findViewById(R.id.tv_login);
@@ -97,15 +102,17 @@ public class RegisterFragment extends Fragment {
         etEmail.addTextChangedListener(textWatcher);
         etPassword.addTextChangedListener(textWatcher);
         etConfirmPassword.addTextChangedListener(textWatcher);
+        etName.addTextChangedListener(textWatcher); // Added: watch changes to name field
     }
 
     private void validateInputFields() {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
         String confirmPassword = etConfirmPassword.getText().toString().trim();
+        String name = etName.getText().toString().trim(); // Get name input
 
         // Enable register button only if all fields are filled and valid
-        boolean isValid = !email.isEmpty() && !password.isEmpty() && !confirmPassword.isEmpty() &&
+        boolean isValid = !email.isEmpty() && !password.isEmpty() && !confirmPassword.isEmpty() && !name.isEmpty() &&
                 isValidEmail(email) && isValidPassword(password) && password.equals(confirmPassword);
 
         btnRegister.setEnabled(isValid);
@@ -116,9 +123,10 @@ public class RegisterFragment extends Fragment {
             String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
             String confirmPassword = etConfirmPassword.getText().toString().trim();
+            String name = etName.getText().toString().trim(); // Get name input
 
-            if (validateInput(email, password, confirmPassword)) {
-                performRegistration(email, password);
+            if (validateInput(email, password, confirmPassword, name)) {
+                performRegistration(email, password, name);
             }
         });
 
@@ -131,7 +139,7 @@ public class RegisterFragment extends Fragment {
         });
     }
 
-    private boolean validateInput(String email, String password, String confirmPassword) {
+    private boolean validateInput(String email, String password, String confirmPassword, String name) {
         // Email validation
         if (email.isEmpty()) {
             etEmail.setError("Email không được để trống");
@@ -171,6 +179,13 @@ public class RegisterFragment extends Fragment {
             return false;
         }
 
+        // Name validation
+        if (name.isEmpty()) {
+            etName.setError("Tên không được để trống");
+            etName.requestFocus();
+            return false;
+        }
+
         return true;
     }
 
@@ -183,7 +198,7 @@ public class RegisterFragment extends Fragment {
         return password.length() >= 6;
     }
 
-    private void performRegistration(String email, String password) {
+    private void performRegistration(String email, String password, String name) {
         // Disable register button during registration
         btnRegister.setEnabled(false);
 
@@ -195,6 +210,9 @@ public class RegisterFragment extends Fragment {
                         // Registration successful
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
+                            // Create user document in Firestore
+                            saveUserToFirestore(user, name);
+
                             // Send email verification
                             sendEmailVerification(user, email);
                         }
@@ -293,6 +311,9 @@ public class RegisterFragment extends Fragment {
                         // Sign in success - Google accounts are automatically verified
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
+                            // Create or update user document in Firestore
+                            saveUserToFirestore(user, null); // No need to pass name for Google sign-in
+
                             Toast.makeText(requireContext(), "Đăng ký Google thành công", Toast.LENGTH_SHORT).show();
                             navigateToMainActivity();
                         }
@@ -307,5 +328,97 @@ public class RegisterFragment extends Fragment {
         Intent intent = new Intent(requireContext(), MainActivity.class);
         startActivity(intent);
         requireActivity().finish();
+    }
+
+    private void saveUserToFirestore(FirebaseUser firebaseUser, String name) {
+        String displayName;
+        // Make isGoogleAccount final to fix lambda reference error
+        final boolean isGoogleAccount;
+
+        // Check if the registration is via Google
+        if (firebaseUser.getProviderData() != null) {
+            boolean foundGoogleProvider = false;
+            for (com.google.firebase.auth.UserInfo userInfo : firebaseUser.getProviderData()) {
+                if ("google.com".equals(userInfo.getProviderId())) {
+                    foundGoogleProvider = true;
+                    break;
+                }
+            }
+            isGoogleAccount = foundGoogleProvider;
+        } else {
+            isGoogleAccount = false;
+        }
+
+        // For email/password registration, get the name from input field
+        if (!isGoogleAccount && name != null) {
+            displayName = name;
+            if (displayName.isEmpty()) {
+                displayName = "User"; // Default name if field is empty
+            }
+        } else {
+            // For Google registration, get name from Google account
+            displayName = firebaseUser.getDisplayName();
+            if (displayName == null || displayName.isEmpty()) {
+                displayName = "User"; // Default name if Google didn't provide one
+            }
+        }
+
+        // Create a new user document in Firestore using our User model
+        com.example.tradeupapp.models.User user = new com.example.tradeupapp.models.User(
+                firebaseUser.getUid(),
+                displayName,
+                firebaseUser.getEmail()
+        );
+
+        // The User constructor already sets some defaults:
+        // - role = "user"
+        // - rating = 0.0
+        // - totalReviews = 0
+        // - isActive = true
+        // - isDeleted = false
+        // - createdAt = Timestamp.now()
+
+        // These fields can be null as specified in requirements
+        if (firebaseUser.getPhoneNumber() != null) {
+            user.setPhoneNumber(firebaseUser.getPhoneNumber());
+        }
+
+        if (firebaseUser.getPhotoUrl() != null) {
+            user.setPhotoUrl(firebaseUser.getPhotoUrl().toString());
+        }
+
+        // Bio can be null but we'll set an empty string as default
+        user.setBio("");
+
+        // Location is allowed to be null
+        user.setLocation(null);
+
+        // Explicitly set deactivatedAt and deletedAt to null
+        user.setDeactivatedAt(null);
+        user.setDeletedAt(null);
+
+        // For final reference in lambda
+        final String finalDisplayName = displayName;
+
+        // Save the user data to Firestore
+        db.collection("users")
+                .document(firebaseUser.getUid())
+                .set(user)
+                .addOnSuccessListener(aVoid -> {
+                    // User data saved successfully
+                    if (isGoogleAccount) {
+                        // For Google accounts, we might want to update Firebase Auth display name if empty
+                        if (firebaseUser.getDisplayName() == null || firebaseUser.getDisplayName().isEmpty()) {
+                            com.google.firebase.auth.UserProfileChangeRequest profileUpdates = new com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                                    .setDisplayName(finalDisplayName)
+                                    .build();
+                            firebaseUser.updateProfile(profileUpdates);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Error saving user data
+                    Toast.makeText(requireContext(), "Lỗi lưu thông tin người dùng: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 }

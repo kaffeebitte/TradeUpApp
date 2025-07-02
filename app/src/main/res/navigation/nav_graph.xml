@@ -6,28 +6,6 @@
     app:startDestination="@id/nav_recommendations">
 
     <fragment
-        android:id="@+id/nav_home"
-        android:name="com.example.tradeupapp.features.home.ui.HomeFragment"
-        android:label="Home"
-        tools:layout="@layout/fragment_home">
-        <action
-            android:id="@+id/action_nav_home_to_nav_search"
-            app:destination="@id/nav_search"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim" />
-        <action
-            android:id="@+id/action_nav_home_to_nav_recommendations"
-            app:destination="@id/nav_recommendations"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim" />
-        <action
-            android:id="@+id/action_nav_home_to_itemDetailFragment"
-            app:destination="@id/itemDetailFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim" />
-    </fragment>
-
-    <fragment
         android:id="@+id/nav_search"
         android:name="com.example.tradeupapp.features.search.ui.SearchFragment"
         android:label="Search"
@@ -37,14 +15,19 @@
             app:destination="@id/itemDetailFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_search_to_categoryListingFragment"
+            app:destination="@id/categoryListingFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
-    <!-- New Recommendations Fragment -->
+    <!-- Recommendations Fragment -->
     <fragment
         android:id="@+id/nav_recommendations"
         android:name="com.example.tradeupapp.features.home.ui.RecommendationsFragment"
         android:label="Recommendations"
-        tools:layout="@layout/fragment_recommendations">
+        tools:layout="@layout/fragment_home">
         <action
             android:id="@+id/action_nav_recommendations_to_itemDetailFragment"
             app:destination="@id/itemDetailFragment"
@@ -55,7 +38,7 @@
             app:destination="@id/categoryListingFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim" />
-        <!-- New actions for "See All" buttons -->
+        <!-- "See All" buttons actions -->
         <action
             android:id="@+id/action_nav_recommendations_to_allCategoriesFragment"
             app:destination="@id/allCategoriesFragment"
@@ -76,9 +59,19 @@
             app:destination="@id/recentListingFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_recommendations_to_notificationFragment"
+            app:destination="@id/notificationFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_recommendations_to_nav_search"
+            app:destination="@id/nav_search"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
-    <!-- New Category Listing Fragment -->
+    <!-- Category related fragments -->
     <fragment
         android:id="@+id/categoryListingFragment"
         android:name="com.example.tradeupapp.features.search.ui.CategoryListingFragment"
@@ -94,18 +87,30 @@
             app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
-    <!-- Item Detail Fragment -->
+    <fragment
+        android:id="@+id/allCategoriesFragment"
+        android:name="com.example.tradeupapp.features.search.ui.AllCategoriesFragment"
+        android:label="All Categories"
+        tools:layout="@layout/fragment_all_categories">
+        <action
+            android:id="@+id/action_allCategoriesFragment_to_categoryListingFragment"
+            app:destination="@id/categoryListingFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
+    <!-- Item detail and listing fragments -->
     <fragment
         android:id="@+id/itemDetailFragment"
         android:name="com.example.tradeupapp.features.listing.ui.ItemDetailFragment"
-        android:label="Item Details">
+        android:label="Item Details"
+        tools:layout="@layout/fragment_item_detail">
         <argument
             android:name="itemId"
             app:argType="string" />
-        <!-- Navigation actions for buttons -->
         <action
             android:id="@+id/action_itemDetailFragment_to_chatFragment"
-            app:destination="@id/nav_chat"
+            app:destination="@id/chatDetailFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim" />
         <action
@@ -115,6 +120,7 @@
             app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
+    <!-- Add item and preview fragments -->
     <fragment
         android:id="@+id/nav_add"
         android:name="com.example.tradeupapp.features.listing.ui.AddItemFragment"
@@ -142,50 +148,104 @@
         android:label="Preview"
         tools:layout="@layout/fragment_item_preview">
         <action
-            android:id="@+id/action_itemPreviewFragment_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@id/nav_home"
+            android:id="@+id/action_itemPreviewFragment_to_nav_recommendations"
+            app:destination="@id/nav_recommendations"
+            app:popUpTo="@id/nav_recommendations"
             app:popUpToInclusive="true"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
+    <!-- Chat fragments -->
     <fragment
         android:id="@+id/nav_chat"
         android:name="com.example.tradeupapp.features.chat.ui.ChatFragment"
-        android:label="Chat" />
+        android:label="Chats"
+        tools:layout="@layout/fragment_chat">
+        <action
+            android:id="@+id/action_nav_chat_to_chatDetailFragment"
+            app:destination="@id/chatDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
 
+    <fragment
+        android:id="@+id/chatDetailFragment"
+        android:name="com.example.tradeupapp.features.chat.ui.ChatFragment"
+        android:label="Chat"
+        tools:layout="@layout/fragment_chat">
+        <argument
+            android:name="chatId"
+            app:argType="string" />
+        <argument
+            android:name="recipientId"
+            app:argType="string"
+            app:nullable="true" />
+        <action
+            android:id="@+id/action_chatDetailFragment_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
+    <!-- Profile related fragments -->
     <fragment
         android:id="@+id/nav_profile"
         android:name="com.example.tradeupapp.features.profile.ui.ProfileFragment"
-        android:label="Profile">
+        android:label="Profile"
+        tools:layout="@layout/fragment_profile">
         <action
             android:id="@+id/action_nav_profile_to_accountSettingsFragment"
             app:destination="@id/accountSettingsFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            app:exitAnim="@anim/nav_default_exit_anim" />
         <action
             android:id="@+id/action_nav_profile_to_editProfileFragment"
             app:destination="@id/editProfileFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            app:exitAnim="@anim/nav_default_exit_anim" />
         <action
-            android:id="@+id/action_nav_profile_to_manageListingsFragment"
-            app:destination="@id/manageListingsFragment"
+            android:id="@+id/action_nav_profile_to_adminDashboardFragment"
+            app:destination="@id/adminDashboardFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_profile_to_savedItemsFragment"
+            app:destination="@id/savedItemsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_profile_to_purchaseHistoryFragment"
+            app:destination="@id/purchaseHistoryFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_profile_to_offerHistoryFragment"
+            app:destination="@id/offerHistoryFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_profile_to_addItemFragment"
+            app:destination="@id/nav_add"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_profile_to_myListingsFragment"
+            app:destination="@id/myListingsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_profile_to_salesHistoryFragment"
+            app:destination="@id/salesHistoryFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
     <fragment
         android:id="@+id/accountSettingsFragment"
         android:name="com.example.tradeupapp.features.profile.ui.AccountSettingsFragment"
-        android:label="Account Settings">
+        android:label="Account Settings"
+        tools:layout="@layout/fragment_account_settings">
         <action
             android:id="@+id/action_accountSettingsFragment_to_deleteAccountFragment"
             app:destination="@id/deleteAccountFragment"
@@ -198,17 +258,20 @@
     <fragment
         android:id="@+id/deleteAccountFragment"
         android:name="com.example.tradeupapp.features.profile.ui.DeleteAccountFragment"
-        android:label="Delete Account" />
+        android:label="Delete Account"
+        tools:layout="@layout/fragment_account_settings" />
 
     <fragment
         android:id="@+id/editProfileFragment"
         android:name="com.example.tradeupapp.features.profile.ui.EditProfileFragment"
-        android:label="Edit Profile" />
+        android:label="Edit Profile"
+        tools:layout="@layout/fragment_edit_profile" />
 
     <fragment
         android:id="@+id/manageListingsFragment"
         android:name="com.example.tradeupapp.features.listing.ui.ManageListingsFragment"
-        android:label="My Listings">
+        android:label="My Listings"
+        tools:layout="@layout/fragment_manage_listings">
         <action
             android:id="@+id/action_manageListingsFragment_to_itemPreviewFragment"
             app:destination="@id/itemPreviewFragment"
@@ -223,28 +286,76 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/notificationFragment"
-        android:name="com.example.tradeupapp.features.home.ui.NotificationFragment"
-        android:label="Notifications" />
-
-
-    <!-- All Categories Fragment -->
-    <fragment
-        android:id="@+id/allCategoriesFragment"
-        android:name="com.example.tradeupapp.features.search.ui.AllCategoriesFragment"
-        android:label="All Categories"
-        tools:layout="@layout/fragment_all_categories">
         <action
-            android:id="@+id/action_allCategoriesFragment_to_categoryListingFragment"
-            app:destination="@id/categoryListingFragment"
+            android:id="@+id/action_manageListingsFragment_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
-    <!-- Recommended Listing Fragment -->
+    <!-- Transaction history fragments -->
+    <fragment
+        android:id="@+id/purchaseHistoryFragment"
+        android:name="com.example.tradeupapp.features.payment.ui.PurchaseHistoryFragment"
+        android:label="Purchase History"
+        tools:layout="@layout/fragment_purchase_history">
+        <action
+            android:id="@+id/action_purchaseHistoryFragment_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/offerHistoryFragment"
+        android:name="com.example.tradeupapp.features.payment.ui.OfferHistoryFragment"
+        android:label="Offer History"
+        tools:layout="@layout/fragment_offer_history">
+        <action
+            android:id="@+id/action_offerHistoryFragment_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/savedItemsFragment"
+        android:name="com.example.tradeupapp.features.home.ui.SavedItemsFragment"
+        android:label="Saved Items"
+        tools:layout="@layout/fragment_saved_items">
+        <action
+            android:id="@+id/action_savedItemsFragment_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
+    <!-- Admin Dashboard -->
+    <fragment
+        android:id="@+id/adminDashboardFragment"
+        android:name="com.example.tradeupapp.features.admin.ui.AdminDashboardFragment"
+        android:label="Admin Dashboard"
+        tools:layout="@layout/fragment_admin_dashboard" />
+
+    <!-- Notification Fragment -->
+    <fragment
+        android:id="@+id/notificationFragment"
+        android:name="com.example.tradeupapp.features.home.ui.NotificationFragment"
+        android:label="Notifications"
+        tools:layout="@layout/fragment_notifications">
+        <action
+            android:id="@+id/action_notificationFragment_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_notificationFragment_to_chatDetailFragment"
+            app:destination="@id/chatDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
+    <!-- "See All" listing fragments -->
     <fragment
         android:id="@+id/recommendedListingFragment"
         android:name="com.example.tradeupapp.features.home.ui.RecommendedListingFragment"
@@ -257,7 +368,6 @@
             app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
-    <!-- Nearby Listing Fragment -->
     <fragment
         android:id="@+id/nearbyListingFragment"
         android:name="com.example.tradeupapp.features.home.ui.NearbyListingFragment"
@@ -270,7 +380,6 @@
             app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
-    <!-- Recent Listing Fragment -->
     <fragment
         android:id="@+id/recentListingFragment"
         android:name="com.example.tradeupapp.features.home.ui.RecentListingFragment"
@@ -283,6 +392,95 @@
             app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
+    <!-- Payment and checkout -->
+    <fragment
+        android:id="@+id/checkoutFragment"
+        android:name="com.example.tradeupapp.features.payment.ui.CheckoutFragment"
+        android:label="Checkout"
+        tools:layout="@layout/fragment_checkout">
+        <argument
+            android:name="item"
+            app:argType="com.example.tradeupapp.models.ItemModel" />
+        <argument
+            android:name="isBuyNow"
+            app:argType="boolean"
+            android:defaultValue="false" />
+        <action
+            android:id="@+id/action_checkoutFragment_to_paymentSuccessFragment"
+            app:destination="@id/paymentSuccessFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popUpTo="@id/nav_recommendations" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/paymentSuccessFragment"
+        android:name="com.example.tradeupapp.features.payment.ui.CheckoutFragment"
+        android:label="Payment Success"
+        tools:layout="@layout/fragment_payment_success">
+        <action
+            android:id="@+id/action_paymentSuccessFragment_to_nav_recommendations"
+            app:destination="@id/nav_recommendations"
+            app:popUpTo="@id/nav_recommendations"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Map Picker Fragment -->
+    <fragment
+        android:id="@+id/mapPickerFragment"
+        android:name="com.example.tradeupapp.features.listing.ui.MapPickerFragment"
+        android:label="Select Location"
+        tools:layout="@layout/fragment_map_picker" />
+
+    <!-- Auth related fragments -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.tradeupapp.features.auth.ui.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_loginFragment_to_registerFragment"
+            app:destination="@id/registerFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_loginFragment_to_forgotPasswordFragment"
+            app:destination="@id/forgotPasswordFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <argument
+            android:name="isDeactivated"
+            android:defaultValue="false"
+            app:argType="boolean" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.tradeupapp.features.auth.ui.RegisterFragment"
+        android:label="Register"
+        tools:layout="@layout/fragment_register">
+        <action
+            android:id="@+id/action_registerFragment_to_emailVerificationFragment"
+            app:destination="@id/emailVerificationFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/forgotPasswordFragment"
+        android:name="com.example.tradeupapp.features.auth.ui.ForgotPasswordFragment"
+        android:label="Forgot Password"
+        tools:layout="@layout/fragment_forgot_password" />
+
+    <fragment
+        android:id="@+id/emailVerificationFragment"
+        android:name="com.example.tradeupapp.features.auth.ui.EmailVerificationFragment"
+        android:label="Email Verification"
+        tools:layout="@layout/fragment_email_verification">
+        <argument
+            android:name="email"
+            app:argType="string" />
+    </fragment>
 
     <!-- Global actions -->
     <action
@@ -302,31 +500,62 @@
             app:argType="boolean" />
     </action>
 
+    <action
+        android:id="@+id/action_global_to_home"
+        app:destination="@id/nav_recommendations"
+        app:popUpTo="@id/nav_graph"
+        app:popUpToInclusive="true" />
+
+    <!-- Cart Fragment -->
     <fragment
-        android:id="@+id/checkoutFragment"
-        android:name="com.example.tradeupapp.features.payment.ui.CheckoutFragment"
-        android:label="Checkout"
-        tools:layout="@layout/fragment_checkout">
-        <argument
-            android:name="item"
-            app:argType="com.example.tradeupapp.models.ItemModel" />
-        <argument
-            android:name="isBuyNow"
-            app:argType="boolean"
-            android:defaultValue="false" />
+        android:id="@+id/nav_cart"
+        android:name="com.example.tradeupapp.features.cart.ui.CartFragment"
+        android:label="Cart"
+        tools:layout="@layout/fragment_cart">
+        <action
+            android:id="@+id/action_cartFragment_to_checkoutFragment"
+            app:destination="@id/checkoutFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
-    <!-- Map Picker Fragment -->
+    <!-- Seller mode fragments -->
     <fragment
-        android:id="@+id/mapPickerFragment"
-        android:name="com.example.tradeupapp.features.listing.ui.MapPickerFragment"
-        android:label="Select Location"
-        tools:layout="@layout/fragment_map_picker" />
+        android:id="@+id/myListingsFragment"
+        android:name="com.example.tradeupapp.features.profile.ui.MyListingsFragment"
+        android:label="My Listings"
+        tools:layout="@layout/fragment_my_listings">
+        <action
+            android:id="@+id/action_myListingsFragment_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_myListingsFragment_to_editItemFragment"
+            app:destination="@id/editItemFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
 
-    <!-- Login Fragment -->
     <fragment
-        android:id="@+id/loginFragment"
-        android:name="com.example.tradeupapp.features.auth.ui.LoginFragment"
-        android:label="Login"
-        tools:layout="@layout/fragment_login" />
+        android:id="@+id/salesHistoryFragment"
+        android:name="com.example.tradeupapp.features.profile.ui.SalesHistoryFragment"
+        android:label="Sales History"
+        tools:layout="@layout/fragment_sales_history">
+        <action
+            android:id="@+id/action_salesHistoryFragment_to_itemDetailFragment"
+            app:destination="@id/itemDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/editItemFragment"
+        android:name="com.example.tradeupapp.features.listing.ui.EditItemFragment"
+        android:label="Edit Listing"
+        tools:layout="@layout/fragment_edit_item">
+        <argument
+            android:name="itemId"
+            app:argType="string" />
+    </fragment>
 </navigation>

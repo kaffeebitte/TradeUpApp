@@ -13,7 +13,7 @@ import androidx.fragment.app.DialogFragment;
 
 import com.example.tradeupapp.R;
 import com.example.tradeupapp.databinding.DialogReportDetailsBinding;
-import com.example.tradeupapp.models.Report;
+import com.example.tradeupapp.models.ReportModel;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -99,7 +99,7 @@ public class ReportDetailsDialog extends DialogFragment {
             return;
         }
 
-        Report report = document.toObject(Report.class);
+        ReportModel report = document.toObject(ReportModel.class);
         if (report == null) {
             dismiss();
             return;
@@ -115,11 +115,11 @@ public class ReportDetailsDialog extends DialogFragment {
 
         // Load reporter and reported user info
         loadUserInfo(report.getReporterId(), binding.tvReporterName);
-        loadUserInfo(report.getReportedUserId(), binding.tvReportedUserName);
+        loadUserInfo(report.getTargetUserId(), binding.tvReportedUserName);
 
         // Set details if available
-        if (report.getDetails() != null && !report.getDetails().isEmpty()) {
-            binding.tvReportDetails.setText(report.getDetails());
+        if (report.getDescription() != null && !report.getDescription().isEmpty()) {
+            binding.tvReportDetails.setText(report.getDescription());
         } else {
             binding.tvReportDetails.setText("No additional details provided");
         }

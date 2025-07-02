@@ -6,6 +6,7 @@
     <color name="giants_orange">#F26430</color>
     <color name="ultra_violet">#6761A8</color>
     <color name="shamrock_green">#009B72</color>
+    <color name="gold">#FFD700</color>
 
     <!-- For backward compatibility -->
     <color name="colorPrimary">@color/celestial_blue</color>

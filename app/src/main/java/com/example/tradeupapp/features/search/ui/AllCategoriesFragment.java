@@ -16,7 +16,8 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tradeupapp.R;
-import com.example.tradeupapp.features.search.adapter.CategoryAdapter;
+import com.example.tradeupapp.core.services.FirebaseService;
+import com.example.tradeupapp.shared.adapters.CategoryAdapter;
 import com.example.tradeupapp.models.CategoryModel;
 
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ public class AllCategoriesFragment extends Fragment {
     private RecyclerView categoriesRecyclerView;
     private NavController navController;
     private Toolbar toolbar;
+    private FirebaseService firebaseService;
 
     @Nullable
     @Override
@@ -38,6 +40,9 @@ public class AllCategoriesFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Initialize Firebase service
+        firebaseService = FirebaseService.getInstance();
+
         // Initialize navigation controller
         navController = Navigation.findNavController(view);
 
@@ -47,7 +52,7 @@ public class AllCategoriesFragment extends Fragment {
         // Set up toolbar navigation
         setupToolbar();
 
-        // Load categories
+        // Load categories from Firestore
         loadCategories();
     }
 
@@ -67,22 +72,67 @@ public class AllCategoriesFragment extends Fragment {
     }
 
     private void loadCategories() {
-        // Create the adapter with the category data
-        CategoryAdapter categoryAdapter = new CategoryAdapter(getDummyCategories(), category -> {
-            // Navigate to category listing
-            Bundle args = new Bundle();
-            args.putString("category", category.getName());
-            navController.navigate(R.id.action_allCategoriesFragment_to_categoryListingFragment, args);
-        });
+        // Load categories from Firestore
+        firebaseService.getAllCategories(new FirebaseService.CategoriesCallback() {
+            @Override
+            public void onSuccess(List<CategoryModel> categories) {
+                if (getActivity() != null && isAdded()) {
+                    // Set default icon resource IDs for categories that don't have iconUrl
+                    for (CategoryModel category : categories) {
+                        if (category.getIconUrl() == null || category.getIconUrl().isEmpty()) {
+                            setDefaultIconForCategory(category);
+                        }
+                    }
 
-        // Set the adapter to the recycler view
-        categoriesRecyclerView.setAdapter(categoryAdapter);
+                    // Create the adapter with the category data
+                    CategoryAdapter categoryAdapter = new CategoryAdapter(categories, category -> {
+                        // Navigate to category listing
+                        Bundle args = new Bundle();
+                        args.putString("category", category.getName());
+                        navController.navigate(R.id.action_allCategoriesFragment_to_categoryListingFragment, args);
+                    });
+
+                    // Set the adapter to the recycler view
+                    categoriesRecyclerView.setAdapter(categoryAdapter);
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null && isAdded()) {
+                    Toast.makeText(getActivity(), "Error loading categories: " + error, Toast.LENGTH_SHORT).show();
+
+                    // Fallback to static categories if Firestore fails
+                    loadFallbackCategories();
+                }
+            }
+        });
     }
 
-    private List<CategoryModel> getDummyCategories() {
+    private void setDefaultIconForCategory(CategoryModel category) {
+        // Set default icons based on category name
+        String name = category.getName().toLowerCase();
+        if (name.contains("electronics")) {
+            category.setIconResourceId(R.drawable.ic_category_electronics);
+        } else if (name.contains("clothing") || name.contains("fashion")) {
+            category.setIconResourceId(R.drawable.ic_category_clothing);
+        } else if (name.contains("furniture") || name.contains("home")) {
+            category.setIconResourceId(R.drawable.ic_category_furniture);
+        } else if (name.contains("books")) {
+            category.setIconResourceId(R.drawable.ic_category_books);
+        } else if (name.contains("sports")) {
+            category.setIconResourceId(R.drawable.ic_category_sports);
+        } else if (name.contains("toys")) {
+            category.setIconResourceId(R.drawable.ic_category_toys);
+        } else {
+            category.setIconResourceId(R.drawable.ic_category_default);
+        }
+    }
+
+    private void loadFallbackCategories() {
+        // Fallback categories if Firestore fails
         List<CategoryModel> categories = new ArrayList<>();
 
-        // Add dummy categories
         String[] categoryNames = {
                 "Electronics", "Clothing", "Furniture", "Books",
                 "Sports", "Home", "Toys", "Beauty", "Jewelry",
@@ -111,29 +161,19 @@ public class AllCategoriesFragment extends Fragment {
                 R.drawable.ic_category_default
         };
 
-        // Create category models
         for (int i = 0; i < categoryNames.length; i++) {
-            CategoryModel category = new CategoryModel();
+            CategoryModel category = new CategoryModel(categoryNames[i], null);
             category.setId(String.valueOf(i + 1));
-            category.setName(categoryNames[i]);
-
-            // Use icon resource if within range, otherwise use default icon
-            if (i < categoryIcons.length) {
-                try {
-                    // Check if the resource exists
-                    getResources().getDrawable(categoryIcons[i], requireContext().getTheme());
-                    category.setIconResourceId(categoryIcons[i]);
-                } catch (Exception e) {
-                    // Use a default icon if the resource doesn't exist
-                    category.setIconResourceId(R.drawable.ic_category_default);
-                }
-            } else {
-                category.setIconResourceId(R.drawable.ic_category_default);
-            }
-
+            category.setIconResourceId(categoryIcons[i]);
             categories.add(category);
         }
 
-        return categories;
+        CategoryAdapter categoryAdapter = new CategoryAdapter(categories, category -> {
+            Bundle args = new Bundle();
+            args.putString("category", category.getName());
+            navController.navigate(R.id.action_allCategoriesFragment_to_categoryListingFragment, args);
+        });
+
+        categoriesRecyclerView.setAdapter(categoryAdapter);
     }
 }

@@ -9,9 +9,8 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 
-import com.google.android.material.appbar.MaterialToolbar;
+import com.example.tradeupapp.shared.auth.UserManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -19,9 +18,9 @@ public class MainActivity extends AppCompatActivity {
 
     private NavController navController;
     private BottomNavigationView bottomNavigationView;
-    private MaterialToolbar toolbar;
     private FloatingActionButton fabAddItem;
     private AppBarConfiguration appBarConfiguration;
+    private UserManager userManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,17 +28,38 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+        // Initialize UserManager
+        userManager = UserManager.getInstance(this);
+
         // Initialize views
-        toolbar = findViewById(R.id.toolbar);
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         fabAddItem = findViewById(R.id.fab_add_item);
 
-        // Set up the toolbar
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        // Configure FAB based on user role
+        updateFabForUserRole();
+
+        // Handle window insets for edge-to-edge display
+        View rootView = findViewById(android.R.id.content);
+        rootView.setOnApplyWindowInsetsListener((v, insets) -> {
+            WindowInsetsCompat insetsCompat = WindowInsetsCompat.toWindowInsetsCompat(insets);
+
+            // Get the navigation bar height
+            int navigationBarHeight = insetsCompat.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+
+            // Apply bottom padding to bottom navigation to avoid overlap with navigation bar
+            if (bottomNavigationView != null) {
+                bottomNavigationView.setPadding(
+                        bottomNavigationView.getPaddingLeft(),
+                        bottomNavigationView.getPaddingTop(),
+                        bottomNavigationView.getPaddingRight(),
+                        navigationBarHeight
+                );
+            }
+
+            return insets;
+        });
 
         // Set up navigation controller
-        // Wait until the view is laid out before attempting to find the NavController
         findViewById(R.id.nav_host_fragment).post(() -> {
             navController = Navigation.findNavController(this, R.id.nav_host_fragment);
 
@@ -74,52 +94,54 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             });
 
-            // Set FAB click listener to navigate to add item fragment
-            fabAddItem.setOnClickListener(view -> {
-                navController.navigate(R.id.nav_add);
-            });
-
-            // Handle notification button click to navigate to notificationFragment
-            com.google.android.material.button.MaterialButton notificationButton = findViewById(R.id.notifications_btn);
-            notificationButton.setOnClickListener(v -> {
-                // Navigate to notification with clearBackStack option
-                navController.navigate(R.id.notificationFragment);
-
-                // Deselect any selected item in bottom navigation
-                bottomNavigationView.getMenu().findItem(currentNavItem[0]).setChecked(false);
-            });
+            // Set up role-based FAB behavior
+            updateFabClickListener();
 
             // Configure destination changes to hide/show FAB
             navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-                // Hide FAB on Add Item fragment to avoid duplication
-                if (destination.getId() == R.id.nav_add) {
+                // Hide FAB on Add Item fragment and Cart fragment to avoid duplication
+                if (destination.getId() == R.id.nav_add || destination.getId() == R.id.nav_cart) {
                     fabAddItem.hide();
                 } else {
                     fabAddItem.show();
                 }
             });
         });
-
-        // Handle edge-to-edge display
-        View mainLayout = findViewById(R.id.app_bar_layout);
-        mainLayout.setOnApplyWindowInsetsListener((v, insets) -> {
-            WindowInsetsCompat insetsCompat = WindowInsetsCompat.toWindowInsetsCompat(insets);
-
-            // Apply top padding to avoid status bar overlap
-            int statusBarHeight = insetsCompat.getInsets(WindowInsetsCompat.Type.statusBars()).top;
-            v.setPadding(0, statusBarHeight, 0, 0);
-
-            // Apply bottom padding for navigation bar
-            bottomNavigationView.setPadding(0, 0, 0,
-                    insetsCompat.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom);
-
-            return insets;
-        });
     }
 
     @Override
     public boolean onSupportNavigateUp() {
-        return NavigationUI.navigateUp(navController, appBarConfiguration)
-                || super.onSupportNavigateUp();
+        return navController != null && navController.navigateUp() || super.onSupportNavigateUp();
+    }
+
+    private void updateFabForUserRole() {
+        if (fabAddItem != null) {
+            if (userManager.isBuyer()) {
+                // For buyers, change FAB to cart icon
+                fabAddItem.setImageResource(R.drawable.ic_cart_24);
+                fabAddItem.setContentDescription(getString(R.string.cart));
+            } else {
+                // For sellers, keep add item icon
+                fabAddItem.setImageResource(R.drawable.ic_add_24);
+                fabAddItem.setContentDescription(getString(R.string.add_listing));
+            }
+        }
+    }
+
+    /**
+     * Updates the FAB click listener based on user role
+     */
+    private void updateFabClickListener() {
+        if (navController != null && fabAddItem != null) {
+            fabAddItem.setOnClickListener(view -> {
+                if (userManager.isBuyer()) {
+                    // Navigate to cart for buyers
+                    navController.navigate(R.id.nav_cart);
+                } else {
+                    // Navigate to add listing for sellers
+                    navController.navigate(R.id.nav_add);
+                }
+            });
+        }
     }
 }

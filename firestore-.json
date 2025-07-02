@@ -1,0 +1,97 @@
+{
+  "users": [
+    {
+      "uid": "user123",
+      "displayName": "John Doe",
+      "email": "john.doe@example.com",
+      "phoneNumber": "+1234567890",
+      "photoUrl": "",
+      "bio": "I'm a software developer interested in trading tech gadgets.",
+      "role": "user",
+      "rating": 4.5,
+      "totalReviews": 10,
+      "createdAt": {
+        "_seconds": 1686148800,
+        "_nanoseconds": 0
+      },
+      "isActive": true,
+      "location": {
+        "_latitude": 37.7749,
+        "_longitude": -122.4194
+      },
+      "isDeleted": false
+    },
+    {
+      "uid": "admin456",
+      "displayName": "Admin User",
+      "email": "admin@tradeupapp.com",
+      "phoneNumber": "+1987654321",
+      "photoUrl": "",
+      "bio": "TradeUpApp administrator",
+      "role": "admin",
+      "rating": 5.0,
+      "totalReviews": 3,
+      "createdAt": {
+        "_seconds": 1685889600,
+        "_nanoseconds": 0
+      },
+      "isActive": true,
+      "isDeleted": false
+    },
+    {
+      "uid": "user789",
+      "displayName": "Jane Smith",
+      "email": "jane.smith@example.com",
+      "bio": "I love trading vintage items and collectibles.",
+      "role": "user",
+      "rating": 4.8,
+      "totalReviews": 25,
+      "createdAt": {
+        "_seconds": 1687358400,
+        "_nanoseconds": 0
+      },
+      "isActive": true,
+      "location": {
+        "_latitude": 40.7128,
+        "_longitude": -74.0060
+      },
+      "isDeleted": false
+    },
+    {
+      "uid": "inactiveuser101",
+      "displayName": "Inactive User",
+      "email": "inactive@example.com",
+      "role": "user",
+      "rating": 3.2,
+      "totalReviews": 5,
+      "createdAt": {
+        "_seconds": 1684598400,
+        "_nanoseconds": 0
+      },
+      "isActive": false,
+      "deactivatedAt": {
+        "_seconds": 1689950400,
+        "_nanoseconds": 0
+      },
+      "isDeleted": false
+    },
+    {
+      "uid": "deleteduser202",
+      "displayName": "Deleted User",
+      "email": "deleted@example.com",
+      "role": "user",
+      "rating": 0.0,
+      "totalReviews": 0,
+      "createdAt": {
+        "_seconds": 1683475200,
+        "_nanoseconds": 0
+      },
+      "isActive": false,
+      "isDeleted": true,
+      "deletedAt": {
+        "_seconds": 1688140800,
+        "_nanoseconds": 0
+      }
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("com.google.gms.google-services")
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -39,28 +40,39 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    kotlinOptions {
+        jvmTarget = "11"
+    }
 }
 
 dependencies {
-    implementation("com.google.android.gms:play-services-location:21.3.0")
-    implementation("com.google.android.gms:play-services-maps:19.2.0")
-    implementation("com.github.bumptech.glide:glide:4.15.1")
+    implementation(libs.play.services.location)
+    implementation(libs.play.services.maps)
+    implementation(libs.glide)
+
+    // Cloudinary for media storage
+    implementation(libs.cloudinary.android)
+    implementation(libs.cloudinary.core)
+
     // Import the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
+    implementation(platform(libs.firebase.bom))
+
+    // Add GridLayout support
+    implementation(libs.gridlayout)
 
     // TODO: Add the dependencies for Firebase products you want to use
     // When using the BoM, don't specify versions in Firebase dependencies
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.android.gms:play-services-auth:21.2.0") // Google sign-in with version
+    implementation(libs.firebase.analytics)
+    implementation(libs.google.firebase.auth)
+    implementation(libs.play.services.auth) // Google sign-in with version
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
 
     // AndroidX Lifecycle components
-    implementation("androidx.lifecycle:lifecycle-viewmodel:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-livedata:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-runtime:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.2")
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.livedata)
+    implementation(libs.lifecycle.runtime)
+    implementation(libs.lifecycle.viewmodel.savedstate)
 
     implementation(libs.appcompat)
     implementation(libs.material)
@@ -71,6 +83,8 @@ dependencies {
     implementation(libs.google.material)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.dataconnect)
+    implementation(libs.core.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

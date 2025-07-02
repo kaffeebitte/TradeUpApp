@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tradeupapp.R;
-import com.example.tradeupapp.features.listing.adapter.ListingAdapter;
+import com.example.tradeupapp.shared.adapters.ListingAdapter;
 import com.example.tradeupapp.models.ItemModel;
 import com.example.tradeupapp.features.common.ListFilterBottomSheetFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;

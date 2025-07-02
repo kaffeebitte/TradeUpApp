@@ -13,8 +13,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.tradeupapp.databinding.FragmentAdminDashboardBinding;
-import com.example.tradeupapp.features.admin.adapter.ReportAdapter;
-import com.example.tradeupapp.models.Report;
+import com.example.tradeupapp.shared.adapters.ReportAdapter;
+import com.example.tradeupapp.models.ReportModel;
 
 import java.util.ArrayList;
 
@@ -65,11 +65,11 @@ public class AdminDashboardFragment extends Fragment implements ReportAdapter.On
     }
 
     @Override
-    public void onReportClick(Report report) {
+    public void onReportClick(ReportModel report) {
         showReportDetailsDialog(report);
     }
 
-    private void showReportDetailsDialog(Report report) {
+    private void showReportDetailsDialog(ReportModel report) {
         ReportDetailsDialog dialog = ReportDetailsDialog.newInstance(report.getId());
         dialog.setStatusUpdateListener((reportId, newStatus) ->
             viewModel.updateReportStatus(reportId, newStatus));

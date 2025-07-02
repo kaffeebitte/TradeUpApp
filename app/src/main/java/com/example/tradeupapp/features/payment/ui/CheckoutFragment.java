@@ -149,7 +149,7 @@ public class CheckoutFragment extends Fragment {
             Toast.makeText(requireContext(), successMessage, Toast.LENGTH_LONG).show();
 
             // Navigate back to home or order confirmation screen
-            Navigation.findNavController(requireView()).navigate(R.id.nav_home);
+            Navigation.findNavController(requireView()).navigate(R.id.nav_recommendations);
 
         }, 2000); // Simulate 2 second processing time
     }

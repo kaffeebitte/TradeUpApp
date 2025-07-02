@@ -1,0 +1,164 @@
+{
+  "chats": [
+    {
+      "id": "chat_001",
+      "participants": ["user_001", "user_002"],
+      "participantNames": ["Minh Nguyen", "Linh Tran"],
+      "relatedItemId": "item_001",
+      "relatedItemTitle": "iPhone 14 Pro Max 256GB Deep Purple",
+      "lastMessage": "Great! I'll pick it up tomorrow at 2pm",
+      "lastMessageTime": "2025-07-03T16:30:00Z",
+      "lastMessageSenderId": "user_002",
+      "unreadCount": {
+        "user_001": 0,
+        "user_002": 0
+      },
+      "createdAt": "2025-07-03T07:30:00Z",
+      "isActive": true
+    },
+    {
+      "id": "chat_002",
+      "participants": ["user_004", "user_006"],
+      "participantNames": ["Hoa Pham", "Mai Hoang"],
+      "relatedItemId": "item_005",
+      "relatedItemTitle": "Louis Vuitton Neverfull MM Authentic",
+      "lastMessage": "Perfect! Payment sent. Thank you so much!",
+      "lastMessageTime": "2025-07-02T17:15:00Z",
+      "lastMessageSenderId": "user_006",
+      "unreadCount": {
+        "user_004": 0,
+        "user_006": 0
+      },
+      "createdAt": "2025-07-02T14:20:00Z",
+      "isActive": true
+    },
+    {
+      "id": "chat_003",
+      "participants": ["user_003", "user_007"],
+      "participantNames": ["Duc Le", "Tuan Bui"],
+      "relatedItemId": "item_003",
+      "relatedItemTitle": "Honda Wave Alpha 110cc 2022",
+      "lastMessage": "I understand. Let me think about it.",
+      "lastMessageTime": "2025-07-01T19:30:00Z",
+      "lastMessageSenderId": "user_007",
+      "unreadCount": {
+        "user_003": 0,
+        "user_007": 1
+      },
+      "createdAt": "2025-07-01T16:30:00Z",
+      "isActive": true
+    },
+    {
+      "id": "chat_004",
+      "participants": ["user_001", "user_008"],
+      "participantNames": ["Minh Nguyen", "Lan Nguyen"],
+      "relatedItemId": "item_011",
+      "relatedItemTitle": "PlayStation 5 Console + Controller",
+      "lastMessage": "I'll think about your offer and get back to you soon",
+      "lastMessageTime": "2025-07-02T21:15:00Z",
+      "lastMessageSenderId": "user_001",
+      "unreadCount": {
+        "user_001": 0,
+        "user_008": 1
+      },
+      "createdAt": "2025-07-02T20:45:00Z",
+      "isActive": true
+    },
+    {
+      "id": "chat_005",
+      "participants": ["user_009", "user_002"],
+      "participantNames": ["Nam Tran", "Linh Tran"],
+      "relatedItemId": "item_009",
+      "relatedItemTitle": "Canon EOS R6 Mark II Body Only",
+      "lastMessage": "How about we meet in the middle at 43M?",
+      "lastMessageTime": "2025-07-01T13:45:00Z",
+      "lastMessageSenderId": "user_002",
+      "unreadCount": {
+        "user_009": 0,
+        "user_002": 1
+      },
+      "createdAt": "2025-07-01T10:15:00Z",
+      "isActive": true
+    },
+    {
+      "id": "chat_006",
+      "participants": ["user_006", "user_010"],
+      "participantNames": ["Mai Hoang", "Thao Le"],
+      "relatedItemId": "item_007",
+      "relatedItemTitle": "Programming Books Collection - 15 Books",
+      "lastMessage": "Wonderful! When can you pick them up?",
+      "lastMessageTime": "2025-06-30T17:30:00Z",
+      "lastMessageSenderId": "user_006",
+      "unreadCount": {
+        "user_006": 0,
+        "user_010": 0
+      },
+      "createdAt": "2025-06-30T15:20:00Z",
+      "isActive": true
+    },
+    {
+      "id": "chat_007",
+      "participants": ["user_003", "user_001"],
+      "participantNames": ["Duc Le", "Minh Nguyen"],
+      "relatedItemId": "item_022",
+      "relatedItemTitle": "Yamaha Exciter 155 VVA 2023",
+      "lastMessage": "Can I see the bike this weekend?",
+      "lastMessageTime": "2025-07-03T11:20:00Z",
+      "lastMessageSenderId": "user_001",
+      "unreadCount": {
+        "user_003": 1,
+        "user_001": 0
+      },
+      "createdAt": "2025-07-03T09:45:00Z",
+      "isActive": true
+    },
+    {
+      "id": "chat_008",
+      "participants": ["user_007", "user_005"],
+      "participantNames": ["Tuan Bui", "Quan Vo"],
+      "relatedItemId": "item_004",
+      "relatedItemTitle": "Gym Equipment Set - Dumbbells & Bench",
+      "lastMessage": "Deal! I'll arrange pickup for tomorrow",
+      "lastMessageTime": "2025-07-01T10:30:00Z",
+      "lastMessageSenderId": "user_005",
+      "unreadCount": {
+        "user_007": 0,
+        "user_005": 0
+      },
+      "createdAt": "2025-07-01T08:20:00Z",
+      "isActive": true
+    },
+    {
+      "id": "chat_009",
+      "participants": ["user_009", "user_004"],
+      "participantNames": ["Nam Tran", "Hoa Pham"],
+      "relatedItemId": "item_018",
+      "relatedItemTitle": "Sony WH-1000XM5 Noise Cancelling Headphones",
+      "lastMessage": "6.2M sounds fair. Let's do it!",
+      "lastMessageTime": "2025-06-29T17:45:00Z",
+      "lastMessageSenderId": "user_004",
+      "unreadCount": {
+        "user_009": 0,
+        "user_004": 0
+      },
+      "createdAt": "2025-06-29T14:30:00Z",
+      "isActive": true
+    },
+    {
+      "id": "chat_010",
+      "participants": ["user_005", "user_003"],
+      "participantNames": ["Quan Vo", "Duc Le"],
+      "relatedItemId": "item_012",
+      "relatedItemTitle": "Giant Mountain Bike 27.5 inch",
+      "lastMessage": "Is the bike still available?",
+      "lastMessageTime": "2025-07-02T09:15:00Z",
+      "lastMessageSenderId": "user_005",
+      "unreadCount": {
+        "user_005": 0,
+        "user_003": 1
+      },
+      "createdAt": "2025-07-02T09:15:00Z",
+      "isActive": true
+    }
+  ]
+}

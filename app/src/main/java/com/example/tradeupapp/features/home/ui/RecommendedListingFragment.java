@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tradeupapp.R;
-import com.example.tradeupapp.features.listing.adapter.ListingAdapter;
+import com.example.tradeupapp.shared.adapters.ListingAdapter;
 import com.example.tradeupapp.models.ItemModel;
 
 import java.util.ArrayList;

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:cardElevation="0dp"
+    app:cardCornerRadius="16dp"
+    app:strokeWidth="0dp"
+    app:cardBackgroundColor="?attr/colorSurfaceVariant"
+    android:clickable="true"
+    android:focusable="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <!-- User Avatar -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/iv_chat_avatar"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@drawable/ic_account_circle_24"
+            app:shapeAppearanceOverlay="@style/circleImageView"
+            android:scaleType="centerCrop"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:strokeColor="?attr/colorOutline"
+            app:strokeWidth="1dp" />
+
+        <!-- Username -->
+        <TextView
+            android:id="@+id/tv_chat_username"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:layout_constraintStart_toEndOf="@id/iv_chat_avatar"
+            app:layout_constraintEnd_toStartOf="@id/tv_chat_time"
+            app:layout_constraintTop_toTopOf="@id/iv_chat_avatar"
+            tools:text="Thuy Anh" />
+
+        <!-- Last Message -->
+        <TextView
+            android:id="@+id/tv_chat_last_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:maxLines="2"
+            android:ellipsize="end"
+            app:layout_constraintStart_toStartOf="@id/tv_chat_username"
+            app:layout_constraintEnd_toStartOf="@id/unread_indicator"
+            app:layout_constraintTop_toBottomOf="@id/tv_chat_username"
+            tools:text="Hello, I'm interested in your iPhone. Is it still available?" />
+
+        <!-- Time -->
+        <TextView
+            android:id="@+id/tv_chat_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tv_chat_username"
+            tools:text="10:30 AM" />
+
+        <!-- Unread Indicator -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/unread_indicator"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="?attr/colorPrimary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/tv_chat_last_message">
+
+            <TextView
+                android:id="@+id/tv_unread_count"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnPrimary"
+                tools:text="3" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Item Status (typing, etc) -->
+        <TextView
+            android:id="@+id/tv_chat_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="typing..."
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorPrimary"
+            android:textStyle="italic"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="@id/tv_chat_last_message"
+            app:layout_constraintTop_toBottomOf="@id/tv_chat_last_message"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginTop="4dp"
+            tools:visibility="visible" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

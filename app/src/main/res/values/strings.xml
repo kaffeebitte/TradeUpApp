@@ -24,6 +24,30 @@
     <string name="item_details">Item Details</string>
     <string name="seller_information">Seller Information</string>
 
+    <!-- Cart Related Strings -->
+    <string name="cart">Cart</string>
+    <string name="add_listing">Add Listing</string>
+    <string name="cart_empty">Your cart is empty</string>
+    <string name="cart_empty_subtitle">Items you add to your cart will appear here</string>
+    <string name="browse_items">Browse Items</string>
+    <string name="total">Total:</string>
+    <string name="checkout">Checkout</string>
+    <string name="remove_from_cart">Remove from cart</string>
+    <string name="decrease_quantity">Decrease quantity</string>
+    <string name="increase_quantity">Increase quantity</string>
+
+    <!-- Profile Related Strings -->
+    <string name="edit_profile_title">Edit Profile</string>
+    <string name="error_loading_user">Could not load user data</string>
+    <string name="profile_update_success">Profile updated successfully</string>
+    <string name="error_empty_display_name">Display name cannot be empty</string>
+    <string name="permission_required">Storage permission is required to select images</string>
+    <string name="location_not_implemented_title">Location Picker</string>
+    <string name="location_not_implemented_message">Location picker functionality is not implemented yet.</string>
+    <string name="ok">OK</string>
+    <string name="error_session_expired">Your session has expired. Please sign in again.</string>
+    <string name="error_update_display_name">Failed to update display name</string>
+
     <!-- Font families for typography -->
     <string name="font_family_display">sans-serif</string>
     <string name="font_family_headline">sans-serif</string>

@@ -15,8 +15,9 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tradeupapp.R;
-import com.example.tradeupapp.features.listing.adapter.ListingAdapter;
-import com.example.tradeupapp.features.search.adapter.CategoryAdapter;
+import com.example.tradeupapp.core.services.FirebaseService;
+import com.example.tradeupapp.shared.adapters.CategoryAdapter;
+import com.example.tradeupapp.shared.adapters.ListingAdapter;
 import com.example.tradeupapp.models.CategoryModel;
 import com.example.tradeupapp.models.ItemModel;
 import com.google.android.material.button.MaterialButton;
@@ -37,18 +38,26 @@ public class RecommendationsFragment extends Fragment {
     private TextView seeAllRecent;
 
     private MaterialButton filterButton;
-
     private NavController navController;
+    private FirebaseService firebaseService;
+
+    // Adapters
+    private ListingAdapter personalizedAdapter;
+    private ListingAdapter nearbyAdapter;
+    private ListingAdapter recentAdapter;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_recommendations, container, false);
+        return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Initialize Firebase service
+        firebaseService = FirebaseService.getInstance();
 
         // Initialize navigation controller
         navController = Navigation.findNavController(view);
@@ -59,8 +68,8 @@ public class RecommendationsFragment extends Fragment {
         // Set up click listeners
         setupClickListeners();
 
-        // Load dummy data
-        loadDummyData();
+        // Load real data from Firestore
+        loadDataFromFirestore();
     }
 
     private void initViews(View view) {
@@ -116,37 +125,138 @@ public class RecommendationsFragment extends Fragment {
         // filterSheet.show(getChildFragmentManager(), "FilterBottomSheet");
     }
 
-    private void loadDummyData() {
-        // Load category data
-        CategoryAdapter categoryAdapter = new CategoryAdapter(getDummyCategories(), category -> {
-            // Navigate to category listing
+    private void loadDataFromFirestore() {
+        // Load categories (can be static or from Firestore)
+        loadCategories();
+
+        // Load recommended items (all available items for now, can be enhanced with ML)
+        loadRecommendedItems();
+
+        // Load nearby items (within user's location radius)
+        loadNearbyItems();
+
+        // Load recent items (recently added items)
+        loadRecentItems();
+    }
+
+    private void loadCategories() {
+        // Create static categories or load from Firestore
+        CategoryAdapter categoryAdapter = new CategoryAdapter(getStaticCategories(), category -> {
             navigateToCategoryListing(category);
         });
         categoriesRecyclerView.setAdapter(categoryAdapter);
+    }
 
-        // Load personalized recommendations
-        ListingAdapter personalizedAdapter = new ListingAdapter(
-                requireContext(),
-                getDummyItems("Recommended"),
-                this::navigateToItemDetail
-        );
-        personalizedRecyclerView.setAdapter(personalizedAdapter);
+    private void loadRecommendedItems() {
+        firebaseService.getAllItems(new FirebaseService.ItemsCallback() {
+            @Override
+            public void onSuccess(List<ItemModel> items) {
+                if (getActivity() != null && isAdded()) {
+                    // Take first 5 items for recommendations
+                    List<ItemModel> recommendedItems = items.size() > 5 ? items.subList(0, 5) : items;
 
-        // Load nearby items
-        ListingAdapter nearbyAdapter = new ListingAdapter(
-                requireContext(),
-                getDummyItems("Nearby"),
-                this::navigateToItemDetail
-        );
-        nearbyRecyclerView.setAdapter(nearbyAdapter);
+                    personalizedAdapter = new ListingAdapter(
+                            requireContext(),
+                            recommendedItems,
+                            RecommendationsFragment.this::navigateToItemDetail
+                    );
+                    personalizedRecyclerView.setAdapter(personalizedAdapter);
+                }
+            }
 
-        // Load recent items
-        ListingAdapter recentAdapter = new ListingAdapter(
-                requireContext(),
-                getDummyItems("Recent"),
-                this::navigateToItemDetail
-        );
-        recentRecyclerView.setAdapter(recentAdapter);
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null && isAdded()) {
+                    Toast.makeText(getActivity(), "Error loading recommendations: " + error, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void loadNearbyItems() {
+        // For now, load all items - can be enhanced with location-based filtering
+        firebaseService.getAllItems(new FirebaseService.ItemsCallback() {
+            @Override
+            public void onSuccess(List<ItemModel> items) {
+                if (getActivity() != null && isAdded()) {
+                    // Take different items for nearby (items 5-10)
+                    int start = Math.min(5, items.size());
+                    int end = Math.min(10, items.size());
+                    List<ItemModel> nearbyItems = items.size() > start ? items.subList(start, end) : new ArrayList<>();
+
+                    nearbyAdapter = new ListingAdapter(
+                            requireContext(),
+                            nearbyItems,
+                            RecommendationsFragment.this::navigateToItemDetail
+                    );
+                    nearbyRecyclerView.setAdapter(nearbyAdapter);
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null && isAdded()) {
+                    Toast.makeText(getActivity(), "Error loading nearby items: " + error, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void loadRecentItems() {
+        firebaseService.getAllItems(new FirebaseService.ItemsCallback() {
+            @Override
+            public void onSuccess(List<ItemModel> items) {
+                if (getActivity() != null && isAdded()) {
+                    // Items are already ordered by dateAdded descending, so these are the most recent
+                    List<ItemModel> recentItems = items.size() > 3 ? items.subList(0, 3) : items;
+
+                    recentAdapter = new ListingAdapter(
+                            requireContext(),
+                            recentItems,
+                            RecommendationsFragment.this::navigateToItemDetail
+                    );
+                    recentRecyclerView.setAdapter(recentAdapter);
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                if (getActivity() != null && isAdded()) {
+                    Toast.makeText(getActivity(), "Error loading recent items: " + error, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private List<CategoryModel> getStaticCategories() {
+        List<CategoryModel> categories = new ArrayList<>();
+
+        CategoryModel electronics = new CategoryModel("Electronics", null);
+        electronics.setId("1");
+        electronics.setIconResourceId(R.drawable.ic_category_electronics);
+        categories.add(electronics);
+
+        CategoryModel clothing = new CategoryModel("Clothing", null);
+        clothing.setId("2");
+        clothing.setIconResourceId(R.drawable.ic_category_clothing);
+        categories.add(clothing);
+
+        CategoryModel books = new CategoryModel("Books", null);
+        books.setId("3");
+        books.setIconResourceId(R.drawable.ic_category_books);
+        categories.add(books);
+
+        CategoryModel furniture = new CategoryModel("Furniture", null);
+        furniture.setId("4");
+        furniture.setIconResourceId(R.drawable.ic_category_furniture);
+        categories.add(furniture);
+
+        CategoryModel sports = new CategoryModel("Sports", null);
+        sports.setId("5");
+        sports.setIconResourceId(R.drawable.ic_category_sports);
+        categories.add(sports);
+
+        return categories;
     }
 
     private void navigateToCategoryListing(CategoryModel category) {
@@ -166,95 +276,4 @@ public class RecommendationsFragment extends Fragment {
         // Sử dụng NavController để chuyển hướng đến màn hình chi tiết sản phẩm
         navController.navigate(R.id.action_nav_recommendations_to_itemDetailFragment, args);
     }
-
-    private List<CategoryModel> getDummyCategories() {
-        List<CategoryModel> categories = new ArrayList<>();
-
-        // Add dummy categories
-        String[] categoryNames = {"Electronics", "Clothing", "Furniture", "Books", "Sports", "Home", "Toys"};
-        int[] categoryIcons = {
-                R.drawable.ic_category_electronics,
-                R.drawable.ic_category_clothing,
-                R.drawable.ic_category_furniture,
-                R.drawable.ic_category_books,
-                R.drawable.ic_category_sports,
-                R.drawable.ic_category_home,
-                R.drawable.ic_category_toys
-        };
-
-        // Create category models
-        for (int i = 0; i < categoryNames.length; i++) {
-            CategoryModel category = new CategoryModel();
-            category.setId(String.valueOf(i + 1));
-            category.setName(categoryNames[i]);
-
-            // Use icon resource if it exists, otherwise use a default icon
-            try {
-                // Check if the resource exists
-                getResources().getDrawable(categoryIcons[i], requireContext().getTheme());
-                category.setIconResourceId(categoryIcons[i]);
-            } catch (Exception e) {
-                // Use a default icon if the resource doesn't exist
-                category.setIconResourceId(R.drawable.ic_category_default);
-            }
-
-            categories.add(category);
-        }
-
-        return categories;
-    }
-
-    private List<ItemModel> getDummyItems(String type) {
-        List<ItemModel> items = new ArrayList<>();
-
-        // Create different items based on the type (recommended, nearby, recent)
-        String[] titles;
-        double[] prices;
-        String[] conditions;
-        String[] categories;
-
-        if ("Recommended".equals(type)) {
-            titles = new String[]{
-                    "MacBook Pro M1", "Sony PlayStation 5", "Nike Air Jordan",
-                    "iPhone 13 Pro", "Samsung QLED TV", "Dyson V11 Vacuum"
-            };
-            prices = new double[]{1299.99, 499.99, 159.99, 999.99, 1199.99, 599.99};
-            conditions = new String[]{"Excellent", "Like New", "Good", "Like New", "New", "Good"};
-            categories = new String[]{"Electronics", "Gaming", "Clothing", "Electronics", "Electronics", "Home"};
-        } else if ("Nearby".equals(type)) {
-            titles = new String[]{
-                    "IKEA Desk", "Bookshelf", "Coffee Table",
-                    "Dining Set", "Office Chair", "Floor Lamp"
-            };
-            prices = new double[]{99.99, 79.99, 149.99, 299.99, 129.99, 59.99};
-            conditions = new String[]{"Good", "Used", "Like New", "Good", "Used", "Excellent"};
-            categories = new String[]{"Furniture", "Furniture", "Furniture", "Furniture", "Furniture", "Home"};
-        } else { // Recent
-            titles = new String[]{
-                    "Nintendo Switch", "Bluetooth Speaker", "Air Fryer",
-                    "Yoga Mat", "Mountain Bike", "Tennis Racket"
-            };
-            prices = new double[]{279.99, 69.99, 89.99, 29.99, 349.99, 59.99};
-            conditions = new String[]{"New", "Like New", "New", "Good", "Used", "Excellent"};
-            categories = new String[]{"Gaming", "Electronics", "Home", "Sports", "Sports", "Sports"};
-        }
-
-        // Create item models
-        for (int i = 0; i < titles.length; i++) {
-            ItemModel item = new ItemModel();
-            item.setId(type.toLowerCase() + "_" + (i + 1));
-            item.setTitle(titles[i]);
-            item.setPrice(prices[i]);
-            item.setCondition(conditions[i]);
-            item.setCategory(categories[i]);
-            item.setStatus("Available");
-            item.setViewCount(50 + (int)(Math.random() * 200));
-            item.setInteractionCount(10 + (int)(Math.random() * 40));
-
-            items.add(item);
-        }
-
-        return items;
-    }
 }
-

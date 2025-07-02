@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Style for circular ImageView -->
-    <style name="circleImageView">
+    <!-- Style for rounded corner images -->
+    <style name="RoundedCornerImageView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <!-- Style for circular images -->
+    <style name="circleImageView" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
 
-    <!-- Style for BottomSheetDialog -->
-    <style name="AppBottomSheetDialogTheme" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
-        <item name="bottomSheetStyle">@style/AppModalStyle</item>
-        <item name="android:windowIsFloating">false</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:windowSoftInputMode">adjustResize</item>
+    <!-- Style for bottom sheet dialog -->
+    <style name="AppBottomSheetDialogTheme" parent="Theme.Material3.DayNight.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/AppBottomSheetStyle</item>
     </style>
 
-    <style name="AppModalStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">
+    <style name="AppBottomSheetStyle" parent="Widget.Material3.BottomSheet.Modal">
         <item name="android:background">@android:color/transparent</item>
-        <item name="behavior_peekHeight">512dp</item>
-        <item name="behavior_fitToContents">true</item>
-        <item name="behavior_expandedOffset">64dp</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.TradeUp.LargeComponent</item>
     </style>
 </resources>
