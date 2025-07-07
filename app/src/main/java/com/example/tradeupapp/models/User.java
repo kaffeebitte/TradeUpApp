@@ -67,6 +67,7 @@ public class User implements Serializable {
     private transient Timestamp deactivatedAt; // optional - only set when account is deactivated
     private boolean isDeleted; // required - defaults to false
     private transient Timestamp deletedAt; // optional - only set when account is deleted
+    private transient Timestamp updatedAt; // optional
 
     // Backup fields for serialization
     @Exclude private Date createdAtDate;
@@ -74,6 +75,10 @@ public class User implements Serializable {
     @Exclude private Double locationLongitude;
     @Exclude private Date deactivatedAtDate;
     @Exclude private Date deletedAtDate;
+    @Exclude private Date updatedAtDate;
+
+    // Add this field
+    private boolean deactivated;
 
     /**
      * Custom serialization method
@@ -96,6 +101,10 @@ public class User implements Serializable {
 
         if (deletedAt != null) {
             deletedAtDate = deletedAt.toDate();
+        }
+
+        if (updatedAt != null) {
+            updatedAtDate = updatedAt.toDate();
         }
 
         // Write to stream
@@ -126,6 +135,10 @@ public class User implements Serializable {
         if (deletedAtDate != null) {
             deletedAt = new Timestamp(deletedAtDate);
         }
+
+        if (updatedAtDate != null) {
+            updatedAt = new com.google.firebase.Timestamp(updatedAtDate);
+        }
     }
 
     /**
@@ -138,6 +151,7 @@ public class User implements Serializable {
         this.totalReviews = 0;
         this.isActive = true;
         this.isDeleted = false;
+        this.deactivated = false;
     }
 
     /**
@@ -153,6 +167,7 @@ public class User implements Serializable {
         this.createdAt = Timestamp.now();
         this.isActive = true;
         this.isDeleted = false;
+        this.deactivated = false;
     }
 
     /**
@@ -177,6 +192,7 @@ public class User implements Serializable {
         this.deactivatedAt = deactivatedAt;
         this.isDeleted = isDeleted;
         this.deletedAt = deletedAt;
+        this.deactivated = false;
     }
 
     // Getters and Setters
@@ -327,6 +343,20 @@ public class User implements Serializable {
         this.deletedAt = deletedAt;
     }
 
+    public com.google.firebase.Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+    public void setUpdatedAt(com.google.firebase.Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Double getLocationLatitude() {
+        return locationLatitude;
+    }
+    public Double getLocationLongitude() {
+        return locationLongitude;
+    }
+
     /**
      * Update rating when a new review is added
      * @param newRating the rating value of the new review
@@ -360,5 +390,12 @@ public class User implements Serializable {
         this.isDeleted = true;
         this.deletedAt = Timestamp.now();
         this.isActive = false;
+    }
+
+    public boolean isDeactivated() {
+        return deactivated;
+    }
+    public void setDeactivated(boolean deactivated) {
+        this.deactivated = deactivated;
     }
 }

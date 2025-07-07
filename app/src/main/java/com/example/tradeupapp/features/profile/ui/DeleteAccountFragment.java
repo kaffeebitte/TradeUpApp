@@ -91,16 +91,32 @@ public class DeleteAccountFragment extends Fragment {
     }
 
     private void deleteAccount() {
-        // TODO: Thực hiện xóa tài khoản thực sự (sẽ cần API hoặc Firebase Auth, etc.)
         String reason = etReason.getText().toString().trim();
-
-        // Ở đây chỉ mô phỏng
-        Toast.makeText(requireContext(), "Tài khoản đã được xóa thành công", Toast.LENGTH_SHORT).show();
-
-        // Chuyển về màn hình đăng nhập bằng cách khởi động AuthActivity
-        Intent intent = new Intent(requireContext(), AuthActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        requireActivity().finish(); // Đóng MainActivity hiện tại
+        com.google.firebase.auth.FirebaseAuth auth = com.google.firebase.auth.FirebaseAuth.getInstance();
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+        com.google.firebase.auth.FirebaseUser user = auth.getCurrentUser();
+        if (user == null) {
+            Toast.makeText(requireContext(), "No user signed in!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String uid = user.getUid();
+        db.collection("users").document(uid)
+            .update(
+                "isDeleted", true,
+                "isActive", false,
+                "deletedAt", com.google.firebase.Timestamp.now()
+            )
+            .addOnSuccessListener(unused -> {
+                Toast.makeText(requireContext(), "Tài khoản đã được đánh dấu xoá thành công", Toast.LENGTH_SHORT).show();
+                // Đăng xuất và chuyển về AuthActivity
+                auth.signOut();
+                Intent intent = new Intent(requireContext(), AuthActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                requireActivity().finish();
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(requireContext(), "Cập nhật trạng thái xoá thất bại: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            });
     }
 }

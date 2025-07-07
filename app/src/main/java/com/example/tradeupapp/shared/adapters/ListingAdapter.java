@@ -37,7 +37,7 @@ public class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.ViewHold
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_listing_card, parent, false);
+                .inflate(R.layout.item_listing, parent, false);
         return new ViewHolder(view);
     }
 
@@ -91,9 +91,9 @@ public class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.ViewHold
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            image = itemView.findViewById(R.id.itemImage);
-            title = itemView.findViewById(R.id.itemTitle);
-            price = itemView.findViewById(R.id.itemPrice);
+            image = itemView.findViewById(R.id.iv_item_image);
+            title = itemView.findViewById(R.id.tv_title);
+            price = itemView.findViewById(R.id.tv_price);
         }
     }
 }

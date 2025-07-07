@@ -14,23 +14,23 @@
     <color name="colorAccent">@color/giants_orange</color>
 
     <!-- Material 3 Color System - Light Theme -->
-    <!-- Primary: Celestial Blue - Main brand color -->
-    <color name="md_theme_primary">#009DDC</color>
+    <!-- Primary: eBay-inspired blue for trust and professionalism -->
+    <color name="md_theme_primary">#0064D2</color>
     <color name="md_theme_onPrimary">#FFFFFF</color>
-    <color name="md_theme_primaryContainer">#D0EEFF</color>
-    <color name="md_theme_onPrimaryContainer">#001E2B</color>
+    <color name="md_theme_primaryContainer">#D4E3FF</color>
+    <color name="md_theme_onPrimaryContainer">#001C3B</color>
 
-    <!-- Secondary: Ultra Violet - Supporting color -->
-    <color name="md_theme_secondary">#6761A8</color>
+    <!-- Secondary: Warm gray for balance -->
+    <color name="md_theme_secondary">#5A5D66</color>
     <color name="md_theme_onSecondary">#FFFFFF</color>
-    <color name="md_theme_secondaryContainer">#E6DEFF</color>
-    <color name="md_theme_onSecondaryContainer">#21005E</color>
+    <color name="md_theme_secondaryContainer">#DFE2EC</color>
+    <color name="md_theme_onSecondaryContainer">#171921</color>
 
-    <!-- Tertiary: Giants Orange - Accent color for calls-to-action -->
-    <color name="md_theme_tertiary">#F26430</color>
+    <!-- Tertiary: Etsy-inspired orange for CTAs -->
+    <color name="md_theme_tertiary">#F1641E</color>
     <color name="md_theme_onTertiary">#FFFFFF</color>
-    <color name="md_theme_tertiaryContainer">#FFDACC</color>
-    <color name="md_theme_onTertiaryContainer">#390C00</color>
+    <color name="md_theme_tertiaryContainer">#FFDBD0</color>
+    <color name="md_theme_onTertiaryContainer">#3A0A00</color>
 
     <!-- Error colors - keeping standard error colors -->
     <color name="md_theme_error">#B3261E</color>

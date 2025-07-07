@@ -20,7 +20,6 @@ import com.example.tradeupapp.shared.adapters.CategoryAdapter;
 import com.example.tradeupapp.shared.adapters.ListingAdapter;
 import com.example.tradeupapp.models.CategoryModel;
 import com.example.tradeupapp.models.ItemModel;
-import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +36,6 @@ public class RecommendationsFragment extends Fragment {
     private TextView seeAllNearby;
     private TextView seeAllRecent;
 
-    private MaterialButton filterButton;
     private NavController navController;
     private FirebaseService firebaseService;
 
@@ -84,9 +82,6 @@ public class RecommendationsFragment extends Fragment {
         seeAllRecommended = view.findViewById(R.id.tv_see_all_recommended);
         seeAllNearby = view.findViewById(R.id.tv_see_all_nearby);
         seeAllRecent = view.findViewById(R.id.tv_see_all_recent);
-
-        // Filter button
-        filterButton = view.findViewById(R.id.btn_filter);
     }
 
     private void setupClickListeners() {
@@ -110,19 +105,6 @@ public class RecommendationsFragment extends Fragment {
             // Navigate to all recent items
             navController.navigate(R.id.action_nav_recommendations_to_recentListingFragment);
         });
-
-        // Filter button click listener
-        filterButton.setOnClickListener(v -> {
-            showFilterDialog();
-        });
-    }
-
-    private void showFilterDialog() {
-        // Show filter dialog/bottom sheet
-        Toast.makeText(requireContext(), "Opening filter options", Toast.LENGTH_SHORT).show();
-        // In a real implementation, you would show a bottom sheet or dialog with filter options
-        // Example: FilterBottomSheetFragment filterSheet = new FilterBottomSheetFragment();
-        // filterSheet.show(getChildFragmentManager(), "FilterBottomSheet");
     }
 
     private void loadDataFromFirestore() {

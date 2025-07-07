@@ -1,6 +1,8 @@
 package com.example.tradeupapp.features.profile.ui;
 
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -22,6 +24,10 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+
 public class EditProfileFragment extends Fragment {
 
     private ShapeableImageView avatarImageView;
@@ -34,6 +40,10 @@ public class EditProfileFragment extends Fragment {
 
     private ActivityResultLauncher<Intent> imagePickerLauncher;
     private Uri selectedImageUri;
+
+    private static final int REQUEST_CODE_PICK_LOCATION = 2002;
+    private Double selectedLatitude = null;
+    private Double selectedLongitude = null;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -62,11 +72,40 @@ public class EditProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         initViews(view);
         setupToolbar(view);
         loadUserData();
         setupListeners();
+
+        // Restore selected location if available
+        if (savedInstanceState != null) {
+            selectedLatitude = (Double) savedInstanceState.getSerializable("selectedLatitude");
+            selectedLongitude = (Double) savedInstanceState.getSerializable("selectedLongitude");
+            if (selectedLatitude != null && selectedLongitude != null) {
+                setLocationFieldWithAddress(selectedLatitude, selectedLongitude);
+            }
+        }
+
+        // Listen for map picker result via SavedStateHandle (Navigation Component)
+        androidx.navigation.NavController navController = Navigation.findNavController(requireView());
+        navController.getCurrentBackStackEntry().getSavedStateHandle().getLiveData("location_data").observe(
+            getViewLifecycleOwner(), result -> {
+                if (result != null && result instanceof Bundle) {
+                    Bundle locationData = (Bundle) result;
+                    double latitude = locationData.getDouble("latitude");
+                    double longitude = locationData.getDouble("longitude");
+                    String address = locationData.getString("address");
+                    selectedLatitude = latitude;
+                    selectedLongitude = longitude;
+                    if (address != null && !address.isEmpty()) {
+                        locationEditText.setText(address);
+                    } else {
+                        setLocationFieldWithAddress(latitude, longitude);
+                    }
+                    // Clear result to avoid reprocessing
+                    navController.getCurrentBackStackEntry().getSavedStateHandle().set("location_data", null);
+                }
+            });
     }
 
     private void initViews(View view) {
@@ -90,12 +129,17 @@ public class EditProfileFragment extends Fragment {
                 bioEditText.setText(user.getBio());
                 contactEditText.setText(user.getPhoneNumber());
 
-                // Convert GeoPoint to String for location
+                // Fix: Show location as string if available, otherwise empty
                 if (user.getLocation() != null) {
-                    String locationStr = String.format("%.5f, %.5f",
-                            user.getLocation().getLatitude(),
-                            user.getLocation().getLongitude());
-                    locationEditText.setText(locationStr);
+                    double lat = user.getLocation().getLatitude();
+                    double lng = user.getLocation().getLongitude();
+                    selectedLatitude = lat;
+                    selectedLongitude = lng;
+                    setLocationFieldWithAddress(lat, lng);
+                } else if (user.getLocationLatitude() != null && user.getLocationLongitude() != null) {
+                    selectedLatitude = user.getLocationLatitude();
+                    selectedLongitude = user.getLocationLongitude();
+                    setLocationFieldWithAddress(selectedLatitude, selectedLongitude);
                 } else {
                     locationEditText.setText("");
                 }
@@ -118,14 +162,15 @@ public class EditProfileFragment extends Fragment {
 
     private void setupListeners() {
         // Handle change avatar click
-        changeAvatarText.setOnClickListener(v -> {
-            openImagePicker();
+        changeAvatarText.setOnClickListener(v -> openImagePicker());
+
+        // Use Navigation to open map picker fragment
+        locationEditText.setOnClickListener(v -> {
+            Navigation.findNavController(requireView()).navigate(R.id.action_editProfileFragment_to_mapPickerFragment);
         });
 
         // Handle save button click
-        saveButton.setOnClickListener(v -> {
-            saveUserProfile();
-        });
+        saveButton.setOnClickListener(v -> saveUserProfile());
     }
 
     private void openImagePicker() {
@@ -169,8 +214,11 @@ public class EditProfileFragment extends Fragment {
         updates.put("phoneNumber", contact);
         updates.put("updatedAt", new java.util.Date());
 
-        // Parse location string to GeoPoint if possible
-        if (!locationText.isEmpty()) {
+        // Use selectedLatitude/Longitude if available
+        if (selectedLatitude != null && selectedLongitude != null) {
+            com.google.firebase.firestore.GeoPoint geoPoint = new com.google.firebase.firestore.GeoPoint(selectedLatitude, selectedLongitude);
+            updates.put("location", geoPoint);
+        } else if (!locationText.isEmpty()) {
             try {
                 // Try to parse the location string (format: "latitude, longitude")
                 String[] coordinates = locationText.split(",");
@@ -253,5 +301,28 @@ public class EditProfileFragment extends Fragment {
             // Navigate back when the back button is clicked
             Navigation.findNavController(requireView()).navigateUp();
         });
+    }
+
+    // Helper: set location field with address from lat/lng
+    private void setLocationFieldWithAddress(double latitude, double longitude) {
+        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                String addressLine = addresses.get(0).getAddressLine(0);
+                locationEditText.setText(addressLine);
+            } else {
+                locationEditText.setText(String.format(Locale.getDefault(), "%.5f, %.5f", latitude, longitude));
+            }
+        } catch (IOException e) {
+            locationEditText.setText(String.format(Locale.getDefault(), "%.5f, %.5f", latitude, longitude));
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (selectedLatitude != null) outState.putSerializable("selectedLatitude", selectedLatitude);
+        if (selectedLongitude != null) outState.putSerializable("selectedLongitude", selectedLongitude);
     }
 }

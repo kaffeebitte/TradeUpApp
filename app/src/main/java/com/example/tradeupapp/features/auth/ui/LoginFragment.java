@@ -32,6 +32,8 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginFragment extends Fragment {
 
@@ -212,28 +214,58 @@ public class LoginFragment extends Fragment {
     }
 
     private void performLogin(String email, String password) {
-        // Show loading indicator or disable button
         btnLogin.setEnabled(false);
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
-                    btnLogin.setEnabled(true); // Re-enable button
+                    btnLogin.setEnabled(true);
 
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             // Check if the email is verified
                             if (user.isEmailVerified()) {
-                                // Email is verified, allow login
-                                Toast.makeText(requireContext(), "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
-                                navigateToMainActivity();
+                                // Check if user is deleted or deactivated in Firestore
+                                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                                db.collection("users").document(user.getUid()).get()
+                                        .addOnSuccessListener(documentSnapshot -> {
+                                            if (documentSnapshot.exists()) {
+                                                Boolean isDeleted = documentSnapshot.getBoolean("isDeleted");
+                                                if (Boolean.TRUE.equals(isDeleted)) {
+                                                    Toast.makeText(requireContext(), "Tài khoản của bạn đã bị xoá và không thể đăng nhập.", Toast.LENGTH_LONG).show();
+                                                    mAuth.signOut();
+                                                    return;
+                                                }
+                                                Boolean deactivated = documentSnapshot.getBoolean("deactivated");
+                                                Boolean isActive = documentSnapshot.getBoolean("isActive");
+                                                if (Boolean.TRUE.equals(deactivated) || Boolean.FALSE.equals(isActive)) {
+                                                    // Reactivate account: set deactivated=false, isActive=true, deactivatedAt=null
+                                                    db.collection("users").document(user.getUid())
+                                                            .update(
+                                                                "deactivated", false,
+                                                                "isActive", true,
+                                                                "deactivatedAt", null
+                                                            )
+                                                            .addOnSuccessListener(unused -> {
+                                                                Toast.makeText(requireContext(), "Tài khoản đã được kích hoạt lại", Toast.LENGTH_SHORT).show();
+                                                                navigateToMainActivity();
+                                                            })
+                                                            .addOnFailureListener(e -> {
+                                                                Toast.makeText(requireContext(), "Không thể kích hoạt lại tài khoản: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                                                mAuth.signOut();
+                                                            });
+                                                } else {
+                                                    Toast.makeText(requireContext(), "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+                                                    navigateToMainActivity();
+                                                }
+                                            } else {
+                                                Toast.makeText(requireContext(), "Không tìm thấy thông tin người dùng", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
                             } else {
-                                // Email is not verified, stay logged in but redirect to verification
                                 Toast.makeText(requireContext(),
                                         "Vui lòng xác minh email của bạn trước khi tiếp tục",
                                         Toast.LENGTH_LONG).show();
-
-                                // Navigate to email verification screen
                                 Bundle args = new Bundle();
                                 args.putString("email", email);
                                 Navigation.findNavController(requireView())
@@ -241,7 +273,6 @@ public class LoginFragment extends Fragment {
                             }
                         }
                     } else {
-                        // Login failed
                         String errorMessage = task.getException() != null ?
                                 task.getException().getMessage() :
                                 "Đăng nhập thất bại";
@@ -263,8 +294,42 @@ public class LoginFragment extends Fragment {
                         // Sign in success
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            Toast.makeText(requireContext(), "Đăng nhập Google thành công", Toast.LENGTH_SHORT).show();
-                            navigateToMainActivity();
+                            // Check if user is deleted or deactivated in Firestore (Google login)
+                            FirebaseFirestore db = FirebaseFirestore.getInstance();
+                            db.collection("users").document(user.getUid()).get()
+                                    .addOnSuccessListener(documentSnapshot -> {
+                                        if (documentSnapshot.exists()) {
+                                            Boolean isDeleted = documentSnapshot.getBoolean("isDeleted");
+                                            if (Boolean.TRUE.equals(isDeleted)) {
+                                                Toast.makeText(requireContext(), "Tài khoản của bạn đã bị xoá và không thể đăng nhập.", Toast.LENGTH_LONG).show();
+                                                mAuth.signOut();
+                                                return;
+                                            }
+                                            Boolean deactivated = documentSnapshot.getBoolean("deactivated");
+                                            Boolean isActive = documentSnapshot.getBoolean("isActive");
+                                            if (Boolean.TRUE.equals(deactivated) || Boolean.FALSE.equals(isActive)) {
+                                                db.collection("users").document(user.getUid())
+                                                        .update(
+                                                            "deactivated", false,
+                                                            "isActive", true,
+                                                            "deactivatedAt", null
+                                                        )
+                                                        .addOnSuccessListener(unused -> {
+                                                            Toast.makeText(requireContext(), "Tài khoản đã được kích hoạt lại", Toast.LENGTH_SHORT).show();
+                                                            navigateToMainActivity();
+                                                        })
+                                                        .addOnFailureListener(e -> {
+                                                            Toast.makeText(requireContext(), "Không thể kích hoạt lại tài khoản: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                                            mAuth.signOut();
+                                                        });
+                                            } else {
+                                                Toast.makeText(requireContext(), "Đăng nhập Google thành công", Toast.LENGTH_SHORT).show();
+                                                navigateToMainActivity();
+                                            }
+                                        } else {
+                                            Toast.makeText(requireContext(), "Không tìm thấy thông tin người dùng", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
                         }
                     } else {
                         // Sign in failed

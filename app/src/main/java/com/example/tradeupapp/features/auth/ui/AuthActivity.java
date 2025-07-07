@@ -24,6 +24,10 @@ public class AuthActivity extends AppCompatActivity {
 
         if (navHostFragment != null) {
             navController = navHostFragment.getNavController();
+            // Always navigate to login fragment if this is a fresh launch (after sign out)
+            if (isTaskRoot() && savedInstanceState == null) {
+                navController.popBackStack(navController.getGraph().getStartDestinationId(), false);
+            }
         }
     }
 

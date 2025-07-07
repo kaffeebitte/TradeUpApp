@@ -1,12 +1,13 @@
 package com.example.tradeupapp.features.profile.ui;
 
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,12 +27,16 @@ import com.example.tradeupapp.models.User;
 import com.example.tradeupapp.shared.auth.UserManager;
 import com.example.tradeupapp.shared.auth.UserRole;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.imageview.ShapeableImageView;
-import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
 public class ProfileFragment extends Fragment {
 
@@ -39,35 +44,17 @@ public class ProfileFragment extends Fragment {
     private ShapeableImageView profileImageView;
     private TextView usernameTextView;
     private TextView userEmailTextView;
-    private TextView userBioTextView;
     private TextView userRatingTextView;
     private MaterialButton editProfileButton;
-    private MaterialButton accountSettingsButton;
-    private MaterialButton adminDashboardButton;
     private Button logoutButton;
 
-    // Role switcher
-    private TabLayout roleSwitcherTabLayout;
-
-    // Mode containers
-    private LinearLayout buyerModeLayout;
-    private LinearLayout sellerModeLayout;
-
-    // Buyer mode UI components
-    private TextView savedItemsCountTextView;
-    private TextView offersCountTextView;
-    private TextView purchasesCountTextView;
-    private MaterialButton savedItemsButton;
-    private MaterialButton purchaseHistoryButton;
-    private MaterialButton offerHistoryButton;
-
-    // Seller mode UI components
-    private TextView activeListingsCountTextView;
-    private TextView offersReceivedCountTextView;
-    private TextView salesCountTextView;
-    private MaterialButton addListingButton;
-    private MaterialButton myListingsButton;
-    private MaterialButton salesHistoryButton;
+    // Bio and contact UI components
+    private TextView userBioTextView;
+    private TextView userBioEmptyTextView;
+    private TextView userLocationTextView;
+    private TextView userPhoneTextView;
+    private TextView userEmailContactTextView;
+    private TextView userPreferredContactTextView;
 
     // Firebase and services
     private FirebaseAuth auth;
@@ -115,9 +102,6 @@ public class ProfileFragment extends Fragment {
         // Initialize views
         initViews(view);
 
-        // Set up role switcher
-        setupRoleSwitcher();
-
         // Set up user profile data
         setupUserProfile();
 
@@ -129,171 +113,97 @@ public class ProfileFragment extends Fragment {
     }
 
     private void initViews(View view) {
-        // Profile section
-        profileImageView = view.findViewById(R.id.iv_avatar);
-        usernameTextView = view.findViewById(R.id.tv_name);
-        userEmailTextView = view.findViewById(R.id.tv_email);
-        userBioTextView = view.findViewById(R.id.tv_bio);
+        // Profile header section
+        profileImageView = view.findViewById(R.id.iv_profile_avatar);
+        usernameTextView = view.findViewById(R.id.tv_user_name);
+        userEmailTextView = view.findViewById(R.id.tv_member_since);
+
+        // Stats section
+        TextView itemsCountTextView = view.findViewById(R.id.tv_items_count);
+        TextView reviewsCountTextView = view.findViewById(R.id.tv_reviews_count);
         userRatingTextView = view.findViewById(R.id.tv_rating);
-        editProfileButton = view.findViewById(R.id.btn_edit_profile);
-        accountSettingsButton = view.findViewById(R.id.btn_account_settings);
-        adminDashboardButton = view.findViewById(R.id.btn_admin_dashboard);
-        logoutButton = view.findViewById(R.id.btn_logout);
 
-        // Role switcher
-        roleSwitcherTabLayout = view.findViewById(R.id.tab_role_switcher);
+        // Bio and contact views
+        userBioTextView = view.findViewById(R.id.tv_user_bio);
+        userBioEmptyTextView = view.findViewById(R.id.tv_bio_empty);
+        userLocationTextView = view.findViewById(R.id.tv_user_location);
+        userPhoneTextView = view.findViewById(R.id.tv_user_phone);
+        userEmailContactTextView = view.findViewById(R.id.tv_user_email);
+        userPreferredContactTextView = view.findViewById(R.id.tv_preferred_contact);
 
-        // Mode containers
-        buyerModeLayout = view.findViewById(R.id.layout_buyer_mode);
-        sellerModeLayout = view.findViewById(R.id.layout_seller_mode);
+        // Quick action cards - these are MaterialCardView, not MaterialButton
+        MaterialCardView myListingsCard = view.findViewById(R.id.card_my_listings);
+        MaterialCardView purchasesCard = view.findViewById(R.id.card_purchases);
 
-        // Buyer mode UI components
-        savedItemsCountTextView = view.findViewById(R.id.tv_saved_items_count);
-        offersCountTextView = view.findViewById(R.id.tv_offers_count);
-        purchasesCountTextView = view.findViewById(R.id.tv_purchases_count);
-        savedItemsButton = view.findViewById(R.id.btn_saved_items);
-        purchaseHistoryButton = view.findViewById(R.id.btn_purchase_history);
-        offerHistoryButton = view.findViewById(R.id.btn_offer_history);
+        // Menu cards - these are MaterialCardView, not MaterialButton
+        MaterialCardView editProfileCard = view.findViewById(R.id.card_edit_profile);
+        MaterialCardView paymentMethodsCard = view.findViewById(R.id.card_payment_methods);
+        MaterialCardView addressesCard = view.findViewById(R.id.card_addresses);
+        MaterialCardView notificationsCard = view.findViewById(R.id.card_notifications);
+        MaterialCardView privacyCard = view.findViewById(R.id.card_privacy);
+        MaterialCardView helpCard = view.findViewById(R.id.card_help);
 
-        // Seller mode UI components
-        activeListingsCountTextView = view.findViewById(R.id.tv_active_listings_count);
-        offersReceivedCountTextView = view.findViewById(R.id.tv_offers_received_count);
-        salesCountTextView = view.findViewById(R.id.tv_sales_count);
-        addListingButton = view.findViewById(R.id.btn_add_listing);
-        myListingsButton = view.findViewById(R.id.btn_my_listings);
-        salesHistoryButton = view.findViewById(R.id.btn_sales_history);
+        // Sign out button - this is MaterialButton
+        logoutButton = view.findViewById(R.id.btn_sign_out);
+
+        // Setup click listeners for all cards
+        setupNewClickListeners(myListingsCard, purchasesCard, editProfileCard,
+                paymentMethodsCard, addressesCard, notificationsCard,
+                privacyCard, helpCard);
     }
 
-    private void setupRoleSwitcher() {
-        // Initialize tab selection based on current user role
-        UserRole currentRole = userManager.getUserRole();
-        int initialTab = currentRole == UserRole.SELLER ? 1 : 0;
+    private void setupNewClickListeners(MaterialCardView myListingsCard, MaterialCardView purchasesCard,
+                                       MaterialCardView editProfileCard, MaterialCardView paymentMethodsCard,
+                                       MaterialCardView addressesCard, MaterialCardView notificationsCard,
+                                       MaterialCardView privacyCard, MaterialCardView helpCard) {
 
-        // Select the appropriate tab
-        TabLayout.Tab tab = roleSwitcherTabLayout.getTabAt(initialTab);
-        if (tab != null) {
-            tab.select();
-        }
+        // Quick actions
+        myListingsCard.setOnClickListener(v -> {
+            NavController navController = NavHostFragment.findNavController(this);
+            navController.navigate(R.id.action_nav_profile_to_myListingsFragment);
+        });
 
-        // Initially show the correct mode layout
-        updateUIForRole(currentRole);
+        purchasesCard.setOnClickListener(v -> {
+            NavController navController = NavHostFragment.findNavController(this);
+            navController.navigate(R.id.action_nav_profile_to_purchaseHistoryFragment);
+        });
 
-        // Set up tab selection listener
-        roleSwitcherTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                UserRole newRole = tab.getPosition() == 0 ? UserRole.BUYER : UserRole.SELLER;
-
-                // Update user role in UserManager
-                userManager.setUserRole(newRole);
-
-                // Update UI to reflect the new role
-                updateUIForRole(newRole);
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-                // Not needed
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-                // Not needed
+        // Account section
+        editProfileCard.setOnClickListener(v -> {
+            if (currentUser != null) {
+                NavController navController = NavHostFragment.findNavController(this);
+                Bundle args = new Bundle();
+                args.putSerializable("user", currentUser);
+                navController.navigate(R.id.action_nav_profile_to_editProfileFragment, args);
+            } else {
+                Toast.makeText(requireContext(), "Loading user data, please try again later", Toast.LENGTH_SHORT).show();
             }
         });
-    }
 
-    private void updateUIForRole(UserRole role) {
-        if (role == UserRole.BUYER) {
-            buyerModeLayout.setVisibility(View.VISIBLE);
-            sellerModeLayout.setVisibility(View.GONE);
+        paymentMethodsCard.setOnClickListener(v -> {
+            Toast.makeText(requireContext(), "Payment methods coming soon", Toast.LENGTH_SHORT).show();
+        });
 
-            // Load buyer-specific data
-            loadBuyerData();
-        } else {
-            buyerModeLayout.setVisibility(View.GONE);
-            sellerModeLayout.setVisibility(View.VISIBLE);
+        addressesCard.setOnClickListener(v -> {
+            Toast.makeText(requireContext(), "Shipping addresses coming soon", Toast.LENGTH_SHORT).show();
+        });
 
-            // Load seller-specific data
-            loadSellerData();
-        }
-    }
+        // Settings section
+        notificationsCard.setOnClickListener(v -> {
+            Toast.makeText(requireContext(), "Notifications settings coming soon", Toast.LENGTH_SHORT).show();
+        });
 
-    private void loadBuyerData() {
-        // In a real app, these values would be loaded from a database
+        privacyCard.setOnClickListener(v -> {
+            NavController navController = NavHostFragment.findNavController(this);
+            navController.navigate(R.id.action_nav_profile_to_accountPrivacyFragment);
+        });
 
-        if (currentUser != null) {
-            // Load data from user object or make additional queries
-            String uid = auth.getCurrentUser().getUid();
+        helpCard.setOnClickListener(v -> {
+            Toast.makeText(requireContext(), "Help & Support coming soon", Toast.LENGTH_SHORT).show();
+        });
 
-            // Example: Count saved items
-            db.collection("savedItems")
-                .whereEqualTo("userId", uid)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    // Update UI directly with the result
-                    savedItemsCountTextView.setText(String.valueOf(querySnapshot.size()));
-                });
-
-            // Example: Count offers
-            db.collection("offers")
-                .whereEqualTo("buyerId", uid)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    // Update UI directly with the result
-                    offersCountTextView.setText(String.valueOf(querySnapshot.size()));
-                });
-
-            // Example: Count purchases
-            db.collection("transactions")
-                .whereEqualTo("buyerId", uid)
-                .whereEqualTo("status", "completed")
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    // Update UI directly with the result
-                    purchasesCountTextView.setText(String.valueOf(querySnapshot.size()));
-                });
-        }
-    }
-
-    private void loadSellerData() {
-        if (currentUser != null) {
-            // Load data from user object or make additional queries
-            String uid = auth.getCurrentUser().getUid();
-
-            // Example: Count active listings
-            db.collection("items")
-                .whereEqualTo("sellerId", uid)
-                .whereEqualTo("status", "active")
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    // Update UI directly with the result
-                    activeListingsCountTextView.setText(String.valueOf(querySnapshot.size()));
-                });
-
-            // Example: Count offers received
-            db.collection("offers")
-                .whereEqualTo("sellerId", uid)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    // Update UI directly with the result
-                    offersReceivedCountTextView.setText(String.valueOf(querySnapshot.size()));
-                });
-
-            // Example: Count sales
-            db.collection("transactions")
-                .whereEqualTo("sellerId", uid)
-                .whereEqualTo("status", "completed")
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    // Update UI directly with the result
-                    salesCountTextView.setText(String.valueOf(querySnapshot.size()));
-                });
-
-            // Update rating text
-            String ratingText = String.format("%.1f (%d)", currentUser.getRating(), currentUser.getTotalReviews());
-            userRatingTextView.setText(ratingText);
-        }
+        // Sign out
+        logoutButton.setOnClickListener(v -> showLogoutDialog());
     }
 
     private void setupUserProfile() {
@@ -315,33 +225,33 @@ public class ProfileFragment extends Fragment {
 
             // Show loading state or basic verification status initially
             if (!firebaseUser.isEmailVerified() && !isGoogleUser(firebaseUser)) {
-                userBioTextView.setText("⚠️ Email not verified. Please check your inbox.");
+                userRatingTextView.setText("⚠️ Email not verified. Please check your inbox.");
             }
 
             // Fetch detailed user data from Firestore
             String uid = firebaseUser.getUid();
             db.collection("users").document(uid).get()
-                .addOnSuccessListener(document -> {
-                    if (document.exists()) {
-                        // Convert document to User object
-                        currentUser = document.toObject(User.class);
-                        if (currentUser != null) {
-                            // Update UI with complete user data
-                            updateUIWithUserData(currentUser);
+                    .addOnSuccessListener(document -> {
+                        if (document.exists()) {
+                            // Convert document to User object
+                            currentUser = document.toObject(User.class);
+                            if (currentUser != null) {
+                                // Update UI with complete user data
+                                updateUIWithUserData(currentUser);
 
-                            // Load role-specific data
-                            UserRole currentRole = userManager.getUserRole();
-                            if (currentRole == UserRole.BUYER) {
-                                loadBuyerData();
-                            } else {
-                                loadSellerData();
+                                // Load role-specific data
+                                UserRole currentRole = userManager.getUserRole();
+                                if (currentRole == UserRole.BUYER) {
+                                    loadUserStats();
+                                } else {
+                                    loadUserStats();
+                                }
                             }
                         }
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Could not load profile information", Toast.LENGTH_SHORT).show();
-                });
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(getContext(), "Could not load profile information", Toast.LENGTH_SHORT).show();
+                    });
         } else {
             // Handle not logged in state
             navigateToLogin();
@@ -360,85 +270,44 @@ public class ProfileFragment extends Fragment {
     }
 
     private void checkAdminStatus() {
-        if (auth.getCurrentUser() != null) {
-            String uid = auth.getCurrentUser().getUid();
-            db.collection("users").document(uid).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            Boolean isAdmin = documentSnapshot.getBoolean("isAdmin");
-                            if (isAdmin != null && isAdmin) {
-                                adminDashboardButton.setVisibility(View.VISIBLE);
-                            }
-                        }
-                    });
-        }
+        // Admin functionality có thể implement sau
+        // Layout mới không có adminDashboardButton
     }
 
     private void setupClickListeners() {
-        // Profile and account section buttons
-        editProfileButton.setOnClickListener(v -> {
-            if (currentUser != null) {
-                // Navigate to edit profile fragment
-                NavController navController = NavHostFragment.findNavController(this);
-                Bundle args = new Bundle();
-                args.putSerializable("user", currentUser);
-                navController.navigate(R.id.action_nav_profile_to_editProfileFragment, args);
-            } else {
-                Toast.makeText(requireContext(), "Loading user data, please try again later", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        accountSettingsButton.setOnClickListener(v -> {
-            // Navigate to account settings
-            NavController navController = NavHostFragment.findNavController(this);
-            navController.navigate(R.id.action_nav_profile_to_accountSettingsFragment);
-        });
-
-        adminDashboardButton.setOnClickListener(v -> {
-            // Navigate to admin dashboard
-            NavController navController = NavHostFragment.findNavController(this);
-            navController.navigate(R.id.action_nav_profile_to_adminDashboardFragment);
-        });
-
+        // Chỉ giữ lại phần logout button click listener
         logoutButton.setOnClickListener(v -> showLogoutDialog());
+    }
 
-        // Buyer mode buttons
-        savedItemsButton.setOnClickListener(v -> {
-            // Navigate to saved items
-            NavController navController = NavHostFragment.findNavController(this);
-            navController.navigate(R.id.action_nav_profile_to_savedItemsFragment);
-        });
+    private void loadUserStats() {
+        if (currentUser != null && auth.getCurrentUser() != null) {
+            String uid = auth.getCurrentUser().getUid();
 
-        purchaseHistoryButton.setOnClickListener(v -> {
-            // Navigate to purchase history
-            NavController navController = NavHostFragment.findNavController(this);
-            navController.navigate(R.id.action_nav_profile_to_purchaseHistoryFragment);
-        });
+            // Load basic stats to display in header
+            TextView itemsCount = getView().findViewById(R.id.tv_items_count);
+            TextView reviewsCount = getView().findViewById(R.id.tv_reviews_count);
 
-        offerHistoryButton.setOnClickListener(v -> {
-            // Navigate to offers made
-            NavController navController = NavHostFragment.findNavController(this);
-            navController.navigate(R.id.action_nav_profile_to_offerHistoryFragment);
-        });
+            // Count user's active listings
+            db.collection("items")
+                .whereEqualTo("sellerId", uid)
+                .whereEqualTo("status", "active")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (itemsCount != null) {
+                        itemsCount.setText(String.valueOf(querySnapshot.size()));
+                    }
+                });
 
-        // Seller mode buttons
-        addListingButton.setOnClickListener(v -> {
-            // Navigate to add new listing
-            NavController navController = NavHostFragment.findNavController(this);
-            navController.navigate(R.id.action_nav_profile_to_addItemFragment);
-        });
-
-        myListingsButton.setOnClickListener(v -> {
-            // Navigate to my listings
-            NavController navController = NavHostFragment.findNavController(this);
-            navController.navigate(R.id.action_nav_profile_to_myListingsFragment);
-        });
-
-        salesHistoryButton.setOnClickListener(v -> {
-            // Navigate to sales history
-            NavController navController = NavHostFragment.findNavController(this);
-            navController.navigate(R.id.action_nav_profile_to_salesHistoryFragment);
-        });
+            // Count reviews received
+            db.collection("reviews")
+                .whereEqualTo("userId", uid)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (reviewsCount != null) {
+                        reviewsCount.setText(String.valueOf(querySnapshot.size()));
+                    }
+                });
+        }
     }
 
     private void navigateToLogin() {
@@ -481,35 +350,96 @@ public class ProfileFragment extends Fragment {
                 usernameTextView.setText(user.getDisplayName());
             }
 
-            // Update email
-            userEmailTextView.setText(user.getEmail());
-
-            // Update bio if it exists
-            if (user.getBio() != null && !user.getBio().isEmpty()) {
-                userBioTextView.setText(user.getBio());
-            } else {
-                FirebaseUser firebaseUser = auth.getCurrentUser();
-                if (firebaseUser != null && (firebaseUser.isEmailVerified() || isGoogleUser(firebaseUser))) {
-                    userBioTextView.setText("Account verified ✓");
-                }
+            // Update member since info (sử dụng email field tạm thời)
+            if (user.getEmail() != null) {
+                userEmailTextView.setText("Member since " + user.getEmail());
             }
 
             // Update rating display
-            String ratingText = String.format("%.1f (%d)", user.getRating(), user.getTotalReviews());
+            String ratingText = String.format("%.1f", user.getRating());
             userRatingTextView.setText(ratingText);
 
             // Load user avatar
             if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
                 try {
                     com.bumptech.glide.Glide.with(requireContext())
-                        .load(user.getPhotoUrl())
-                        .placeholder(R.drawable.ic_user_24)
-                        .into(profileImageView);
+                            .load(user.getPhotoUrl())
+                            .placeholder(R.drawable.ic_account_circle)
+                            .into(profileImageView);
                 } catch (Exception e) {
                     // Fallback if Glide fails
-                    profileImageView.setImageResource(R.drawable.ic_user_24);
+                    profileImageView.setImageResource(R.drawable.ic_account_circle);
                 }
             }
+
+            // Update bio and contact information
+            if (user.getBio() != null && !user.getBio().isEmpty()) {
+                userBioTextView.setText(user.getBio());
+                userBioTextView.setVisibility(View.VISIBLE);
+                userBioEmptyTextView.setVisibility(View.GONE);
+            } else {
+                userBioTextView.setVisibility(View.GONE);
+                userBioEmptyTextView.setVisibility(View.VISIBLE);
+            }
+
+            // Xử lý thông tin vị trí (là GeoPoint trong Firestore)
+            if (user.getLocation() != null) {
+                Object location = user.getLocation();
+                if (location instanceof com.google.firebase.firestore.GeoPoint) {
+                    com.google.firebase.firestore.GeoPoint geoPoint = (com.google.firebase.firestore.GeoPoint) location;
+                    double lat = geoPoint.getLatitude();
+                    double lng = geoPoint.getLongitude();
+                    // Try to get address string from lat/lng
+                    String addressStr = getAddressFromLatLng(lat, lng);
+                    if (addressStr != null && !addressStr.isEmpty()) {
+                        userLocationTextView.setText(addressStr);
+                    } else {
+                        userLocationTextView.setText(String.format("%.6f, %.6f", lat, lng));
+                    }
+                    userLocationTextView.setVisibility(View.VISIBLE);
+                } else if (location instanceof String) {
+                    userLocationTextView.setText((String) location);
+                    userLocationTextView.setVisibility(View.VISIBLE);
+                } else {
+                    userLocationTextView.setVisibility(View.GONE);
+                }
+            } else {
+                userLocationTextView.setVisibility(View.GONE);
+            }
+
+            // Sử dụng phoneNumber thay vì phone
+            if (user.getPhoneNumber() != null && !user.getPhoneNumber().isEmpty()) {
+                userPhoneTextView.setText(user.getPhoneNumber());
+                userPhoneTextView.setVisibility(View.VISIBLE);
+            } else {
+                userPhoneTextView.setVisibility(View.GONE);
+            }
+
+            if (user.getEmail() != null) {
+                userEmailContactTextView.setText(user.getEmail());
+                userEmailContactTextView.setVisibility(View.VISIBLE);
+            } else {
+                userEmailContactTextView.setVisibility(View.GONE);
+            }
+
+            // Mặc định hiển thị "In-app messaging" cho phương thức liên hệ ưa thích
+            // vì User chưa có trường preferredContactMethod
+            userPreferredContactTextView.setText("In-app messaging");
+            userPreferredContactTextView.setVisibility(View.VISIBLE);
         }
+    }
+
+    // Helper: Convert lat/lng to address string
+    private String getAddressFromLatLng(double latitude, double longitude) {
+        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                return addresses.get(0).getAddressLine(0);
+            }
+        } catch (IOException e) {
+            // Ignore and fallback
+        }
+        return null;
     }
 }

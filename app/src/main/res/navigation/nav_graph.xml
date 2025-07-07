@@ -239,6 +239,11 @@
             app:destination="@id/salesHistoryFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_profile_to_accountPrivacyFragment"
+            app:destination="@id/accountPrivacyFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
     <fragment
@@ -259,13 +264,28 @@
         android:id="@+id/deleteAccountFragment"
         android:name="com.example.tradeupapp.features.profile.ui.DeleteAccountFragment"
         android:label="Delete Account"
-        tools:layout="@layout/fragment_account_settings" />
+        tools:layout="@layout/fragment_delete_account">
+    </fragment>
+
+    <dialog
+        android:id="@+id/dialog_account_deactivated"
+        android:name="com.example.tradeupapp.features.profile.ui.AccountDeactivatedDialogFragment"
+        android:label="Account Deactivated"
+        tools:layout="@layout/dialog_account_deactivated" />
 
     <fragment
         android:id="@+id/editProfileFragment"
         android:name="com.example.tradeupapp.features.profile.ui.EditProfileFragment"
         android:label="Edit Profile"
-        tools:layout="@layout/fragment_edit_profile" />
+        tools:layout="@layout/fragment_edit_profile">
+        <action
+            android:id="@+id/action_editProfileFragment_to_mapPickerFragment"
+            app:destination="@id/mapPickerFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
 
     <fragment
         android:id="@+id/manageListingsFragment"
@@ -558,4 +578,10 @@
             android:name="itemId"
             app:argType="string" />
     </fragment>
+
+    <fragment
+        android:id="@+id/accountPrivacyFragment"
+        android:name="com.example.tradeupapp.features.profile.ui.AccountPrivacyFragment"
+        android:label="Account Privacy &amp; Security"
+        tools:layout="@layout/fragment_account_privacy" />
 </navigation>

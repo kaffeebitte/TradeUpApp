@@ -32,17 +32,18 @@
                 <LinearLayout
                     android:id="@+id/location_indicator"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="48dp"
+                    android:minWidth="48dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="8dp">
+                    android:paddingHorizontal="12dp">
 
                     <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
                         android:contentDescription="Location"
                         android:src="@drawable/ic_location_24"
                         app:tint="?attr/colorPrimary" />
@@ -51,20 +52,12 @@
                         android:id="@+id/tv_location"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
+                        android:layout_marginStart="6dp"
                         android:text="Ho Chi Minh"
                         android:textAppearance="?attr/textAppearanceLabelMedium"
                         android:textColor="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_filter"
-                    style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="Filter"
-                    app:icon="@drawable/ic_filter_24" />
             </LinearLayout>
         </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
@@ -198,7 +191,7 @@
                 android:layout_marginBottom="24dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 android:orientation="horizontal"
-                tools:listitem="@layout/item_listing"
+                tools:listitem="@layout/item_card_horizontal"
                 tools:itemCount="3"/>
 
             <!-- 3. Nearby Picks with See All option -->
@@ -239,7 +232,7 @@
                 android:layout_marginBottom="24dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 android:orientation="horizontal"
-                tools:listitem="@layout/item_listing"
+                tools:listitem="@layout/item_card_horizontal"
                 tools:itemCount="3"/>
 
             <!-- 4. Recently Added with See All option -->
@@ -279,8 +272,18 @@
                 android:overScrollMode="never"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 android:orientation="horizontal"
-                tools:listitem="@layout/item_listing"
+                tools:listitem="@layout/item_card_horizontal"
                 tools:itemCount="3"/>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- Progress indicator -->
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/progress_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:visibility="gone"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

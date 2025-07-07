@@ -15,7 +15,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+/**
+ * Service class for handling Firebase operations
+ */
 public class FirebaseService {
     private static final String TAG = "FirebaseService";
     private static FirebaseService instance;
@@ -87,6 +91,7 @@ public class FirebaseService {
     }
 
     // Get all active categories - simplified query
+    @SuppressWarnings("unchecked")
     public void getAllCategories(CategoriesCallback callback) {
         db.collection("categories")
                 .whereEqualTo("isActive", true)

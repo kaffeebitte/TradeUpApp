@@ -21,4 +21,22 @@
         <item name="android:background">@android:color/transparent</item>
         <item name="shapeAppearance">@style/ShapeAppearance.TradeUp.LargeComponent</item>
     </style>
+
+    <!-- Shape appearance for top-rounded corners -->
+    <style name="ShapeAppearance.App.TopRounded" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">12dp</item>
+        <item name="cornerSizeTopRight">12dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <!-- Shape appearance for top-rounded corners -->
+    <style name="ShapeAppearance.TradeUp.TopRounded" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">12dp</item>
+        <item name="cornerSizeTopRight">12dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
 </resources>
