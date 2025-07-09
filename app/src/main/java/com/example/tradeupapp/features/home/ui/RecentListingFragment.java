@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tradeupapp.R;
 import com.example.tradeupapp.shared.adapters.ListingAdapter;
-import com.example.tradeupapp.models.ItemModel;
+import com.example.tradeupapp.models.ListingModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,8 +43,8 @@ public class RecentListingFragment extends Fragment {
         // Initialize views
         initViews(view);
 
-        // Load recent items
-        loadRecentItems();
+        // Load recent listings
+        loadRecentListings();
     }
 
     private void initViews(View view) {
@@ -69,67 +69,33 @@ public class RecentListingFragment extends Fragment {
         }
     }
 
-    private void loadRecentItems() {
-        // Get dummy recent items
-        List<ItemModel> recentItems = getDummyRecentItems();
-
-        // Create adapter with the items
+    private void loadRecentListings() {
+        // Dummy data for demonstration (replace with real data from Firestore in production)
+        List<ListingModel> recentListings = getDummyRecentListings();
         ListingAdapter adapter = new ListingAdapter(
                 requireContext(),
-                recentItems,
-                item -> {
-                    // Navigate to item detail
+                recentListings,
+                listing -> {
+                    // Navigate to listing detail, pass listingId
                     Bundle args = new Bundle();
-                    args.putString("itemId", item.getId());
+                    args.putString("listingId", listing.getId());
                     navController.navigate(R.id.action_recentListingFragment_to_itemDetailFragment, args);
                 }
         );
-
-        // Set adapter to recycler view
         recyclerView.setAdapter(adapter);
     }
 
-    private List<ItemModel> getDummyRecentItems() {
-        List<ItemModel> items = new ArrayList<>();
-
-        // Recent items dummy data
-        String[] titles = {
-                "Nintendo Switch", "Bluetooth Speaker", "Air Fryer",
-                "Yoga Mat", "Mountain Bike", "Tennis Racket",
-                "Electric Skateboard", "Basketball Hoop", "Camping Tent",
-                "Smart Watch", "Wireless Earbuds", "Digital Camera"
-        };
-
-        double[] prices = {
-                279.99, 69.99, 89.99, 29.99, 349.99, 59.99,
-                399.99, 149.99, 199.99, 249.99, 129.99, 349.99
-        };
-
-        String[] conditions = {
-                "New", "Like New", "New", "Good", "Used", "Excellent",
-                "Like New", "Good", "Used", "New", "Like New", "Good"
-        };
-
-        String[] categories = {
-                "Gaming", "Electronics", "Home", "Sports", "Sports", "Sports",
-                "Sports", "Sports", "Outdoor", "Electronics", "Electronics", "Electronics"
-        };
-
-        // Create item models with the data
-        for (int i = 0; i < titles.length; i++) {
-            ItemModel item = new ItemModel();
-            item.setId("recent_" + (i + 1));
-            item.setTitle(titles[i]);
-            item.setPrice(prices[i]);
-            item.setCondition(conditions[i]);
-            item.setCategory(categories[i]);
-            item.setStatus("Available");
-            item.setViewCount(10 + (int)(Math.random() * 50));
-            item.setInteractionCount(1 + (int)(Math.random() * 15));
-
-            items.add(item);
+    private List<ListingModel> getDummyRecentListings() {
+        List<ListingModel> listings = new ArrayList<>();
+        // Example dummy listings (replace with real ListingModel data)
+        for (int i = 0; i < 12; i++) {
+            ListingModel listing = new ListingModel();
+            listing.setId("listing_" + (i + 1));
+            listing.setPrice(100000 + i * 50000);
+            listing.setSellerId("seller_" + (i + 1));
+            listing.setItemId("item_" + (i + 1));
+            listings.add(listing);
         }
-
-        return items;
+        return listings;
     }
 }

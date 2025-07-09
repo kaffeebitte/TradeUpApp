@@ -86,9 +86,9 @@ public class ImageSliderAdapter extends RecyclerView.Adapter<ImageSliderAdapter.
         return imageUris != null ? imageUris.size() : 0;
     }
 
-    static class ImageViewHolder extends RecyclerView.ViewHolder {
-        ImageView imageView;
-        ProgressBar progressBar;
+    public static class ImageViewHolder extends RecyclerView.ViewHolder {
+        public ImageView imageView;
+        public ProgressBar progressBar;
 
         public ImageViewHolder(@NonNull View itemView) {
             super(itemView);

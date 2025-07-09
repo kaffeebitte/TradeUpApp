@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tradeupapp.R;
 import com.example.tradeupapp.core.services.FirebaseService;
-import com.example.tradeupapp.models.ItemModel;
+import com.example.tradeupapp.models.ListingModel;
 import com.example.tradeupapp.shared.adapters.PurchaseHistoryAdapter;
 import com.google.android.material.textview.MaterialTextView;
 
@@ -28,6 +28,7 @@ public class PurchaseHistoryFragment extends Fragment implements PurchaseHistory
     private MaterialTextView emptyStateTextView;
     private PurchaseHistoryAdapter adapter;
     private FirebaseService firebaseService;
+    private com.example.tradeupapp.core.services.ItemRepository itemRepository;
 
     public static PurchaseHistoryFragment newInstance() {
         return new PurchaseHistoryFragment();
@@ -59,9 +60,10 @@ public class PurchaseHistoryFragment extends Fragment implements PurchaseHistory
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-
-        // Initialize adapter with empty list
-        adapter = new PurchaseHistoryAdapter(requireContext(), new ArrayList<>(), this);
+        // Initialize ItemRepository
+        itemRepository = new com.example.tradeupapp.core.services.ItemRepository();
+        // Initialize adapter with empty list and pass itemRepository
+        adapter = new PurchaseHistoryAdapter(requireContext(), new ArrayList<>(), this, itemRepository);
         recyclerView.setAdapter(adapter);
     }
 
@@ -72,16 +74,15 @@ public class PurchaseHistoryFragment extends Fragment implements PurchaseHistory
             showEmptyState();
             return;
         }
-
-        // Load items that this user has purchased (items with status like "Purchased", "Delivered", etc.)
-        firebaseService.getUserPurchasedItems(currentUserId, new FirebaseService.ItemsCallback() {
+        // TODO: Replace with getUserPurchasedListings when available
+        firebaseService.getUserPurchasedListings(currentUserId, new FirebaseService.ListingsCallback() {
             @Override
-            public void onSuccess(List<ItemModel> purchasedItems) {
+            public void onSuccess(List<ListingModel> purchasedListings) {
                 if (getActivity() != null && isAdded()) {
-                    if (purchasedItems.isEmpty()) {
+                    if (purchasedListings.isEmpty()) {
                         showEmptyState();
                     } else {
-                        showPurchaseHistory(purchasedItems);
+                        showPurchaseHistory(purchasedListings);
                     }
                 }
             }
@@ -96,10 +97,10 @@ public class PurchaseHistoryFragment extends Fragment implements PurchaseHistory
         });
     }
 
-    private void showPurchaseHistory(List<ItemModel> purchasedItems) {
+    private void showPurchaseHistory(List<ListingModel> purchasedListings) {
         recyclerView.setVisibility(View.VISIBLE);
         emptyStateTextView.setVisibility(View.GONE);
-        adapter.updateItems(purchasedItems);
+        adapter.updateItems(purchasedListings);
     }
 
     private void showEmptyState() {
@@ -110,34 +111,25 @@ public class PurchaseHistoryFragment extends Fragment implements PurchaseHistory
 
     // PurchaseHistoryAdapter.OnItemClickListener implementation
     @Override
-    public void onItemClick(ItemModel item) {
-        // Navigate to item details to view the purchased item
+    public void onItemClick(ListingModel listing) {
+        // Handle item click (navigate to item detail)
         Bundle args = new Bundle();
-        args.putParcelable("item", item);
+        args.putString("itemId", listing.getItemId());
         Navigation.findNavController(requireView()).navigate(R.id.action_purchaseHistoryFragment_to_itemDetailFragment, args);
     }
 
     @Override
-    public void onReorderClick(ItemModel item) {
-        // Handle reorder functionality
-        if (item.getListingId() != null) {
-            // Navigate to the original listing to reorder
-            Bundle args = new Bundle();
-            args.putString("listingId", item.getListingId());
-            Toast.makeText(getContext(), "Redirecting to original listing...", Toast.LENGTH_SHORT).show();
-            // Navigation.findNavController(requireView()).navigate(R.id.action_purchaseHistoryFragment_to_listingDetailFragment, args);
-        } else {
-            Toast.makeText(getContext(), "Original listing is no longer available", Toast.LENGTH_SHORT).show();
-        }
+    public void onReorderClick(ListingModel listing) {
+        // Handle reorder click (navigate to item detail or show a message)
+        Bundle args = new Bundle();
+        args.putString("itemId", listing.getItemId());
+        Toast.makeText(getContext(), "Redirecting to original listing...", Toast.LENGTH_SHORT).show();
+        Navigation.findNavController(requireView()).navigate(R.id.action_purchaseHistoryFragment_to_itemDetailFragment, args);
     }
 
     @Override
-    public void onReviewClick(ItemModel item) {
-        // Navigate to review/rating screen
-        Bundle args = new Bundle();
-        args.putParcelable("item", item);
-        args.putString("transactionId", item.getTransactionId());
-        Toast.makeText(getContext(), "Opening review form...", Toast.LENGTH_SHORT).show();
-        // Navigation.findNavController(requireView()).navigate(R.id.action_purchaseHistoryFragment_to_reviewFragment, args);
+    public void onReviewClick(ListingModel listing) {
+        // Handle review click (show a message or navigate to review screen)
+        Toast.makeText(getContext(), "Review feature not implemented yet.", Toast.LENGTH_SHORT).show();
     }
 }

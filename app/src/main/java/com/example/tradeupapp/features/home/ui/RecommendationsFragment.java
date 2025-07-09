@@ -20,6 +20,7 @@ import com.example.tradeupapp.shared.adapters.CategoryAdapter;
 import com.example.tradeupapp.shared.adapters.ListingAdapter;
 import com.example.tradeupapp.models.CategoryModel;
 import com.example.tradeupapp.models.ItemModel;
+import com.example.tradeupapp.models.ListingModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -130,17 +131,15 @@ public class RecommendationsFragment extends Fragment {
     }
 
     private void loadRecommendedItems() {
-        firebaseService.getAllItems(new FirebaseService.ItemsCallback() {
+        firebaseService.getAllListings(new FirebaseService.ListingsCallback() {
             @Override
-            public void onSuccess(List<ItemModel> items) {
+            public void onSuccess(List<ListingModel> listings) {
                 if (getActivity() != null && isAdded()) {
-                    // Take first 5 items for recommendations
-                    List<ItemModel> recommendedItems = items.size() > 5 ? items.subList(0, 5) : items;
-
+                    List<ListingModel> recommendedListings = listings.size() > 5 ? listings.subList(0, 5) : listings;
                     personalizedAdapter = new ListingAdapter(
                             requireContext(),
-                            recommendedItems,
-                            RecommendationsFragment.this::navigateToItemDetail
+                            recommendedListings,
+                            listing -> navigateToItemDetail(listing.getId())
                     );
                     personalizedRecyclerView.setAdapter(personalizedAdapter);
                 }
@@ -156,20 +155,17 @@ public class RecommendationsFragment extends Fragment {
     }
 
     private void loadNearbyItems() {
-        // For now, load all items - can be enhanced with location-based filtering
-        firebaseService.getAllItems(new FirebaseService.ItemsCallback() {
+        firebaseService.getAllListings(new FirebaseService.ListingsCallback() {
             @Override
-            public void onSuccess(List<ItemModel> items) {
+            public void onSuccess(List<ListingModel> listings) {
                 if (getActivity() != null && isAdded()) {
-                    // Take different items for nearby (items 5-10)
-                    int start = Math.min(5, items.size());
-                    int end = Math.min(10, items.size());
-                    List<ItemModel> nearbyItems = items.size() > start ? items.subList(start, end) : new ArrayList<>();
-
+                    int start = Math.min(5, listings.size());
+                    int end = Math.min(10, listings.size());
+                    List<ListingModel> nearbyListings = listings.size() > start ? listings.subList(start, end) : new ArrayList<>();
                     nearbyAdapter = new ListingAdapter(
                             requireContext(),
-                            nearbyItems,
-                            RecommendationsFragment.this::navigateToItemDetail
+                            nearbyListings,
+                            listing -> navigateToItemDetail(listing.getId())
                     );
                     nearbyRecyclerView.setAdapter(nearbyAdapter);
                 }
@@ -185,17 +181,15 @@ public class RecommendationsFragment extends Fragment {
     }
 
     private void loadRecentItems() {
-        firebaseService.getAllItems(new FirebaseService.ItemsCallback() {
+        firebaseService.getAllListings(new FirebaseService.ListingsCallback() {
             @Override
-            public void onSuccess(List<ItemModel> items) {
+            public void onSuccess(List<ListingModel> listings) {
                 if (getActivity() != null && isAdded()) {
-                    // Items are already ordered by dateAdded descending, so these are the most recent
-                    List<ItemModel> recentItems = items.size() > 3 ? items.subList(0, 3) : items;
-
+                    List<ListingModel> recentListings = listings.size() > 3 ? listings.subList(0, 3) : listings;
                     recentAdapter = new ListingAdapter(
                             requireContext(),
-                            recentItems,
-                            RecommendationsFragment.this::navigateToItemDetail
+                            recentListings,
+                            listing -> navigateToItemDetail(listing.getId())
                     );
                     recentRecyclerView.setAdapter(recentAdapter);
                 }
@@ -250,12 +244,9 @@ public class RecommendationsFragment extends Fragment {
         navController.navigate(R.id.action_nav_recommendations_to_categoryListingFragment, args);
     }
 
-    private void navigateToItemDetail(ItemModel item) {
-        // Bundle để truyền ID của sản phẩm vào fragment chi tiết
+    private void navigateToItemDetail(String listingId) {
         Bundle args = new Bundle();
-        args.putString("itemId", item.getId());
-
-        // Sử dụng NavController để chuyển hướng đến màn hình chi tiết sản phẩm
+        args.putString("listingId", listingId);
         navController.navigate(R.id.action_nav_recommendations_to_itemDetailFragment, args);
     }
 }

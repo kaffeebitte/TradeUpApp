@@ -1,5 +1,6 @@
 package com.example.tradeupapp.features.listing.ui;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.example.tradeupapp.R;
 import com.example.tradeupapp.shared.adapters.ImagePhotoAdapter;
 import com.example.tradeupapp.models.ItemModel;
+import com.example.tradeupapp.models.ListingModel;
 import com.google.android.material.button.MaterialButton;
 
 public class ItemPreviewFragment extends Fragment {
@@ -24,6 +26,7 @@ public class ItemPreviewFragment extends Fragment {
     private static final String ARG_ITEM = "item";
 
     private ItemModel item;
+    private ListingModel listing; // Add this if you want to show price
     private ViewPager2 photosViewPager;
     private TextView tvTitle;
     private TextView tvPrice;
@@ -48,6 +51,10 @@ public class ItemPreviewFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             item = getArguments().getParcelable(ARG_ITEM);
+            // Optionally get listing if passed as argument
+            if (getArguments().containsKey("listing")) {
+                listing = (ListingModel) getArguments().getSerializable("listing");
+            }
         }
     }
 
@@ -84,14 +91,22 @@ public class ItemPreviewFragment extends Fragment {
             requireActivity().onBackPressed();
             return;
         }
-
-        // Set up the photo adapter
-        photoAdapter = new ImagePhotoAdapter(requireContext(), item.getPhotoUris());
+        // Convert List<String> to List<Uri> for the photo adapter
+        java.util.List<Uri> uriList = new java.util.ArrayList<>();
+        if (item.getPhotoUris() != null) {
+            for (String uriStr : item.getPhotoUris()) {
+                if (uriStr != null) uriList.add(Uri.parse(uriStr));
+            }
+        }
+        photoAdapter = new ImagePhotoAdapter(requireContext(), uriList);
         photosViewPager.setAdapter(photoAdapter);
-
-        // Set up item details
         tvTitle.setText(item.getTitle());
-        tvPrice.setText(String.format("$%.2f", item.getPrice()));
+        // Show price if listing is available, otherwise hide or show placeholder
+        if (listing != null) {
+            tvPrice.setText(String.format("$%.2f", listing.getPrice()));
+        } else {
+            tvPrice.setText(""); // or hide the view
+        }
         tvDescription.setText(item.getDescription());
         tvCategory.setText(item.getCategory());
         tvCondition.setText(item.getCondition());

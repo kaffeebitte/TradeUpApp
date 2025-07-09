@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tradeupapp.R;
 import com.example.tradeupapp.shared.adapters.ListingAdapter;
-import com.example.tradeupapp.models.ItemModel;
+import com.example.tradeupapp.models.ListingModel;
 import com.example.tradeupapp.features.common.ListFilterBottomSheetFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textview.MaterialTextView;
@@ -31,8 +31,8 @@ public class SavedItemsFragment extends Fragment implements ListFilterBottomShee
     private MaterialTextView emptyStateTextView;
     private FloatingActionButton fabFilter;
     private ListingAdapter adapter;
-    private List<ItemModel> allSavedItems;
-    private List<ItemModel> filteredItems;
+    private List<ListingModel> allSavedListings;
+    private List<ListingModel> filteredListings;
 
     public static SavedItemsFragment newInstance() {
         return new SavedItemsFragment();
@@ -72,25 +72,27 @@ public class SavedItemsFragment extends Fragment implements ListFilterBottomShee
     private void loadSavedItems() {
         // In a real app, load from database or API
         // For now, create sample data
-        allSavedItems = createSampleData();
-        filteredItems = new ArrayList<>(allSavedItems);
+        allSavedListings = createSampleData();
+        filteredListings = new ArrayList<>(allSavedListings);
 
         // Create and set adapter
-        adapter = new ListingAdapter(requireContext(), filteredItems, this::onItemClicked);
+        adapter = new ListingAdapter(requireContext(), filteredListings, this::onItemClicked);
         recyclerView.setAdapter(adapter);
 
         // Update UI
         updateUIState();
     }
 
-    private void onItemClicked(ItemModel item) {
-        // Handle item click
-        Toast.makeText(requireContext(), "Clicked: " + item.getTitle(), Toast.LENGTH_SHORT).show();
-        // Navigate to item detail (will be implemented later)
+    private void onItemClicked(ListingModel listing) {
+        // Navigate to item detail
+        Bundle args = new Bundle();
+        args.putString("listingId", listing.getId());
+        androidx.navigation.NavController navController = androidx.navigation.Navigation.findNavController(requireView());
+        navController.navigate(R.id.action_savedItemsFragment_to_itemDetailFragment, args);
     }
 
     private void updateUIState() {
-        if (filteredItems.isEmpty()) {
+        if (filteredListings.isEmpty()) {
             showEmptyState();
         } else {
             showContent();
@@ -108,43 +110,22 @@ public class SavedItemsFragment extends Fragment implements ListFilterBottomShee
         emptyStateTextView.setVisibility(View.GONE);
     }
 
-    private List<ItemModel> createSampleData() {
-        List<ItemModel> items = new ArrayList<>();
-
-        // Add sample items with different properties for filtering
-        ItemModel item1 = new ItemModel("iPhone 13 Pro", "64GB Graphite", 899.99, "Electronics", "Like New", "Available", new ArrayList<>());
-        item1.setDateAdded(new Date()); // Today
-        items.add(item1);
-
-        ItemModel item2 = new ItemModel("Sony Headphones", "WH-1000XM4", 299.99, "Electronics", "Good", "Available", new ArrayList<>());
-        // Set date to 3 days ago
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_YEAR, -3);
-        item2.setDateAdded(cal.getTime());
-        items.add(item2);
-
-        ItemModel item3 = new ItemModel("Nike Air Jordan", "Size 10.5, Red/Black", 199.99, "Clothing", "New", "Sold", new ArrayList<>());
-        // Set date to 10 days ago
-        cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_YEAR, -10);
-        item3.setDateAdded(cal.getTime());
-        items.add(item3);
-
-        ItemModel item4 = new ItemModel("Ikea Desk Lamp", "LED Adjustable", 49.99, "Home", "Good", "Reserved", new ArrayList<>());
-        // Set date to 30 days ago
-        cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_YEAR, -30);
-        item4.setDateAdded(cal.getTime());
-        items.add(item4);
-
-        ItemModel item5 = new ItemModel("Gaming Mouse", "Logitech G502", 79.99, "Electronics", "Like New", "Available", new ArrayList<>());
-        // Set date to 45 days ago
-        cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_YEAR, -45);
-        item5.setDateAdded(cal.getTime());
-        items.add(item5);
-
-        return items;
+    private List<ListingModel> createSampleData() {
+        List<ListingModel> listings = new ArrayList<>();
+        // Example dummy listings (replace with real ListingModel data)
+        for (int i = 0; i < 5; i++) {
+            ListingModel listing = new ListingModel();
+            listing.setId("listing_" + (i + 1));
+            listing.setPrice(100 + i * 50);
+            listing.setSellerId("seller_" + (i + 1));
+            listing.setItemId("item_" + (i + 1));
+            listing.setViewCount(10 * (i + 1));
+            // Set createdAt to different dates
+            com.google.firebase.Timestamp ts = new com.google.firebase.Timestamp(new java.util.Date(System.currentTimeMillis() - i * 86400000L));
+            listing.setCreatedAt(ts);
+            listings.add(listing);
+        }
+        return listings;
     }
 
     @Override
@@ -157,80 +138,76 @@ public class SavedItemsFragment extends Fragment implements ListFilterBottomShee
     }
 
     private void applyFilters(List<String> statusList, String dateRange, double minPrice, double maxPrice, String sortBy) {
-        // Start with all items
-        filteredItems = new ArrayList<>(allSavedItems);
+        // Start with all listings
+        filteredListings = new ArrayList<>(allSavedListings);
 
         // Filter by status if not "All"
         if (!statusList.contains("All")) {
-            filteredItems = filteredItems.stream()
-                    .filter(item -> statusList.contains(item.getStatus()))
-                    .collect(Collectors.toList());
+            filteredListings = filteredListings.stream()
+                    .filter(listing -> statusList.contains(listing.getTransactionStatus()))
+                    .collect(java.util.stream.Collectors.toList());
         }
 
         // Filter by date range
-        filteredItems = filterByDateRange(filteredItems, dateRange);
+        filteredListings = filterByDateRange(filteredListings, dateRange);
 
         // Filter by price range
-        filteredItems = filteredItems.stream()
-                .filter(item -> item.getPrice() >= minPrice && item.getPrice() <= maxPrice)
-                .collect(Collectors.toList());
+        filteredListings = filteredListings.stream()
+                .filter(listing -> listing.getPrice() >= minPrice && listing.getPrice() <= maxPrice)
+                .collect(java.util.stream.Collectors.toList());
 
         // Apply sorting
-        sortItems(filteredItems, sortBy);
+        sortItems(filteredListings, sortBy);
 
         // Update adapter
-        adapter.updateItems(filteredItems);
+        adapter.updateListings(filteredListings);
 
         // Update UI state
         updateUIState();
     }
 
-    private List<ItemModel> filterByDateRange(List<ItemModel> items, String dateRange) {
+    private List<ListingModel> filterByDateRange(List<ListingModel> listings, String dateRange) {
         if (dateRange.equals("All Time")) {
-            return items;
+            return listings;
         }
-
-        Calendar calendar = Calendar.getInstance();
-        Date currentDate = calendar.getTime();
-
-        // Calculate start date based on selected range
-        calendar = Calendar.getInstance();
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        java.util.Date currentDate = calendar.getTime();
+        calendar = java.util.Calendar.getInstance();
         if (dateRange.equals("Today")) {
-            calendar.set(Calendar.HOUR_OF_DAY, 0);
-            calendar.set(Calendar.MINUTE, 0);
-            calendar.set(Calendar.SECOND, 0);
+            calendar.set(java.util.Calendar.HOUR_OF_DAY, 0);
+            calendar.set(java.util.Calendar.MINUTE, 0);
+            calendar.set(java.util.Calendar.SECOND, 0);
         } else if (dateRange.equals("This Week")) {
-            calendar.add(Calendar.DAY_OF_YEAR, -7);
+            calendar.add(java.util.Calendar.DAY_OF_YEAR, -7);
         } else if (dateRange.equals("This Month")) {
-            calendar.add(Calendar.MONTH, -1);
+            calendar.add(java.util.Calendar.MONTH, -1);
         }
-        Date startDate = calendar.getTime();
-
-        // Filter items by date
-        return items.stream()
-                .filter(item -> {
-                    Date itemDate = item.getDateAdded();
-                    return itemDate != null && !itemDate.before(startDate) && !itemDate.after(currentDate);
+        java.util.Date startDate = calendar.getTime();
+        return listings.stream()
+                .filter(listing -> {
+                    com.google.firebase.Timestamp ts = listing.getCreatedAt();
+                    java.util.Date listingDate = ts != null ? ts.toDate() : null;
+                    return listingDate != null && !listingDate.before(startDate) && !listingDate.after(currentDate);
                 })
-                .collect(Collectors.toList());
+                .collect(java.util.stream.Collectors.toList());
     }
 
-    private void sortItems(List<ItemModel> items, String sortBy) {
+    private void sortItems(List<ListingModel> listings, String sortBy) {
         switch (sortBy) {
             case "Newest First":
-                items.sort((item1, item2) -> item2.getDateAdded().compareTo(item1.getDateAdded()));
+                listings.sort((l1, l2) -> l2.getCreatedAt().toDate().compareTo(l1.getCreatedAt().toDate()));
                 break;
             case "Oldest First":
-                items.sort((item1, item2) -> item1.getDateAdded().compareTo(item2.getDateAdded()));
+                listings.sort((l1, l2) -> l1.getCreatedAt().toDate().compareTo(l2.getCreatedAt().toDate()));
                 break;
             case "Price: Low to High":
-                items.sort((item1, item2) -> Double.compare(item1.getPrice(), item2.getPrice()));
+                listings.sort((l1, l2) -> Double.compare(l1.getPrice(), l2.getPrice()));
                 break;
             case "Price: High to Low":
-                items.sort((item1, item2) -> Double.compare(item2.getPrice(), item1.getPrice()));
+                listings.sort((l1, l2) -> Double.compare(l2.getPrice(), l1.getPrice()));
                 break;
             case "Most Popular":
-                items.sort((item1, item2) -> Integer.compare(item2.getViewCount(), item1.getViewCount()));
+                listings.sort((l1, l2) -> Integer.compare(l2.getViewCount(), l1.getViewCount()));
                 break;
         }
     }

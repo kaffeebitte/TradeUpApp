@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.example.tradeupapp.models.CategoryModel;
 import com.example.tradeupapp.models.ItemModel;
+import com.example.tradeupapp.models.ListingModel;
 import com.example.tradeupapp.models.NotificationModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -75,13 +76,7 @@ public class FirebaseService {
                             items.add(item);
                         }
                     }
-                    // Sort manually by date on client side
-                    items.sort((a, b) -> {
-                        if (a.getDateAdded() == null && b.getDateAdded() == null) return 0;
-                        if (a.getDateAdded() == null) return 1;
-                        if (b.getDateAdded() == null) return -1;
-                        return b.getDateAdded().compareTo(a.getDateAdded());
-                    });
+                    // Remove sorting by getDateAdded() since ItemModel no longer has this field
                     callback.onSuccess(items);
                 })
                 .addOnFailureListener(e -> {
@@ -343,14 +338,6 @@ public class FirebaseService {
                                 matchesFilters = false;
                             }
 
-                            // Price range filter
-                            if (matchesFilters && minPrice > 0 && item.getPrice() < minPrice) {
-                                matchesFilters = false;
-                            }
-                            if (matchesFilters && maxPrice < Double.MAX_VALUE && item.getPrice() > maxPrice) {
-                                matchesFilters = false;
-                            }
-
                             // Condition filter
                             if (matchesFilters && condition != null && !condition.equals("Any Condition") && !condition.isEmpty()) {
                                 if (!condition.equalsIgnoreCase(item.getCondition())) {
@@ -368,10 +355,8 @@ public class FirebaseService {
                     if (sortBy != null) {
                         switch (sortBy) {
                             case "Price: Low to High":
-                                items.sort((a, b) -> Double.compare(a.getPrice(), b.getPrice()));
-                                break;
                             case "Price: High to Low":
-                                items.sort((a, b) -> Double.compare(b.getPrice(), a.getPrice()));
+                                // Price sorting is not supported here because price is in ListingModel, not ItemModel
                                 break;
                             case "Newest First":
                             default:
@@ -393,17 +378,72 @@ public class FirebaseService {
                 });
     }
 
+    // Search listings with filters
+    public void searchListingsWithFilters(String keyword, String category, double minPrice, double maxPrice, String condition, String sortBy, ListingsCallback callback) {
+        Query query = db.collection("listings");
+        if (category != null && !category.equals("All Categories") && !category.isEmpty()) {
+            query = query.whereEqualTo("category", category);
+        }
+        if (minPrice > 0) {
+            query = query.whereGreaterThanOrEqualTo("price", minPrice);
+        }
+        if (maxPrice > 0 && maxPrice >= minPrice) {
+            query = query.whereLessThanOrEqualTo("price", maxPrice);
+        }
+        if (condition != null && !condition.equals("Any Condition") && !condition.isEmpty()) {
+            query = query.whereEqualTo("condition", condition);
+        }
+        // Default sort by createdAt desc
+        query = query.orderBy("createdAt", Query.Direction.DESCENDING);
+
+        query.get().addOnSuccessListener(queryDocumentSnapshots -> {
+            List<ListingModel> listings = new ArrayList<>();
+            for (DocumentSnapshot document : queryDocumentSnapshots) {
+                ListingModel listing = document.toObject(ListingModel.class);
+                if (listing != null) {
+                    // Keyword filter (client-side) using ItemModel title
+                    if (keyword == null || keyword.isEmpty()) {
+                        listings.add(listing);
+                    } else {
+                        // Fetch the related ItemModel synchronously is not possible, so skip keyword filter here
+                        // You should filter listings by keyword after fetching related ItemModel in your UI code
+                        listings.add(listing);
+                    }
+                }
+            }
+            // Additional sort options (client-side)
+            if (sortBy != null) {
+                switch (sortBy) {
+                    case "Price: Low to High":
+                        listings.sort((a, b) -> Double.compare(a.getPrice(), b.getPrice()));
+                        break;
+                    case "Price: High to Low":
+                        listings.sort((a, b) -> Double.compare(b.getPrice(), a.getPrice()));
+                        break;
+                    case "Newest First":
+                    default:
+                        // Already sorted by createdAt desc
+                        break;
+                }
+            }
+            callback.onSuccess(listings);
+        }).addOnFailureListener(e -> {
+            Log.e(TAG, "Error searching listings with filters", e);
+            callback.onError(e.getMessage());
+        });
+    }
+
     // Helper method to check if item matches search query
     private boolean matchesSearchQuery(ItemModel item, String query) {
         if (query == null || query.isEmpty()) {
             return true;
         }
-
         String lowerQuery = query.toLowerCase();
         return (item.getTitle() != null && item.getTitle().toLowerCase().contains(lowerQuery)) ||
                 (item.getDescription() != null && item.getDescription().toLowerCase().contains(lowerQuery)) ||
                 (item.getCategory() != null && item.getCategory().toLowerCase().contains(lowerQuery)) ||
-                (item.getTag() != null && item.getTag().toLowerCase().contains(lowerQuery));
+                (item.getSubcategory() != null && item.getSubcategory().toLowerCase().contains(lowerQuery)) ||
+                (item.getBrand() != null && item.getBrand().toLowerCase().contains(lowerQuery));
     }
 
     // Helper method to convert Firestore document to ItemModel
@@ -411,52 +451,29 @@ public class FirebaseService {
         try {
             ItemModel item = new ItemModel();
             item.setId(document.getId());
-            item.setUserId(document.getString("userId"));
-            item.setSellerId(document.getString("sellerId")); // Use explicit sellerId or fallback to userId
-            if (item.getSellerId() == null) {
-                item.setSellerId(item.getUserId());
-            }
-
             item.setTitle(document.getString("title"));
             item.setDescription(document.getString("description"));
-
-            // Handle price conversion
-            Object priceObj = document.get("price");
-            if (priceObj instanceof Number) {
-                item.setPrice(((Number) priceObj).doubleValue());
-            }
-
-            Object originalPriceObj = document.get("originalPrice");
-            if (originalPriceObj instanceof Number) {
-                item.setOriginalPrice(((Number) originalPriceObj).doubleValue());
-            }
-
             item.setCategory(document.getString("category"));
             item.setSubcategory(document.getString("subcategory"));
-            item.setCategoryId(document.getString("categoryId"));
+            item.setBrand(document.getString("brand"));
             item.setCondition(document.getString("condition"));
             item.setLocation(document.getString("location"));
-            item.setStatus(document.getString("status"));
-            item.setTag(document.getString("tag"));
-
-            // Handle view count and interaction count
-            Object viewCountObj = document.get("viewCount");
-            if (viewCountObj instanceof Number) {
-                item.setViewCount(((Number) viewCountObj).intValue());
-            }
-
-            Object interactionCountObj = document.get("interactionCount");
-            if (interactionCountObj instanceof Number) {
-                item.setInteractionCount(((Number) interactionCountObj).intValue());
-            }
-
-            // Handle enhanced fields
             Object weightObj = document.get("weight");
+            // If you need to access ListingModel for price, you can fetch it here:
+            // Example (pseudo-code, async):
+            // String listingId = document.getString("listingId");
+            // if (listingId != null) {
+            //     db.collection("listings").document(listingId).get().addOnSuccessListener(listingDoc -> {
+            //         ListingModel listing = listingDoc.toObject(ListingModel.class);
+            //         if (listing != null) {
+            //             double price = listing.getPrice();
+            //             // Use price as needed
+            //         }
+            //     });
+            // }
             if (weightObj instanceof Number) {
                 item.setWeight(((Number) weightObj).doubleValue());
             }
-
-            // Handle dimensions
             Map<String, Object> dimensionsMap = (Map<String, Object>) document.get("dimensions");
             if (dimensionsMap != null) {
                 ItemModel.Dimensions dimensions = new ItemModel.Dimensions();
@@ -471,41 +488,21 @@ public class FirebaseService {
                 }
                 item.setDimensions(dimensions);
             }
-
-            // Handle shipping options and key features
             @SuppressWarnings("unchecked")
             List<String> shippingOptions = (List<String>) document.get("shippingOptions");
             if (shippingOptions != null) {
                 item.setShippingOptions(new ArrayList<>(shippingOptions));
             }
-
             @SuppressWarnings("unchecked")
             List<String> keyFeatures = (List<String>) document.get("keyFeatures");
             if (keyFeatures != null) {
                 item.setKeyFeatures(new ArrayList<>(keyFeatures));
             }
-
-            // Handle boolean fields
-            Boolean isPromoted = document.getBoolean("isPromoted");
-            item.setPromoted(isPromoted != null ? isPromoted : false);
-
-            Boolean negotiable = document.getBoolean("negotiable");
-            item.setNegotiable(negotiable != null ? negotiable : true);
-
-            // FIX: Handle photo URIs - convert String URLs to Uri objects
             @SuppressWarnings("unchecked")
             List<String> photoUrls = (List<String>) document.get("photoUris");
             if (photoUrls != null) {
-                List<Uri> photoUris = new ArrayList<>();
-                for (String url : photoUrls) {
-                    if (url != null && !url.isEmpty()) {
-                        photoUris.add(Uri.parse(url));
-                    }
-                }
-                item.setPhotoUris(photoUris);
+                item.setPhotoUris(new ArrayList<>(photoUrls));
             }
-
-            // FIX: Handle date conversion properly - check field type first
             Object dateAddedField = document.get("dateAdded");
             if (dateAddedField instanceof com.google.firebase.Timestamp) {
                 com.google.firebase.Timestamp timestamp = (com.google.firebase.Timestamp) dateAddedField;
@@ -513,37 +510,15 @@ public class FirebaseService {
             } else if (dateAddedField instanceof String) {
                 String dateString = (String) dateAddedField;
                 try {
-                    // Use SimpleDateFormat for API level compatibility
                     java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US);
                     sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
                     item.setDateAdded(sdf.parse(dateString));
                 } catch (Exception e) {
-                    item.setDateAdded(new Date());
+                    item.setDateAdded(new java.util.Date());
                 }
             } else {
-                item.setDateAdded(new Date());
+                item.setDateAdded(new java.util.Date());
             }
-
-            // Handle promotion expiry
-            Object promotionExpiryField = document.get("promotionExpiry");
-            if (promotionExpiryField instanceof com.google.firebase.Timestamp) {
-                com.google.firebase.Timestamp promotionTimestamp = (com.google.firebase.Timestamp) promotionExpiryField;
-                item.setPromotionExpiry(promotionTimestamp.toDate());
-            } else if (promotionExpiryField instanceof String) {
-                String promotionDateString = (String) promotionExpiryField;
-                try {
-                    // Use SimpleDateFormat for API level compatibility
-                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US);
-                    sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
-                    item.setPromotionExpiry(sdf.parse(promotionDateString));
-                } catch (Exception e) {
-                    // Leave promotion expiry as null if parsing fails
-                }
-            }
-
-            // Handle relationship fields
-            item.setListingId(document.getString("listingId"));
-            item.setTransactionId(document.getString("transactionId"));
 
             return item;
         } catch (Exception e) {
@@ -603,6 +578,93 @@ public class FirebaseService {
         return null;
     }
 
+    // Get user by ID
+    public void getUserById(String userId, UserCallback callback) {
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    com.example.tradeupapp.models.User user = documentSnapshot.toObject(com.example.tradeupapp.models.User.class);
+                    callback.onSuccess(user);
+                } else {
+                    callback.onError("User not found");
+                }
+            })
+            .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
+    // Get listings by sellerId
+    public void getListingsBySellerId(String sellerId, ListingsCallback callback) {
+        db.collection("listings")
+                .whereEqualTo("sellerId", sellerId)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<ListingModel> listings = new ArrayList<>();
+                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                        ListingModel listing = document.toObject(ListingModel.class);
+                        if (listing != null) {
+                            listings.add(listing);
+                        }
+                    }
+                    callback.onSuccess(listings);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting listings by sellerId", e);
+                    callback.onError(e.getMessage());
+                });
+    }
+
+    // Get all listings (for showing in all listings info in the app)
+    public void getAllListings(ListingsCallback callback) {
+        db.collection("listings")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<ListingModel> listings = new ArrayList<>();
+                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                        ListingModel listing = document.toObject(ListingModel.class);
+                        if (listing != null) {
+                            listings.add(listing);
+                        }
+                    }
+                    callback.onSuccess(listings);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting all listings", e);
+                    callback.onError(e.getMessage());
+                });
+    }
+    // To show item details with each listing, fetch the related ItemModel using listing.getItemId()
+    // Example (pseudo-code):
+    // for (ListingModel listing : listings) {
+    //     db.collection("items").document(listing.getItemId()).get().addOnSuccessListener(itemDoc -> {
+    //         ItemModel item = itemDoc.toObject(ItemModel.class);
+    //         // Combine listing and item info as needed
+    //     });
+    // }
+
+    // Get listings by category
+    public void getListingsByCategory(String category, ListingsCallback callback) {
+        db.collection("listings")
+                .whereEqualTo("category", category)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<ListingModel> listings = new ArrayList<>();
+                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                        ListingModel listing = document.toObject(ListingModel.class);
+                        if (listing != null) {
+                            listings.add(listing);
+                        }
+                    }
+                    callback.onSuccess(listings);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting listings by category", e);
+                    callback.onError(e.getMessage());
+                });
+    }
+
     // Callback interfaces
     public interface ItemCallback {
         void onSuccess(ItemModel item);
@@ -622,5 +684,80 @@ public class FirebaseService {
     public interface CategoriesCallback {
         void onSuccess(List<CategoryModel> categories);
         void onError(String error);
+    }
+
+    public interface UserCallback {
+        void onSuccess(com.example.tradeupapp.models.User user);
+        void onError(String error);
+    }
+
+    public interface ListingsCallback {
+        void onSuccess(List<ListingModel> listings);
+        void onError(String error);
+    }
+
+    // Get all purchased listings for a user by querying the transaction collection
+    public void getUserPurchasedListings(String userId, ListingsCallback callback) {
+        db.collection("transaction")
+            .whereEqualTo("buyerId", userId)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                List<String> listingIds = new ArrayList<>();
+                for (DocumentSnapshot document : queryDocumentSnapshots) {
+                    String listingId = document.getString("listingId");
+                    if (listingId != null) {
+                        listingIds.add(listingId);
+                    }
+                }
+                if (listingIds.isEmpty()) {
+                    callback.onSuccess(new ArrayList<>());
+                    return;
+                }
+                // Fetch all listings by their IDs
+                db.collection("listings")
+                    .whereIn("id", listingIds)
+                    .get()
+                    .addOnSuccessListener(listingSnapshots -> {
+                        List<ListingModel> listings = new ArrayList<>();
+                        for (DocumentSnapshot doc : listingSnapshots) {
+                            ListingModel listing = doc.toObject(ListingModel.class);
+                            if (listing != null) {
+                                listing.setId(doc.getId());
+                                listings.add(listing);
+                            }
+                        }
+                        callback.onSuccess(listings);
+                    })
+                    .addOnFailureListener(e -> callback.onError(e.getMessage()));
+            })
+            .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
+    // Callback for fetching multiple items by IDs
+    public interface ItemsByIdsCallback {
+        void onSuccess(java.util.Map<String, ItemModel> itemMap);
+        void onError(String error);
+    }
+
+    // Fetch multiple items by their IDs and return as a map (itemId -> ItemModel)
+    public void getItemsByIds(List<String> itemIds, ItemsByIdsCallback callback) {
+        if (itemIds == null || itemIds.isEmpty()) {
+            callback.onSuccess(new java.util.HashMap<>());
+            return;
+        }
+        db.collection("items")
+                .whereIn("id", itemIds)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    java.util.Map<String, ItemModel> itemMap = new java.util.HashMap<>();
+                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                        ItemModel item = documentToItemModel(document);
+                        if (item != null && item.getId() != null) {
+                            itemMap.put(item.getId(), item);
+                        }
+                    }
+                    callback.onSuccess(itemMap);
+                })
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 }

@@ -13,24 +13,28 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.tradeupapp.R;
+import com.example.tradeupapp.core.services.FirebaseService;
 import com.example.tradeupapp.models.ItemModel;
+import com.example.tradeupapp.models.ListingModel;
 
 import java.util.List;
 
 public class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.ViewHolder> {
 
-    private final List<ItemModel> itemList;
+    private final List<ListingModel> listingList;
     private final OnItemClickListener listener;
     private final Context context;
+    private final FirebaseService firebaseService;
 
     public interface OnItemClickListener {
-        void onItemClick(ItemModel item);
+        void onItemClick(ListingModel listing);
     }
 
-    public ListingAdapter(Context context, List<ItemModel> itemList, OnItemClickListener listener) {
+    public ListingAdapter(Context context, List<ListingModel> listingList, OnItemClickListener listener) {
         this.context = context;
-        this.itemList = itemList;
+        this.listingList = listingList;
         this.listener = listener;
+        this.firebaseService = FirebaseService.getInstance();
     }
 
     @NonNull
@@ -43,45 +47,48 @@ public class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        ItemModel item = itemList.get(position);
-
-        // Set title and price with proper Vietnamese currency formatting
-        holder.title.setText(item.getTitle());
-        holder.price.setText(String.format("₫%,.0f", item.getPrice()));
-
-        // Load image with Glide for better image handling and caching
-        if (item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) {
-            Uri firstImageUri = item.getPhotoUris().get(0);
-            if (firstImageUri != null) {
-                Glide.with(context)
-                    .load(firstImageUri)
-                    .placeholder(R.drawable.ic_image_placeholder)
-                    .error(R.drawable.ic_error_24)
-                    .centerCrop()
-                    .into(holder.image);
-            } else {
-                holder.image.setImageResource(R.drawable.ic_image_placeholder);
+        ListingModel listing = listingList.get(position);
+        holder.price.setText(String.format("₫%,.0f", listing.getPrice()));
+        holder.title.setText("Loading...");
+        holder.image.setImageResource(R.drawable.ic_image_placeholder);
+        // Fetch ItemModel for details (title, image, etc.)
+        firebaseService.getItemById(listing.getItemId(), new FirebaseService.ItemCallback() {
+            @Override
+            public void onSuccess(ItemModel item) {
+                if (item != null) {
+                    holder.title.setText(item.getTitle());
+                    if (item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) {
+                        Glide.with(context)
+                                .load(item.getPhotoUris().get(0))
+                                .placeholder(R.drawable.ic_image_placeholder)
+                                .into(holder.image);
+                    } else {
+                        holder.image.setImageResource(R.drawable.ic_image_placeholder);
+                    }
+                } else {
+                    holder.title.setText("No title");
+                }
             }
-        } else {
-            holder.image.setImageResource(R.drawable.ic_image_placeholder);
-        }
-
-        // Set click listener
-        holder.itemView.setOnClickListener(v -> listener.onItemClick(item));
+            @Override
+            public void onError(String error) {
+                holder.title.setText("No title");
+            }
+        });
+        holder.itemView.setOnClickListener(v -> listener.onItemClick(listing));
     }
 
     @Override
     public int getItemCount() {
-        return itemList.size();
+        return listingList.size();
     }
 
     /**
      * Updates the adapter's dataset with a new list of items.
-     * @param newItems The new list of items to display
+     * @param newListings The new list of items to display
      */
-    public void updateItems(List<ItemModel> newItems) {
-        itemList.clear();
-        itemList.addAll(newItems);
+    public void updateListings(List<ListingModel> newListings) {
+        listingList.clear();
+        listingList.addAll(newListings);
         notifyDataSetChanged();
     }
 

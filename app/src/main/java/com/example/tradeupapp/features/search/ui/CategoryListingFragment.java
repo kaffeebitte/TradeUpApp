@@ -19,6 +19,7 @@ import com.example.tradeupapp.R;
 import com.example.tradeupapp.core.services.FirebaseService;
 import com.example.tradeupapp.shared.adapters.ListingAdapter;
 import com.example.tradeupapp.models.ItemModel;
+import com.example.tradeupapp.models.ListingModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -95,9 +96,18 @@ public class CategoryListingFragment extends Fragment {
                     } else {
                         recyclerView.setVisibility(View.VISIBLE);
                         emptyStateTextView.setVisibility(View.GONE);
-
-                        adapter = new ListingAdapter(requireContext(), items, CategoryListingFragment.this::navigateToItemDetail);
-                        recyclerView.setAdapter(adapter);
+                        // Fetch all listings for this category directly (not by itemIds)
+                        firebaseService.getListingsByCategory(category, new FirebaseService.ListingsCallback() {
+                            @Override
+                            public void onSuccess(List<ListingModel> listings) {
+                                adapter = new ListingAdapter(requireContext(), listings, listing -> navigateToItemDetail(listing.getItemId()));
+                                recyclerView.setAdapter(adapter);
+                            }
+                            @Override
+                            public void onError(String error) {
+                                Toast.makeText(requireContext(), "Error loading listings: " + error, Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
                 }
             }
@@ -116,10 +126,10 @@ public class CategoryListingFragment extends Fragment {
         });
     }
 
-    private void navigateToItemDetail(ItemModel item) {
+    private void navigateToItemDetail(String itemId) {
         // Navigate to item detail
         Bundle args = new Bundle();
-        args.putString("itemId", item.getId());
+        args.putString("itemId", itemId);
         Navigation.findNavController(requireView())
                 .navigate(R.id.action_categoryListingFragment_to_itemDetailFragment, args);
     }
@@ -142,30 +152,24 @@ public class CategoryListingFragment extends Fragment {
         // Use the current category if no specific category filter is applied
         String searchCategory = (filterCategory != null && !filterCategory.equals("All Categories"))
                                ? filterCategory : category;
-
-        firebaseService.searchItemsWithFilters(keyword, searchCategory, minPrice, maxPrice,
-                                             condition, sortBy, new FirebaseService.ItemsCallback() {
+        // Fetch filtered listings directly
+        firebaseService.searchListingsWithFilters(keyword, searchCategory, minPrice, maxPrice, condition, sortBy, new FirebaseService.ListingsCallback() {
             @Override
-            public void onSuccess(List<ItemModel> items) {
+            public void onSuccess(List<ListingModel> listings) {
                 if (getActivity() != null && isAdded()) {
-                    if (items.isEmpty()) {
+                    if (listings.isEmpty()) {
                         recyclerView.setVisibility(View.GONE);
                         emptyStateTextView.setVisibility(View.VISIBLE);
                         emptyStateTextView.setText("No items found with the applied filters.");
                     } else {
                         recyclerView.setVisibility(View.VISIBLE);
                         emptyStateTextView.setVisibility(View.GONE);
-
-                        adapter = new ListingAdapter(requireContext(), items, CategoryListingFragment.this::navigateToItemDetail);
+                        adapter = new ListingAdapter(requireContext(), listings, listing -> navigateToItemDetail(listing.getItemId()));
                         recyclerView.setAdapter(adapter);
                     }
-
-                    Toast.makeText(requireContext(),
-                            "Filters applied: " + items.size() + " items found",
-                            Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Filters applied: " + listings.size() + " items found", Toast.LENGTH_SHORT).show();
                 }
             }
-
             @Override
             public void onError(String error) {
                 if (getActivity() != null && isAdded()) {

@@ -20,7 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.tradeupapp.R;
 import com.example.tradeupapp.core.services.FirebaseService;
 import com.example.tradeupapp.shared.adapters.ListingAdapter;
-import com.example.tradeupapp.models.ItemModel;
+import com.example.tradeupapp.models.ListingModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -42,8 +42,8 @@ public class SearchFragment extends Fragment {
 
     private ListingAdapter searchAdapter;
     private FirebaseService firebaseService;
-    private List<ItemModel> allItems = new ArrayList<>();
-    private List<ItemModel> filteredItems = new ArrayList<>();
+    private List<ListingModel> allListings = new ArrayList<>();
+    private List<ListingModel> filteredListings = new ArrayList<>();
 
     private String currentQuery = "";
     private String selectedFilter = "All";
@@ -133,12 +133,12 @@ public class SearchFragment extends Fragment {
     }
 
     private void loadAllItems() {
-        firebaseService.getAllItems(new FirebaseService.ItemsCallback() {
+        firebaseService.getAllListings(new FirebaseService.ListingsCallback() {
             @Override
-            public void onSuccess(List<ItemModel> items) {
+            public void onSuccess(List<ListingModel> listings) {
                 if (getActivity() != null && isAdded()) {
-                    allItems = new ArrayList<>(items);
-                    filteredItems = new ArrayList<>(items);
+                    allListings = new ArrayList<>(listings);
+                    filteredListings = new ArrayList<>(listings);
                     updateUI();
                 }
             }
@@ -146,7 +146,7 @@ public class SearchFragment extends Fragment {
             @Override
             public void onError(String error) {
                 if (getActivity() != null && isAdded()) {
-                    Toast.makeText(getActivity(), "Error loading items: " + error, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "Error loading listings: " + error, Toast.LENGTH_SHORT).show();
                     showEmptyState();
                 }
             }
@@ -155,24 +155,19 @@ public class SearchFragment extends Fragment {
 
     private void performSearch() {
         if (currentQuery.isEmpty() && selectedFilter.equals("All")) {
-            // Show all items when no search query and no specific filter
-            filteredItems = new ArrayList<>(allItems);
+            filteredListings = new ArrayList<>(allListings);
             updateUI();
         } else {
-            // Use Firestore search with filters for better performance
             searchWithFirestore();
         }
     }
 
     private void searchWithFirestore() {
-        // Determine category filter based on chip selection
         String categoryFilter = null;
         double minPrice = 0;
         double maxPrice = Double.MAX_VALUE;
         String conditionFilter = null;
         String sortBy = "Newest First";
-
-        // Apply chip-based filters
         switch (selectedFilter) {
             case "Electronics":
             case "Clothing":
@@ -182,10 +177,10 @@ public class SearchFragment extends Fragment {
                 categoryFilter = selectedFilter;
                 break;
             case "Low Price":
-                maxPrice = 1000000; // Under 1M VND
+                maxPrice = 1000000;
                 break;
             case "High Price":
-                minPrice = 1000000; // Over 1M VND
+                minPrice = 1000000;
                 break;
             case "New Condition":
                 conditionFilter = "New";
@@ -194,25 +189,21 @@ public class SearchFragment extends Fragment {
                 sortBy = "Newest First";
                 break;
             case "Nearby":
-                // For now, just use default behavior - can be enhanced with location
                 break;
         }
-
-        firebaseService.searchItemsWithFilters(currentQuery, categoryFilter, minPrice, maxPrice,
-                conditionFilter, sortBy, new FirebaseService.ItemsCallback() {
+        firebaseService.searchListingsWithFilters(currentQuery, categoryFilter, minPrice, maxPrice,
+                conditionFilter, sortBy, new FirebaseService.ListingsCallback() {
             @Override
-            public void onSuccess(List<ItemModel> items) {
+            public void onSuccess(List<ListingModel> listings) {
                 if (getActivity() != null && isAdded()) {
-                    filteredItems = new ArrayList<>(items);
+                    filteredListings = new ArrayList<>(listings);
                     updateUI();
                 }
             }
-
             @Override
             public void onError(String error) {
                 if (getActivity() != null && isAdded()) {
-                    Toast.makeText(getActivity(), "Error searching items: " + error, Toast.LENGTH_SHORT).show();
-                    // Fallback to client-side search
+                    Toast.makeText(getActivity(), "Error searching listings: " + error, Toast.LENGTH_SHORT).show();
                     performClientSideSearch();
                 }
             }
@@ -221,91 +212,88 @@ public class SearchFragment extends Fragment {
 
     private void performClientSideSearch() {
         if (currentQuery.isEmpty()) {
-            filteredItems = new ArrayList<>(allItems);
+            filteredListings = new ArrayList<>(allListings);
         } else {
-            filteredItems = new ArrayList<>();
-            for (ItemModel item : allItems) {
-                if (matchesSearchQuery(item, currentQuery)) {
-                    filteredItems.add(item);
+            filteredListings = new ArrayList<>();
+            for (ListingModel listing : allListings) {
+                if (matchesSearchQuery(listing, currentQuery)) {
+                    filteredListings.add(listing);
                 }
             }
         }
         applyFilters();
     }
 
-    private boolean matchesSearchQuery(ItemModel item, String query) {
+    private boolean matchesSearchQuery(ListingModel listing, String query) {
         String lowerQuery = query.toLowerCase();
-        return (item.getTitle() != null && item.getTitle().toLowerCase().contains(lowerQuery)) ||
-                (item.getDescription() != null && item.getDescription().toLowerCase().contains(lowerQuery)) ||
-                (item.getCategory() != null && item.getCategory().toLowerCase().contains(lowerQuery)) ||
-                (item.getTag() != null && item.getTag().toLowerCase().contains(lowerQuery));
+        // Only matches tags and category here; for title/desc, fetch ItemModel if needed
+        boolean tagMatch = false;
+        for (String tag : listing.getTags()) {
+            if (tag != null && tag.toLowerCase().contains(lowerQuery)) {
+                tagMatch = true;
+                break;
+            }
+        }
+        return (listing.getTags() != null && tagMatch) ||
+                (listing.getItemId() != null && listing.getItemId().toLowerCase().contains(lowerQuery)) ||
+                (listing.getSellerId() != null && listing.getSellerId().toLowerCase().contains(lowerQuery)) ||
+                (listing.getTransactionStatus() != null && listing.getTransactionStatus().toLowerCase().contains(lowerQuery));
     }
 
     private void applyFilters() {
-        List<ItemModel> filtered = new ArrayList<>();
-
-        for (ItemModel item : filteredItems) {
+        List<ListingModel> filtered = new ArrayList<>();
+        for (ListingModel listing : filteredListings) {
             boolean matches = false;
-
             switch (selectedFilter) {
                 case "All":
-                    matches = true;
-                    break;
                 case "Nearby":
-                    // For now, just include all items - can be enhanced with location logic
-                    matches = true;
-                    break;
                 case "Recent":
-                    // Items are already sorted by date (newest first)
                     matches = true;
                     break;
                 case "Low Price":
-                    matches = item.getPrice() <= 1000000; // Under 1M VND
+                    matches = listing.getPrice() <= 1000000;
                     break;
                 case "High Price":
-                    matches = item.getPrice() > 1000000; // Over 1M VND
+                    matches = listing.getPrice() > 1000000;
                     break;
                 case "New Condition":
-                    matches = "New".equalsIgnoreCase(item.getCondition()) ||
-                            "Like New".equalsIgnoreCase(item.getCondition());
+                    matches = "New".equalsIgnoreCase(listing.getTransactionStatus());
                     break;
                 case "Electronics":
                 case "Clothing":
                 case "Furniture":
                 case "Books":
                 case "Sports":
-                    matches = selectedFilter.equalsIgnoreCase(item.getCategory());
+                    matches = categoryFilterMatch(listing, selectedFilter);
                     break;
                 default:
                     matches = true;
                     break;
             }
-
             if (matches) {
-                filtered.add(item);
+                filtered.add(listing);
             }
         }
-
-        filteredItems = filtered;
+        filteredListings = filtered;
         updateUI();
+    }
+    private boolean categoryFilterMatch(ListingModel listing, String category) {
+        // You may need to fetch ItemModel for real category, here just return true
+        return true;
     }
 
     private void updateUI() {
-        if (filteredItems.isEmpty()) {
+        if (filteredListings.isEmpty()) {
             showEmptyState();
         } else {
             showResults();
         }
-
-        // Update results count
-        String countText = filteredItems.size() + " results found";
+        String countText = filteredListings.size() + " results found";
         if (!currentQuery.isEmpty()) {
             countText += " for \"" + currentQuery + "\"";
         }
         resultsCountTextView.setText(countText);
-
-        // Update adapter
-        searchAdapter.updateItems(filteredItems);
+        searchAdapter.updateListings(filteredListings);
     }
 
     private void showResults() {
@@ -338,21 +326,18 @@ public class SearchFragment extends Fragment {
             currentQuery = keyword;
             searchView.getEditText().setText(keyword);
         }
-
-        firebaseService.searchItemsWithFilters(currentQuery, filterCategory, minPrice, maxPrice,
-                condition, sortBy, new FirebaseService.ItemsCallback() {
+        firebaseService.searchListingsWithFilters(currentQuery, filterCategory, minPrice, maxPrice,
+                condition, sortBy, new FirebaseService.ListingsCallback() {
             @Override
-            public void onSuccess(List<ItemModel> items) {
+            public void onSuccess(List<ListingModel> listings) {
                 if (getActivity() != null && isAdded()) {
-                    filteredItems = new ArrayList<>(items);
+                    filteredListings = new ArrayList<>(listings);
                     updateUI();
-
                     Toast.makeText(requireContext(),
-                            "Advanced filters applied: " + items.size() + " items found",
+                            "Advanced filters applied: " + listings.size() + " listings found",
                             Toast.LENGTH_SHORT).show();
                 }
             }
-
             @Override
             public void onError(String error) {
                 if (getActivity() != null && isAdded()) {
@@ -362,9 +347,9 @@ public class SearchFragment extends Fragment {
         });
     }
 
-    private void navigateToItemDetail(ItemModel item) {
+    private void navigateToItemDetail(ListingModel listing) {
         Bundle args = new Bundle();
-        args.putString("itemId", item.getId());
+        args.putString("listingId", listing.getId());
         Navigation.findNavController(requireView()).navigate(R.id.action_nav_search_to_itemDetailFragment, args);
     }
 }

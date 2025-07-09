@@ -18,14 +18,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.tradeupapp.R;
 import com.example.tradeupapp.core.services.FirebaseService;
 import com.example.tradeupapp.models.ItemModel;
+import com.example.tradeupapp.models.ListingModel;
 import com.example.tradeupapp.shared.adapters.UserListingAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ManageListingsFragment extends Fragment {
 
@@ -36,8 +34,8 @@ public class ManageListingsFragment extends Fragment {
     private NavController navController;
     private FirebaseService firebaseService;
 
-    private List<ItemModel> allListings = new ArrayList<>();
-    private List<ItemModel> filteredListings = new ArrayList<>();
+    private List<ListingModel> allListings = new ArrayList<>();
+    private List<ListingModel> filteredListings = new ArrayList<>();
 
     @Nullable
     @Override
@@ -94,22 +92,17 @@ public class ManageListingsFragment extends Fragment {
             Toast.makeText(getActivity(), "Please log in to view your listings", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        firebaseService.getUserItems(currentUserId, new FirebaseService.ItemsCallback() {
+        firebaseService.getListingsBySellerId(currentUserId, new FirebaseService.ListingsCallback() {
             @Override
-            public void onSuccess(List<ItemModel> items) {
+            public void onSuccess(List<ListingModel> listings) {
                 if (getActivity() != null && isAdded()) {
-                    allListings = items;
+                    allListings = listings;
                     filteredListings = new ArrayList<>(allListings);
-
-                    // Set up the adapter if not already initialized
                     if (adapter == null) {
                         setupAdapter();
                     } else {
                         adapter.updateItems(filteredListings);
                     }
-
-                    // Show/hide empty state
                     updateEmptyState();
                 }
             }
@@ -118,7 +111,6 @@ public class ManageListingsFragment extends Fragment {
             public void onError(String error) {
                 if (getActivity() != null && isAdded()) {
                     Toast.makeText(getActivity(), "Error loading listings: " + error, Toast.LENGTH_SHORT).show();
-                    // Show empty state
                     updateEmptyState();
                 }
             }
@@ -128,26 +120,25 @@ public class ManageListingsFragment extends Fragment {
     private void setupAdapter() {
         adapter = new UserListingAdapter(requireContext(), filteredListings, new UserListingAdapter.OnItemActionListener() {
             @Override
-            public void onView(ItemModel item) {
-                // Navigate to item details/preview
+            public void onView(ListingModel listing, ItemModel item) {
                 Bundle args = new Bundle();
+                args.putSerializable("listing", listing);
                 args.putParcelable("item", item);
                 navController.navigate(R.id.action_manageListingsFragment_to_itemPreviewFragment, args);
             }
 
             @Override
-            public void onEdit(ItemModel item) {
-                // Navigate to edit item - use the correct navigation action
+            public void onEdit(ListingModel listing, ItemModel item) {
                 Bundle args = new Bundle();
+                args.putSerializable("listing", listing);
                 args.putParcelable("item", item);
                 args.putBoolean("isEdit", true);
                 navController.navigate(R.id.action_manageListingsFragment_to_nav_add, args);
             }
 
             @Override
-            public void onDelete(ItemModel item) {
-                // Show confirmation dialog and delete item
-                showDeleteConfirmationDialog(item);
+            public void onDelete(ListingModel listing, ItemModel item) {
+                showDeleteConfirmationDialog(listing);
             }
         });
 
@@ -166,24 +157,17 @@ public class ManageListingsFragment extends Fragment {
         }
     }
 
-    private void showDeleteConfirmationDialog(ItemModel item) {
+    private void showDeleteConfirmationDialog(ListingModel listing) {
         new androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle("Delete Listing")
-                .setMessage("Are you sure you want to delete this item?")
+                .setMessage("Are you sure you want to delete this listing?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    // Remove the item from the list
-                    allListings.remove(item);
-                    filteredListings.remove(item);
+                    allListings.remove(listing);
+                    filteredListings.remove(listing);
                     adapter.notifyDataSetChanged();
-
-                    // In a real app, you would also delete from your backend/database
-                    // apiService.deleteItem(item.getId());
-
-                    // Update empty state if needed
+                    // TODO: Delete from backend/database as needed
                     updateEmptyState();
-
-                    // Show confirmation message
-                    showFeedbackMessage("Item deleted successfully");
+                    showFeedbackMessage("Listing deleted successfully");
                 })
                 .setNegativeButton("Cancel", null)
                 .show();

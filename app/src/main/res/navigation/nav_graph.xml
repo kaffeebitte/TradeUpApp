@@ -102,12 +102,16 @@
     <!-- Item detail and listing fragments -->
     <fragment
         android:id="@+id/itemDetailFragment"
-        android:name="com.example.tradeupapp.features.listing.ui.ItemDetailFragment"
+        android:name="com.example.tradeupapp.features.listing.ui.ListingDetailFragment"
         android:label="Item Details"
         tools:layout="@layout/fragment_item_detail">
         <argument
-            android:name="itemId"
+            android:name="listingId"
             app:argType="string" />
+        <argument
+            android:name="itemId"
+            app:argType="string"
+            app:nullable="true" />
         <action
             android:id="@+id/action_itemDetailFragment_to_chatFragment"
             app:destination="@id/chatDetailFragment"
@@ -116,6 +120,11 @@
         <action
             android:id="@+id/action_itemDetailFragment_to_checkoutFragment"
             app:destination="@id/checkoutFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_itemDetailFragment_to_publicProfileFragment"
+            app:destination="@id/publicProfileFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
@@ -584,4 +593,14 @@
         android:name="com.example.tradeupapp.features.profile.ui.AccountPrivacyFragment"
         android:label="Account Privacy &amp; Security"
         tools:layout="@layout/fragment_account_privacy" />
+
+    <fragment
+        android:id="@+id/publicProfileFragment"
+        android:name="com.example.tradeupapp.features.profile.ui.PublicProfileFragment"
+        android:label="Public Profile"
+        tools:layout="@layout/fragment_public_profile">
+        <argument
+            android:name="userId"
+            app:argType="string" />
+    </fragment>
 </navigation>

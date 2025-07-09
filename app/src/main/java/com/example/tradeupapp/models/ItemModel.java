@@ -7,41 +7,23 @@ import android.os.Parcelable;
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class ItemModel implements Parcelable {
     private String id;
-    private String userId; // ID of the user who posted the item
-    private String sellerId; // Explicit seller reference (same as userId for consistency)
     private String title;
     private String description;
-    private double price;
-    private double originalPrice; // Original listing price for discount tracking
     private String category;
-    private String subcategory; // More specific categorization
-    private String categoryId; // Reference to categories collection
+    private String subcategory;
+    private String brand;
     private String condition;
     private String location;
-    private List<Uri> photoUris;
-    private String status; // e.g. "Available", "Paused", "Sold"
-    private int viewCount;
-    private int interactionCount;
-    private String tag; // Product tag for categorization
-    private Date dateAdded; // Date when the item was added
-
-    // Enhanced fields for marketplace functionality
-    private double weight; // Weight in kg for shipping
-    private Dimensions dimensions; // Size information
-    private List<String> shippingOptions; // Available shipping methods
-    private List<String> keyFeatures; // Searchable attributes
-    private boolean isPromoted; // Paid promotions
-    private Date promotionExpiry; // Promotion end date
-    private boolean negotiable; // Price negotiation allowed
-
-    // Add relationship field to connect with ListingModel
-    private String listingId; // Reference to original ListingModel if applicable
-    private String transactionId; // Reference to transaction that created this item record
+    private List<String> photoUris;
+    private double weight;
+    private Dimensions dimensions;
+    private List<String> shippingOptions;
+    private List<String> keyFeatures;
+    private java.util.Date dateAdded;
 
     // Inner class for dimensions
     public static class Dimensions implements Parcelable {
@@ -118,49 +100,47 @@ public class ItemModel implements Parcelable {
         photoUris = new ArrayList<>();
         shippingOptions = new ArrayList<>();
         keyFeatures = new ArrayList<>();
+        this.dateAdded = new java.util.Date();
     }
 
-    public ItemModel(String title, String description, double price, String category,
-                     String condition, String location, List<Uri> photoUris) {
+    // NOTE: price is not part of ItemModel. Use ListingModel for price and listing-specific data.
+    // If you need price, fetch the related ListingModel using itemId.
+
+    public ItemModel(String id, String title, String description, String category, String subcategory, String brand, String condition, String location, List<String> photoUris, double weight, Dimensions dimensions, List<String> shippingOptions, List<String> keyFeatures, java.util.Date dateAdded) {
+        this.id = id;
         this.title = title;
         this.description = description;
-        this.price = price;
         this.category = category;
+        this.subcategory = subcategory;
+        this.brand = brand;
         this.condition = condition;
         this.location = location;
         this.photoUris = photoUris != null ? photoUris : new ArrayList<>();
+        this.weight = weight;
+        this.dimensions = dimensions;
+        this.shippingOptions = shippingOptions != null ? shippingOptions : new ArrayList<>();
+        this.keyFeatures = keyFeatures != null ? keyFeatures : new ArrayList<>();
+        this.dateAdded = dateAdded;
     }
 
     // Parcelable implementation
     protected ItemModel(Parcel in) {
         id = in.readString();
-        userId = in.readString();
         title = in.readString();
         description = in.readString();
-        price = in.readDouble();
         category = in.readString();
+        subcategory = in.readString();
+        brand = in.readString();
         condition = in.readString();
         location = in.readString();
         photoUris = new ArrayList<>();
-        in.readList(photoUris, Uri.class.getClassLoader());
-        status = in.readString();
-        viewCount = in.readInt();
-        interactionCount = in.readInt();
-        tag = in.readString();
-        dateAdded = new Date(in.readLong());
-        listingId = in.readString();
-        transactionId = in.readString();
-        sellerId = in.readString();
-        originalPrice = in.readDouble();
-        subcategory = in.readString();
-        categoryId = in.readString();
+        in.readList(photoUris, String.class.getClassLoader());
         weight = in.readDouble();
         dimensions = in.readParcelable(Dimensions.class.getClassLoader());
         shippingOptions = in.createStringArrayList();
         keyFeatures = in.createStringArrayList();
-        isPromoted = in.readByte() != 0;
-        promotionExpiry = new Date(in.readLong());
-        negotiable = in.readByte() != 0;
+        long tmpDate = in.readLong();
+        this.dateAdded = tmpDate == -1 ? null : new java.util.Date(tmpDate);
     }
 
     public static final Creator<ItemModel> CREATOR = new Creator<ItemModel>() {
@@ -183,49 +163,52 @@ public class ItemModel implements Parcelable {
     @Override
     public void writeToParcel(@NonNull Parcel dest, int flags) {
         dest.writeString(id);
-        dest.writeString(userId);
         dest.writeString(title);
         dest.writeString(description);
-        dest.writeDouble(price);
         dest.writeString(category);
+        dest.writeString(subcategory);
+        dest.writeString(brand);
         dest.writeString(condition);
         dest.writeString(location);
         dest.writeList(photoUris);
-        dest.writeString(status);
-        dest.writeInt(viewCount);
-        dest.writeInt(interactionCount);
-        dest.writeString(tag);
-        dest.writeLong(dateAdded.getTime());
-        dest.writeString(listingId);
-        dest.writeString(transactionId);
-        dest.writeString(sellerId);
-        dest.writeDouble(originalPrice);
-        dest.writeString(subcategory);
-        dest.writeString(categoryId);
         dest.writeDouble(weight);
         dest.writeParcelable(dimensions, flags);
         dest.writeStringList(shippingOptions);
         dest.writeStringList(keyFeatures);
-        dest.writeByte((byte) (isPromoted ? 1 : 0));
-        dest.writeLong(promotionExpiry != null ? promotionExpiry.getTime() : -1);
-        dest.writeByte((byte) (negotiable ? 1 : 0));
+        dest.writeLong(dateAdded != null ? dateAdded.getTime() : -1);
     }
 
-    // Enhanced getters and setters
-    public String getSellerId() {
-        return sellerId;
+    // Getters and Setters
+    public String getId() {
+        return id;
     }
 
-    public void setSellerId(String sellerId) {
-        this.sellerId = sellerId;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public double getOriginalPrice() {
-        return originalPrice;
+    public String getTitle() {
+        return title;
     }
 
-    public void setOriginalPrice(double originalPrice) {
-        this.originalPrice = originalPrice;
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public String getSubcategory() {
@@ -236,12 +219,42 @@ public class ItemModel implements Parcelable {
         this.subcategory = subcategory;
     }
 
-    public String getCategoryId() {
-        return categoryId;
+    public String getBrand() {
+        return brand;
     }
 
-    public void setCategoryId(String categoryId) {
-        this.categoryId = categoryId;
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public String getCondition() {
+        return condition;
+    }
+
+    public void setCondition(String condition) {
+        this.condition = condition;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public List<String> getPhotoUris() {
+        return photoUris;
+    }
+
+    public void setPhotoUris(List<String> photoUris) {
+        this.photoUris = photoUris;
+    }
+
+    public void addPhotoUri(String uri) {
+        if (uri != null && !photoUris.contains(uri)) {
+            photoUris.add(uri);
+        }
     }
 
     public double getWeight() {
@@ -276,162 +289,13 @@ public class ItemModel implements Parcelable {
         this.keyFeatures = keyFeatures;
     }
 
-    public boolean isPromoted() {
-        return isPromoted;
-    }
-
-    public void setPromoted(boolean promoted) {
-        isPromoted = promoted;
-    }
-
-    public Date getPromotionExpiry() {
-        return promotionExpiry;
-    }
-
-    public void setPromotionExpiry(Date promotionExpiry) {
-        this.promotionExpiry = promotionExpiry;
-    }
-
-    public boolean isNegotiable() {
-        return negotiable;
-    }
-
-    public void setNegotiable(boolean negotiable) {
-        this.negotiable = negotiable;
-    }
-
-    // Getters and Setters
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public String getCondition() {
-        return condition;
-    }
-
-    public void setCondition(String condition) {
-        this.condition = condition;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public List<Uri> getPhotoUris() {
-        return photoUris;
-    }
-
-    public void setPhotoUris(List<Uri> photoUris) {
-        this.photoUris = photoUris;
-    }
-
-    public void addPhotoUri(Uri uri) {
-        if (uri != null && !photoUris.contains(uri)) {
-            photoUris.add(uri);
-        }
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public int getViewCount() {
-        return viewCount;
-    }
-
-    public void setViewCount(int viewCount) {
-        this.viewCount = viewCount;
-    }
-
-    public int getInteractionCount() {
-        return interactionCount;
-    }
-
-    public void setInteractionCount(int interactionCount) {
-        this.interactionCount = interactionCount;
-    }
-
-    public String getTag() {
-        return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
-
-    public Date getDateAdded() {
+    public java.util.Date getDateAdded() {
         return dateAdded;
     }
 
-    public void setDateAdded(Date dateAdded) {
+    public void setDateAdded(java.util.Date dateAdded) {
         this.dateAdded = dateAdded;
     }
-
-    public String getListingId() {
-        return listingId;
-    }
-
-    public void setListingId(String listingId) {
-        this.listingId = listingId;
-    }
-
-    public String getTransactionId() {
-        return transactionId;
-    }
-
-    public void setTransactionId(String transactionId) {
-        this.transactionId = transactionId;
-    }
 }
+
+

@@ -14,8 +14,10 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.tradeupapp.R;
+import com.example.tradeupapp.models.ItemModel;
 import com.example.tradeupapp.models.ListingModel;
 import com.example.tradeupapp.models.OfferModel;
+import com.example.tradeupapp.core.services.FirebaseService;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -26,6 +28,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 public class MakeOfferDialogFragment extends DialogFragment {
 
     private ListingModel listing;
+    private ItemModel item;
     private EditText etOfferAmount;
     private EditText etMessage;
     private MaterialButton btnSubmitOffer;
@@ -33,17 +36,15 @@ public class MakeOfferDialogFragment extends DialogFragment {
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
+    private FirebaseService firebaseService;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setStyle(DialogFragment.STYLE_NORMAL, com.google.android.material.R.style.ThemeOverlay_Material3_Dialog_Alert);
-
-        // Initialize Firebase
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
-
-        // Get listing from arguments
+        firebaseService = FirebaseService.getInstance();
         if (getArguments() != null) {
             listing = (ListingModel) getArguments().getSerializable("listing");
         }
@@ -69,7 +70,18 @@ public class MakeOfferDialogFragment extends DialogFragment {
 
         // Set initial values
         if (listing != null) {
-            tvItemTitle.setText(listing.getTitle());
+            firebaseService.getItemById(listing.getItemId(), new FirebaseService.ItemCallback() {
+                @Override
+                public void onSuccess(ItemModel fetchedItem) {
+                    item = fetchedItem;
+                    tvItemTitle.setText(item != null && item.getTitle() != null ? item.getTitle() : "");
+                }
+
+                @Override
+                public void onError(String error) {
+                    tvItemTitle.setText("");
+                }
+            });
             tvItemPrice.setText("$" + listing.getPrice());
             // Set initial offer amount to 90% of the item price as a suggestion
             double suggestedOffer = listing.getPrice() * 0.9;
@@ -136,7 +148,7 @@ public class MakeOfferDialogFragment extends DialogFragment {
                         offer.setId(documentReference.getId());
 
                         // Create notification for the seller
-                        createOfferNotification(listing.getSellerId(), listing.getTitle());
+                        createOfferNotification(listing.getSellerId(), item != null ? item.getTitle() : "");
 
                         Toast.makeText(requireContext(), "Offer sent successfully", Toast.LENGTH_SHORT).show();
                         dismiss();

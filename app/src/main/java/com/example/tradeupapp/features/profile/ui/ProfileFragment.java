@@ -431,7 +431,8 @@ public class ProfileFragment extends Fragment {
 
     // Helper: Convert lat/lng to address string
     private String getAddressFromLatLng(double latitude, double longitude) {
-        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+        if (!isAdded() || getContext() == null) return null;
+        Geocoder geocoder = new Geocoder(getContext(), Locale.getDefault());
         try {
             List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
             if (addresses != null && !addresses.isEmpty()) {

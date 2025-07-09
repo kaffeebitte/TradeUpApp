@@ -15,8 +15,10 @@ import androidx.navigation.Navigation;
 
 import com.example.tradeupapp.R;
 import com.example.tradeupapp.models.ItemModel;
+import com.example.tradeupapp.models.ListingModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -25,6 +27,8 @@ public class CheckoutFragment extends Fragment {
 
     private ItemModel item;
     private boolean isBuyNow;
+    private ListingModel listing; // Store the loaded listing
+    private FirebaseFirestore db;
 
     // UI Components
     private ImageView ivItemImage;
@@ -57,9 +61,10 @@ public class CheckoutFragment extends Fragment {
             isBuyNow = getArguments().getBoolean("isBuyNow", false);
         }
 
+        db = FirebaseFirestore.getInstance();
         initViews(view);
         setupViews(view);
-        displayItemData();
+        fetchListingAndDisplay();
     }
 
     private void initViews(View view) {
@@ -91,40 +96,39 @@ public class CheckoutFragment extends Fragment {
         });
     }
 
-    private void displayItemData() {
+    private void fetchListingAndDisplay() {
         if (item == null) {
             Toast.makeText(requireContext(), "Lỗi: Không tìm thấy thông tin sản phẩm", Toast.LENGTH_SHORT).show();
             return;
         }
+        db.collection("listings").whereEqualTo("itemId", item.getId()).limit(1).get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                if (!queryDocumentSnapshots.isEmpty()) {
+                    ListingModel loadedListing = queryDocumentSnapshots.getDocuments().get(0).toObject(ListingModel.class);
+                    if (loadedListing != null) {
+                        listing = loadedListing;
+                        displayItemDataWithListing();
+                        return;
+                    }
+                }
+                Toast.makeText(requireContext(), "Không tìm thấy thông tin giá sản phẩm.", Toast.LENGTH_SHORT).show();
+            })
+            .addOnFailureListener(e -> Toast.makeText(requireContext(), "Lỗi khi tải giá sản phẩm.", Toast.LENGTH_SHORT).show());
+    }
 
-        // Format currency
+    private void displayItemDataWithListing() {
+        if (item == null || listing == null) return;
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
-
-        // Display item information
         tvItemTitle.setText(item.getTitle());
-        tvItemPrice.setText(currencyFormat.format(item.getPrice()));
+        tvItemPrice.setText(currencyFormat.format(listing.getPrice()));
         tvItemCondition.setText("Tình trạng: " + item.getCondition());
-
-        // Display payment summary
-        tvItemPriceSummary.setText(currencyFormat.format(item.getPrice()));
+        tvItemPriceSummary.setText(currencyFormat.format(listing.getPrice()));
         tvServiceFee.setText(currencyFormat.format(SERVICE_FEE));
-
-        // Calculate and display total
-        double totalAmount = item.getPrice() + SERVICE_FEE;
+        double totalAmount = listing.getPrice() + SERVICE_FEE;
         tvTotalAmount.setText(currencyFormat.format(totalAmount));
-
-        // Update button text based on purchase type
         String buttonText = isBuyNow ? "Mua ngay" : "Tiến hành thanh toán";
         btnProceedPayment.setText(buttonText);
-
         // TODO: Load item image using Glide when image URLs are available
-        // if (item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) {
-        //     Glide.with(this)
-        //         .load(item.getPhotoUris().get(0))
-        //         .placeholder(R.drawable.ic_image_placeholder)
-        //         .error(R.drawable.ic_image_placeholder)
-        //         .into(ivItemImage);
-        // }
     }
 
     private void processPayment() {

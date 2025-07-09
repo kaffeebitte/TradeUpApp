@@ -303,27 +303,28 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
                 Toast.makeText(requireContext(), "Invalid price format", Toast.LENGTH_SHORT).show();
                 return;
             }
-            item.setPrice(price);
 
             // Get selected category and condition
             item.setCategory(actvCategory.getText().toString());
             item.setCondition(actvCondition.getText().toString());
 
-            // Set tag for the item
-            item.setTag(etTag.getText().toString().trim());
-
             // Set location
             item.setLocation(etLocation.getText().toString().trim());
 
-            // Set photos
+            // Set photos (convert List<Uri> to List<String>)
             if (photoAdapter != null) {
-                item.setPhotoUris(photoAdapter.getPhotoUris());
+                java.util.List<Uri> uriList = photoAdapter.getPhotoUris();
+                java.util.List<String> stringList = new java.util.ArrayList<>();
+                for (Uri uri : uriList) {
+                    if (uri != null) stringList.add(uri.toString());
+                }
+                item.setPhotoUris(stringList);
             }
 
             // Navigate to preview fragment
             Bundle args = new Bundle();
             args.putParcelable("item", item);
-
+            args.putDouble("price", price); // Pass price separately
             NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
             navController.navigate(R.id.action_nav_add_to_itemPreviewFragment, args);
 

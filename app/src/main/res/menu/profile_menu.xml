@@ -11,5 +11,9 @@
         android:icon="@drawable/ic_share_24"
         android:title="Share Profile"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_switch_role"
+        android:icon="@drawable/ic_swap_horiz_24"
+        android:title="Switch Role"
+        app:showAsAction="never" />
 </menu>
-

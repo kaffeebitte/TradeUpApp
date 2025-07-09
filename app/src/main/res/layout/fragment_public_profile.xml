@@ -1,84 +1,165 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
-    android:background="?attr/colorSurface">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="?attr/colorSurface"
+    android:padding="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:gravity="center_horizontal"
+        android:padding="0dp">
 
-        <!-- Avatar -->
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/iv_avatar"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            android:src="@drawable/ic_user_24"
-            android:scaleType="centerCrop"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-            android:layout_marginBottom="16dp" />
-
-        <!-- Display Name -->
-        <TextView
-            android:id="@+id/tv_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="User Name"
-            android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
-            android:layout_marginBottom="4dp" />
-
-        <!-- Contact Info (optional) -->
-        <TextView
-            android:id="@+id/tv_contact"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Contact: 0123 456 789"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:layout_marginBottom="12dp" />
-
-        <!-- Bio -->
-        <TextView
-            android:id="@+id/tv_bio"
+        <!-- Profile Card -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Gamer. Collector. Trader."
-            android:textAlignment="center"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginTop="32dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="4dp"
+            app:strokeColor="@color/md_theme_primaryContainer"
+            app:strokeWidth="1dp">
 
-        <!-- Rating -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginBottom="24dp">
-
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@drawable/ic_star_24"
-                app:tint="@color/md_theme_primary" />
-
-            <TextView
-                android:id="@+id/tv_rating"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="4.9 (85)"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:layout_marginStart="6dp" />
-        </LinearLayout>
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:padding="24dp">
 
-        <!-- Optional: View listings of this user -->
+                <!-- Avatar -->
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/iv_avatar"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:src="@drawable/ic_user_24"
+                    android:scaleType="centerCrop"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                    android:backgroundTint="@color/md_theme_primaryContainer"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Display Name -->
+                <TextView
+                    android:id="@+id/tv_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="User Name"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp" />
+
+                <!-- Location (if public) -->
+                <LinearLayout
+                    android:id="@+id/layout_location"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp"
+                    android:visibility="gone">
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_location_24"
+                        app:tint="@color/md_theme_primary" />
+                    <TextView
+                        android:id="@+id/tv_location"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Location"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                        android:layout_marginStart="6dp" />
+                </LinearLayout>
+
+                <!-- Rating & Reviews -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:layout_marginBottom="8dp">
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_star_24"
+                        app:tint="@color/gold" />
+                    <TextView
+                        android:id="@+id/tv_rating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="4.9"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:layout_marginStart="6dp" />
+                    <TextView
+                        android:id="@+id/tv_reviews_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="(85)"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                        android:layout_marginStart="4dp" />
+                </LinearLayout>
+
+                <!-- Bio -->
+                <TextView
+                    android:id="@+id/tv_bio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Gamer. Collector. Trader."
+                    android:textAlignment="center"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:layout_marginBottom="0dp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- View Listings Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_view_listings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginStart="48dp"
+            android:layout_marginEnd="48dp"
             android:text="View Listings"
-            app:cornerRadius="28dp" />
+            app:cornerRadius="28dp"
+            style="@style/Widget.Material3.Button" />
+
+        <!-- User's Listings Section -->
+        <TextView
+            android:id="@+id/tv_listings_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:text="Listings"
+            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_user_listings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="32dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:overScrollMode="never"
+            android:clipToPadding="false"
+            android:paddingBottom="8dp"
+            tools:listitem="@layout/item_listing"
+            android:visibility="visible" />
     </LinearLayout>
-</ScrollView>
+</androidx.core.widget.NestedScrollView>

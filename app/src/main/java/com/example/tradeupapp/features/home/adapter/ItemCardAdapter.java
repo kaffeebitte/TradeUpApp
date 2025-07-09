@@ -14,6 +14,8 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.example.tradeupapp.R;
 import com.example.tradeupapp.models.ItemModel;
+import com.example.tradeupapp.models.ListingModel;
+import com.example.tradeupapp.core.services.ItemRepository;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.imageview.ShapeableImageView;
@@ -29,33 +31,39 @@ public class ItemCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public static final int VIEW_TYPE_VERTICAL = 0;  // Full featured listing (vertical)
     public static final int VIEW_TYPE_HORIZONTAL = 1;  // Horizontal scrolling card
 
-    private final List<ItemModel> items;
+    private final List<ListingModel> listings;
     private final int viewType;
     private final OnItemClickListener listener;
     private final OnFavoriteClickListener favoriteListener;
+    private final ItemRepository itemRepository;
 
     public interface OnItemClickListener {
-        void onItemClick(ItemModel item);
+        void onItemClick(ListingModel listing);
     }
 
     public interface OnFavoriteClickListener {
-        void onFavoriteClick(ItemModel item, boolean isFavorite);
+        void onFavoriteClick(ListingModel listing, boolean isFavorite);
     }
 
-    public ItemCardAdapter(int viewType, OnItemClickListener listener) {
-        this(viewType, listener, null);
+    public ItemCardAdapter(int viewType, OnItemClickListener listener, ItemRepository itemRepository) {
+        this.listings = new ArrayList<>();
+        this.viewType = viewType;
+        this.listener = listener;
+        this.favoriteListener = null;
+        this.itemRepository = itemRepository;
     }
 
-    public ItemCardAdapter(int viewType, OnItemClickListener listener, OnFavoriteClickListener favoriteListener) {
-        this.items = new ArrayList<>();
+    public ItemCardAdapter(int viewType, OnItemClickListener listener, OnFavoriteClickListener favoriteListener, ItemRepository itemRepository) {
+        this.listings = new ArrayList<>();
         this.viewType = viewType;
         this.listener = listener;
         this.favoriteListener = favoriteListener;
+        this.itemRepository = itemRepository;
     }
 
-    public void setItems(List<ItemModel> newItems) {
-        this.items.clear();
-        this.items.addAll(newItems);
+    public void setItems(List<ListingModel> newListings) {
+        this.listings.clear();
+        this.listings.addAll(newListings);
         notifyDataSetChanged();
     }
 
@@ -75,18 +83,18 @@ public class ItemCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        ItemModel item = items.get(position);
+        ListingModel listing = listings.get(position);
 
         if (holder instanceof HorizontalViewHolder) {
-            ((HorizontalViewHolder) holder).bind(item, listener);
+            ((HorizontalViewHolder) holder).bind(listing, listener, itemRepository);
         } else if (holder instanceof VerticalViewHolder) {
-            ((VerticalViewHolder) holder).bind(item, listener, favoriteListener);
+            ((VerticalViewHolder) holder).bind(listing, listener, favoriteListener, itemRepository);
         }
     }
 
     @Override
     public int getItemCount() {
-        return items.size();
+        return listings.size();
     }
 
     // ViewHolder for item_listing.xml (vertical layout)
@@ -114,61 +122,64 @@ public class ItemCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             favoriteIcon = itemView.findViewById(R.id.iv_favorite);
         }
 
-        public void bind(ItemModel item, OnItemClickListener listener, OnFavoriteClickListener favoriteListener) {
-            titleView.setText(item.getTitle());
+        public void bind(ListingModel listing, OnItemClickListener listener, OnFavoriteClickListener favoriteListener, ItemRepository itemRepository) {
+            // Set placeholders first
+            titleView.setText("Loading...");
+            priceView.setText(String.valueOf(listing.getPrice()));
 
-            // Format price with currency
-            NumberFormat formatter = NumberFormat.getCurrencyInstance(Locale.US);
-            priceView.setText(formatter.format(item.getPrice()));
+            // Fetch ItemModel asynchronously
+            itemRepository.getItemById(listing.getItemId(), new ItemRepository.ItemCallback() {
+                @Override
+                public void onItemLoaded(ItemModel item) {
+                    if (item != null) {
+                        titleView.setText(item.getTitle());
+                        if (locationView != null) locationView.setText(item.getLocation());
 
-            if (locationView != null) {
-                locationView.setText(item.getLocation());
-            }
+                        // Load image if available
+                        if (item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) {
+                            Glide.with(imageView.getContext())
+                                    .load(item.getPhotoUris().get(0))
+                                    .transition(DrawableTransitionOptions.withCrossFade())
+                                    .centerCrop()
+                                    .placeholder(R.drawable.placeholder_image)
+                                    .error(R.drawable.error_image)
+                                    .into(imageView);
+                        } else {
+                            imageView.setImageResource(R.drawable.placeholder_image);
+                        }
+                    }
+                }
+            });
 
             if (statusView != null) {
-                statusView.setText(item.getStatus());
+                statusView.setText(listing.getTransactionStatus());
                 // Set visibility of status based on availability
-                statusView.setVisibility(item.getStatus() != null && !item.getStatus().isEmpty() ?
+                statusView.setVisibility(listing.getTransactionStatus() != null && !listing.getTransactionStatus().isEmpty() ?
                         View.VISIBLE : View.GONE);
             }
 
             if (timeView != null) {
                 // Set time ago text (using a utility method)
-                timeView.setText(formatTimeAgo(item.getDateAdded()));
+                timeView.setText(formatTimeAgo(listing.getCreatedAt() != null ? listing.getCreatedAt().toDate() : null));
             }
 
             if (viewCountView != null) {
                 // Set view count
-                viewCountView.setText(String.valueOf(item.getViewCount()));
-            }
-
-            // Load image if available
-            if (item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) {
-                Uri imageUri = item.getPhotoUris().get(0);
-                Glide.with(imageView.getContext())
-                        .load(imageUri)
-                        .transition(DrawableTransitionOptions.withCrossFade())
-                        .centerCrop()
-                        .placeholder(R.drawable.placeholder_image)
-                        .error(R.drawable.error_image)
-                        .into(imageView);
-            } else {
-                // Set a default placeholder image
-                imageView.setImageResource(R.drawable.placeholder_image);
+                viewCountView.setText(String.valueOf(listing.getViewCount()));
             }
 
             // Set favorite button click listener if available
             if (favoriteButton != null && favoriteListener != null) {
                 favoriteButton.setOnClickListener(v -> {
                     // Toggle favorite state (actual favorite state should be managed by the app)
-                    favoriteListener.onFavoriteClick(item, true);
+                    favoriteListener.onFavoriteClick(listing, true);
                 });
             }
 
             // Set item click listener
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
-                    listener.onItemClick(item);
+                    listener.onItemClick(listing);
                 }
             });
         }
@@ -191,35 +202,37 @@ public class ItemCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             conditionView = itemView.findViewById(R.id.tv_item_condition);
         }
 
-        public void bind(ItemModel item, OnItemClickListener listener) {
-            titleView.setText(item.getTitle());
+        public void bind(ListingModel listing, OnItemClickListener listener, ItemRepository itemRepository) {
+            titleView.setText("Loading...");
+            priceView.setText(String.valueOf(listing.getPrice()));
 
-            // Format price with currency
-            NumberFormat formatter = NumberFormat.getCurrencyInstance(Locale.US);
-            priceView.setText(formatter.format(item.getPrice()));
+            itemRepository.getItemById(listing.getItemId(), new ItemRepository.ItemCallback() {
+                @Override
+                public void onItemLoaded(ItemModel item) {
+                    if (item != null) {
+                        titleView.setText(item.getTitle());
+                        locationView.setText(item.getLocation());
+                        conditionView.setText(item.getCondition());
 
-            locationView.setText(item.getLocation());
-            conditionView.setText(item.getCondition());
-
-            // Load image if available
-            if (item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) {
-                Uri imageUri = item.getPhotoUris().get(0);
-                Glide.with(imageView.getContext())
-                        .load(imageUri)
-                        .transition(DrawableTransitionOptions.withCrossFade())
-                        .centerCrop()
-                        .placeholder(R.drawable.placeholder_image)
-                        .error(R.drawable.error_image)
-                        .into(imageView);
-            } else {
-                // Set a default placeholder image
-                imageView.setImageResource(R.drawable.placeholder_image);
-            }
+                        if (item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) {
+                            Glide.with(imageView.getContext())
+                                    .load(item.getPhotoUris().get(0))
+                                    .transition(DrawableTransitionOptions.withCrossFade())
+                                    .centerCrop()
+                                    .placeholder(R.drawable.placeholder_image)
+                                    .error(R.drawable.error_image)
+                                    .into(imageView);
+                        } else {
+                            imageView.setImageResource(R.drawable.placeholder_image);
+                        }
+                    }
+                }
+            });
 
             // Set click listener
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
-                    listener.onItemClick(item);
+                    listener.onItemClick(listing);
                 }
             });
         }
@@ -241,15 +254,15 @@ public class ItemCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     // Static factory methods for easy instantiation
-    public static ItemCardAdapter createVerticalAdapter(OnItemClickListener listener) {
-        return new ItemCardAdapter(VIEW_TYPE_VERTICAL, listener);
+    public static ItemCardAdapter createVerticalAdapter(OnItemClickListener listener, ItemRepository itemRepository) {
+        return new ItemCardAdapter(VIEW_TYPE_VERTICAL, listener, itemRepository);
     }
 
-    public static ItemCardAdapter createVerticalAdapter(OnItemClickListener listener, OnFavoriteClickListener favoriteListener) {
-        return new ItemCardAdapter(VIEW_TYPE_VERTICAL, listener, favoriteListener);
+    public static ItemCardAdapter createVerticalAdapter(OnItemClickListener listener, OnFavoriteClickListener favoriteListener, ItemRepository itemRepository) {
+        return new ItemCardAdapter(VIEW_TYPE_VERTICAL, listener, favoriteListener, itemRepository);
     }
 
-    public static ItemCardAdapter createHorizontalAdapter(OnItemClickListener listener) {
-        return new ItemCardAdapter(VIEW_TYPE_HORIZONTAL, listener);
+    public static ItemCardAdapter createHorizontalAdapter(OnItemClickListener listener, ItemRepository itemRepository) {
+        return new ItemCardAdapter(VIEW_TYPE_HORIZONTAL, listener, itemRepository);
     }
 }
