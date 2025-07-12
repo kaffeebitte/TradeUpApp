@@ -63,7 +63,7 @@ public class PurchaseHistoryAdapter extends RecyclerView.Adapter<PurchaseHistory
         // Purchase date (using createdAt as purchase date for purchased listings)
         if (listing.getCreatedAt() != null) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
-            holder.purchaseDate.setText("Purchased on " + dateFormat.format(listing.getCreatedAt().toDate()));
+            holder.purchaseDate.setText("Purchased on " + dateFormat.format(listing.getCreatedAtTimestamp().toDate()));
         }
 
         // Transaction status

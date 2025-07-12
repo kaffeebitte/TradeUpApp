@@ -79,31 +79,49 @@ public class UserListingAdapter extends RecyclerView.Adapter<UserListingAdapter.
         holder.price.setText(String.format("₫%,.0f", listing.getPrice()));
         String statusText = listing.getTransactionStatus() != null ? listing.getTransactionStatus() : "Available";
         holder.status.setText(statusText);
-        holder.views.setText(listing.getViewCount() + " views");
-        // For chats/offers, you may need to fetch or calculate separately; here we just show 0
-        holder.chats.setText(" • 0 chats");
-        holder.offers.setText(" • 0 offers");
+        // Show interaction counts from new structure, remove dots before numbers
+        int viewsCount = (listing.getInteractions() != null && listing.getInteractions().getAggregate() != null) ?
+                listing.getInteractions().getAggregate().getTotalViews() : 0;
+        int savesCount = (listing.getInteractions() != null && listing.getInteractions().getAggregate() != null) ?
+                listing.getInteractions().getAggregate().getTotalSaves() : 0;
+        int sharesCount = (listing.getInteractions() != null && listing.getInteractions().getAggregate() != null) ?
+                listing.getInteractions().getAggregate().getTotalShares() : 0;
+        holder.views.setText(String.valueOf(viewsCount));
+        holder.saves.setText(String.valueOf(savesCount));
+        holder.shares.setText(String.valueOf(sharesCount));
         // Set chip background and text color based on status
         switch (statusText) {
             case "available":
             case "Available":
                 holder.status.setChipBackgroundColorResource(R.color.md_theme_primaryContainer);
                 holder.status.setTextColor(context.getColor(R.color.md_theme_primary));
+                holder.status.setText("Available");
                 break;
             case "pending":
             case "Paused":
                 holder.status.setChipBackgroundColorResource(R.color.md_theme_secondaryContainer);
                 holder.status.setTextColor(context.getColor(R.color.md_theme_secondary));
+                holder.status.setText("Paused");
                 break;
             case "sold":
             case "Sold":
                 holder.status.setChipBackgroundColorResource(R.color.md_theme_errorContainer);
                 holder.status.setTextColor(context.getColor(R.color.md_theme_error));
+                holder.status.setText("Sold");
+                // Hide edit and delete buttons if sold
+                holder.btnEdit.setVisibility(View.GONE);
+                holder.btnDelete.setVisibility(View.GONE);
                 break;
             default:
                 holder.status.setChipBackgroundColorResource(R.color.md_theme_surfaceVariant);
                 holder.status.setTextColor(context.getColor(R.color.black));
+                holder.status.setText("Available");
                 break;
+        }
+        // Show edit/delete if not sold
+        if (!statusText.equalsIgnoreCase("sold")) {
+            holder.btnEdit.setVisibility(View.VISIBLE);
+            holder.btnDelete.setVisibility(View.VISIBLE);
         }
     }
 
@@ -124,18 +142,17 @@ public class UserListingAdapter extends RecyclerView.Adapter<UserListingAdapter.
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         ShapeableImageView image;
-        TextView title, price, views, chats, offers;
+        TextView title, price, views, saves, shares;
         Chip status;
         MaterialButton btnEdit, btnDelete;
-
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.iv_item_image);
             title = itemView.findViewById(R.id.tv_item_title);
             price = itemView.findViewById(R.id.tv_item_price);
             views = itemView.findViewById(R.id.tv_views);
-            chats = itemView.findViewById(R.id.tv_chats);
-            offers = itemView.findViewById(R.id.tv_offers);
+            saves = itemView.findViewById(R.id.tv_saves);
+            shares = itemView.findViewById(R.id.tv_shares);
             status = itemView.findViewById(R.id.chip_item_status);
             btnEdit = itemView.findViewById(R.id.btn_edit);
             btnDelete = itemView.findViewById(R.id.btn_delete);

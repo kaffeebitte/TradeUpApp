@@ -1,7 +1,6 @@
 package com.example.tradeupapp.models;
 
 import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.PropertyName;
@@ -46,7 +45,7 @@ public class User implements Serializable {
         }
     }
 
-    @DocumentId // Firestore document ID annotation
+    // @DocumentId // Firestore document ID annotation
     private String uid; // required - UID from Firebase Auth
     private String displayName; // required
     private String email; // required

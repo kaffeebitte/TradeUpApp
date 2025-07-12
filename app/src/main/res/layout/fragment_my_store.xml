@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/md_theme_background"
+        android:padding="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:background="@color/md_theme_background">
+
+            <!-- Store Banner -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="220dp">
+                <ImageView
+                    android:id="@+id/img_store_banner"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@android:color/darker_gray"
+                    android:contentDescription="@string/store_banner_desc"
+                    android:background="?attr/colorPrimaryContainer" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_banner_gradient_overlay" />
+            </FrameLayout>
+
+            <!-- Store Avatar and Name -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:paddingTop="-44dp"
+                android:paddingBottom="12dp">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/img_store_avatar"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:src="@android:drawable/ic_menu_gallery"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                    android:background="?attr/colorSurfaceVariant"
+                    android:contentDescription="@string/store_avatar_desc"
+                    app:strokeColor="@color/md_theme_primary"
+                    app:strokeWidth="2dp"
+                    android:elevation="8dp"
+                    android:layout_marginEnd="16dp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_vertical">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tv_store_name"
+                        style="@style/TextAppearance.Material3.HeadlineMedium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/store_name_placeholder"
+                        android:textColor="?attr/colorOnSurface"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tv_store_rating"
+                        style="@style/TextAppearance.Material3.BodyLarge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/store_rating_placeholder"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Add Item Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_add_item"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="@string/add_listing"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                app:icon="@android:drawable/ic_input_add"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"/>
+
+            <!-- Store Analytics Board: 2 rows, row 1: Available & Sold, row 2: Views, Saves, Shares, with outlined boxes -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="@android:color/white">
+                    <!-- Row 1: Available & Sold -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:weightSum="2"
+                        android:layout_marginBottom="8dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            app:strokeWidth="1dp"
+                            app:strokeColor="@color/md_theme_outlineVariant"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp"
+                            android:layout_marginEnd="6dp"
+                            android:backgroundTint="@android:color/white">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="10dp"
+                                android:gravity="center">
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:text="@string/available"
+                                    style="@style/TextAppearance.Material3.BodySmall"
+                                    android:gravity="center"
+                                    android:textColor="@color/md_theme_onSurface"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:id="@+id/tv_stat_active"
+                                    android:text="0"
+                                    style="@style/TextAppearance.Material3.TitleMedium"
+                                    android:gravity="center"
+                                    android:textColor="@color/md_theme_onSurface"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            app:strokeWidth="1dp"
+                            app:strokeColor="@color/md_theme_outlineVariant"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp"
+                            android:layout_marginStart="6dp"
+                            android:backgroundTint="@android:color/white">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="10dp"
+                                android:gravity="center">
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:text="@string/sold"
+                                    style="@style/TextAppearance.Material3.BodySmall"
+                                    android:gravity="center"
+                                    android:textColor="@color/md_theme_onSurface"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:id="@+id/tv_stat_sold"
+                                    android:text="0"
+                                    style="@style/TextAppearance.Material3.TitleMedium"
+                                    android:gravity="center"
+                                    android:textColor="@color/md_theme_onSurface"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+                    </LinearLayout>
+                    <!-- Row 2: Views, Saves, Shares -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:weightSum="3">
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            app:strokeWidth="1dp"
+                            app:strokeColor="@color/md_theme_outlineVariant"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp"
+                            android:layout_marginEnd="4dp"
+                            android:backgroundTint="@android:color/white">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="10dp"
+                                android:gravity="center">
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:text="@string/views"
+                                    style="@style/TextAppearance.Material3.BodySmall"
+                                    android:gravity="center"
+                                    android:textColor="@color/md_theme_onSurface"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:id="@+id/tv_stat_views"
+                                    android:text="0"
+                                    style="@style/TextAppearance.Material3.TitleMedium"
+                                    android:gravity="center"
+                                    android:textColor="@color/md_theme_onSurface"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            app:strokeWidth="1dp"
+                            app:strokeColor="@color/md_theme_outlineVariant"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp"
+                            android:layout_marginStart="2dp"
+                            android:layout_marginEnd="2dp"
+                            android:backgroundTint="@android:color/white">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="10dp"
+                                android:gravity="center">
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:text="@string/saves"
+                                    style="@style/TextAppearance.Material3.BodySmall"
+                                    android:gravity="center"
+                                    android:textColor="@color/md_theme_onSurface"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:id="@+id/tv_stat_saves"
+                                    android:text="0"
+                                    style="@style/TextAppearance.Material3.TitleMedium"
+                                    android:gravity="center"
+                                    android:textColor="@color/md_theme_onSurface"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            app:strokeWidth="1dp"
+                            app:strokeColor="@color/md_theme_outlineVariant"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp"
+                            android:layout_marginStart="4dp"
+                            android:backgroundTint="@android:color/white">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="10dp"
+                                android:gravity="center">
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:text="@string/shares"
+                                    style="@style/TextAppearance.Material3.BodySmall"
+                                    android:gravity="center"
+                                    android:textColor="@color/md_theme_onSurface"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:id="@+id/tv_stat_shares"
+                                    android:text="0"
+                                    style="@style/TextAppearance.Material3.TitleMedium"
+                                    android:gravity="center"
+                                    android:textColor="@color/md_theme_onSurface"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <!-- End Store Analytics Board -->
+
+            <!-- Listings Preview Title -->
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/your_listings"
+                style="@style/TextAppearance.Material3.TitleMedium"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="4dp"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:textColor="?attr/colorOnSurface" />
+
+            <!-- Listings Status Tabs -->
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tab_layout_listing_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/md_theme_primaryContainer"
+                app:tabIndicatorColor="@color/md_theme_primary"
+                app:tabSelectedTextColor="@color/md_theme_primary"
+                app:tabTextColor="@color/md_theme_secondary"
+                app:tabIndicatorHeight="3dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Listings Preview RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_store_listings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:clipToPadding="false"
+                android:overScrollMode="never" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="32dp" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</layout>

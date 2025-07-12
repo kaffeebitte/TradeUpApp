@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ItemModel implements Parcelable {
     private String id;
@@ -17,13 +18,14 @@ public class ItemModel implements Parcelable {
     private String subcategory;
     private String brand;
     private String condition;
-    private String location;
+    private Map<String, Object> location;
     private List<String> photoUris;
     private double weight;
     private Dimensions dimensions;
     private List<String> shippingOptions;
     private List<String> keyFeatures;
     private java.util.Date dateAdded;
+    private java.util.List<String> tags = new java.util.ArrayList<>();
 
     // Inner class for dimensions
     public static class Dimensions implements Parcelable {
@@ -106,7 +108,7 @@ public class ItemModel implements Parcelable {
     // NOTE: price is not part of ItemModel. Use ListingModel for price and listing-specific data.
     // If you need price, fetch the related ListingModel using itemId.
 
-    public ItemModel(String id, String title, String description, String category, String subcategory, String brand, String condition, String location, List<String> photoUris, double weight, Dimensions dimensions, List<String> shippingOptions, List<String> keyFeatures, java.util.Date dateAdded) {
+    public ItemModel(String id, String title, String description, String category, String subcategory, String brand, String condition, Map<String, Object> location, List<String> photoUris, double weight, Dimensions dimensions, List<String> shippingOptions, List<String> keyFeatures, java.util.Date dateAdded) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -132,7 +134,8 @@ public class ItemModel implements Parcelable {
         subcategory = in.readString();
         brand = in.readString();
         condition = in.readString();
-        location = in.readString();
+        // Read location as Map
+        location = (Map<String, Object>) in.readHashMap(Map.class.getClassLoader());
         photoUris = new ArrayList<>();
         in.readList(photoUris, String.class.getClassLoader());
         weight = in.readDouble();
@@ -141,6 +144,7 @@ public class ItemModel implements Parcelable {
         keyFeatures = in.createStringArrayList();
         long tmpDate = in.readLong();
         this.dateAdded = tmpDate == -1 ? null : new java.util.Date(tmpDate);
+        in.readList(tags, String.class.getClassLoader());
     }
 
     public static final Creator<ItemModel> CREATOR = new Creator<ItemModel>() {
@@ -169,13 +173,14 @@ public class ItemModel implements Parcelable {
         dest.writeString(subcategory);
         dest.writeString(brand);
         dest.writeString(condition);
-        dest.writeString(location);
+        dest.writeMap(location);
         dest.writeList(photoUris);
         dest.writeDouble(weight);
         dest.writeParcelable(dimensions, flags);
         dest.writeStringList(shippingOptions);
         dest.writeStringList(keyFeatures);
         dest.writeLong(dateAdded != null ? dateAdded.getTime() : -1);
+        dest.writeList(tags);
     }
 
     // Getters and Setters
@@ -235,12 +240,34 @@ public class ItemModel implements Parcelable {
         this.condition = condition;
     }
 
-    public String getLocation() {
+    public Map<String, Object> getLocation() {
         return location;
     }
 
-    public void setLocation(String location) {
+    public void setLocation(Map<String, Object> location) {
         this.location = location;
+    }
+
+    // Convenience getters for latitude/longitude
+    public Double getLocationLatitude() {
+        if (location != null && location.get("_latitude") instanceof Number) {
+            return ((Number) location.get("_latitude")).doubleValue();
+        }
+        return null;
+    }
+
+    public Double getLocationLongitude() {
+        if (location != null && location.get("_longitude") instanceof Number) {
+            return ((Number) location.get("_longitude")).doubleValue();
+        }
+        return null;
+    }
+
+    public String getAddress() {
+        if (location != null && location.get("address") instanceof String) {
+            return (String) location.get("address");
+        }
+        return null;
     }
 
     public List<String> getPhotoUris() {
@@ -296,6 +323,12 @@ public class ItemModel implements Parcelable {
     public void setDateAdded(java.util.Date dateAdded) {
         this.dateAdded = dateAdded;
     }
+
+    public java.util.List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(java.util.List<String> tags) {
+        this.tags = tags;
+    }
 }
-
-

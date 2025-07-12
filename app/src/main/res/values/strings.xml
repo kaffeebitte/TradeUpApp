@@ -20,8 +20,6 @@
     <string name="error_item_not_found">Error: Item not found</string>
     <string name="condition_format">Condition: %1$s</string>
     <string name="location_format">Location: %1$s</string>
-    <string name="buy_now">Buy Now</string>
-    <string name="make_offer">Make Offer</string>
     <string name="message_seller">Message Seller</string>
     <string name="similar_items">Similar Items</string>
     <string name="item_details">Item Details</string>
@@ -66,6 +64,7 @@
     <string name="privacy_security">Privacy &amp; Security</string>
     <string name="help_support">Help &amp; Support</string>
     <string name="sign_out">Sign Out</string>
+    <string name="listings">Listings</string>
 
     <!-- Bio and Contact Info Strings -->
     <string name="about_me">About Me</string>
@@ -91,6 +90,26 @@
     <string name="email_description">Email icon</string>
     <string name="preferred_contact_description">Preferred contact method icon</string>
 
+    <!-- Item Detail Content Descriptions and Labels -->
+    <string name="cd_save">Save item</string>
+    <string name="cd_share">Share item</string>
+    <string name="cd_item_images">Item images</string>
+    <string name="cd_location">Location icon</string>
+    <string name="cd_seller_avatar">Seller avatar</string>
+    <string name="cd_star">Star rating</string>
+    <string name="cd_chevron">Chevron icon</string>
+    <string name="view_count_zero">0</string>
+    <string name="save_count_zero">0</string>
+    <string name="share_count_zero">0</string>
+    <string name="description">Description</string>
+    <string name="tag_vintage">vintage</string>
+    <string name="tag_camera">camera</string>
+    <string name="tag_photography">photography</string>
+    <string name="seller">Seller</string>
+    <string name="make_offer">Make Offer</string>
+    <string name="message">Message</string>
+    <string name="buy_now">Buy Now</string>
+
     <!-- Font families for typography -->
     <string name="font_family_display">sans-serif</string>
     <string name="font_family_headline">sans-serif</string>
@@ -107,4 +126,26 @@
     </string-array>
 
     <string name="default_web_client_id">966394665760-gm155jae9t4un91h9fe334u9reat2c9m.apps.googleusercontent.com</string>
+
+    <!-- My Store / Seller Dashboard Strings -->
+    <string name="store_banner_desc">Store Banner</string>
+    <string name="store_avatar_desc">Store Avatar</string>
+    <string name="store_name_placeholder">Your Store Name</string>
+    <string name="store_rating_placeholder">4.9 ★ (120 reviews)</string>
+    <string name="active_listings">Active Listings</string>
+    <string name="sales">Sales</string>
+    <string name="stat_active">Active</string>
+    <string name="stat_sold">Sold</string>
+    <string name="stat_views">Views</string>
+    <string name="stat_active_value">12</string>
+    <string name="stat_sold_value">98</string>
+    <string name="stat_views_value">1.2K</string>
+    <string name="your_listings">Your Listings</string>
+
+    <!-- Additional Strings -->
+    <string name="available">Available</string>
+    <string name="sold">Sold</string>
+    <string name="views">Views</string>
+    <string name="saves">Saves</string>
+    <string name="shares">Shares</string>
 </resources>

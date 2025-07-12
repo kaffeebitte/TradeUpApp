@@ -11,7 +11,30 @@
       "transactionStatus": "available",
       "viewCount": 245,
       "tags": ["premium", "apple"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 245,
+          "totalSaves": 12,
+          "totalShares": 3
+        },
+        "userInteractions": [
+          {
+            "userId": "user_002",
+            "viewedAt": "2025-07-03T07:35:00Z",
+            "savedAt": "2025-07-03T08:00:00Z",
+            "sharedAt": null
+          },
+          {
+            "userId": "user_005",
+            "viewedAt": "2025-07-03T09:00:00Z",
+            "savedAt": null,
+            "sharedAt": "2025-07-03T09:10:00Z"
+          }
+        ]
+      }
     },
     {
       "id": "listing_002",
@@ -21,10 +44,20 @@
       "isActive": true,
       "createdAt": "2025-06-30T14:20:00Z",
       "updatedAt": "2025-06-30T14:20:00Z",
-      "transactionStatus": "available",
+      "transactionStatus": "sold",
       "viewCount": 189,
       "tags": ["featured", "monitor"],
-      "distanceRadius": 15
+      "distanceRadius": 15,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 189,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_003",
@@ -37,38 +70,75 @@
       "transactionStatus": "available",
       "viewCount": 156,
       "tags": ["popular", "vehicle"],
-      "distanceRadius": 20
+      "distanceRadius": 20,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 156,
+          "totalSaves": 7,
+          "totalShares": 1
+        },
+        "userInteractions": [
+          {
+            "userId": "user_007",
+            "viewedAt": "2025-07-01T16:30:00Z",
+            "savedAt": null,
+            "sharedAt": null
+          }
+        ]
+      }
     },
     {
       "id": "listing_004",
       "sellerId": "user_004",
-      "itemId": "item_005",
+      "itemId": "item_004",
       "price": 32000000,
       "isActive": true,
       "createdAt": "2025-06-27T11:45:00Z",
       "updatedAt": "2025-06-27T11:45:00Z",
-      "transactionStatus": "available",
+      "transactionStatus": "sold",
       "viewCount": 234,
       "tags": ["luxury", "fashion"],
-      "distanceRadius": 8
+      "distanceRadius": 8,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 234,
+          "totalSaves": 10,
+          "totalShares": 2
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_005",
       "sellerId": "user_005",
-      "itemId": "item_006",
+      "itemId": "item_005",
       "price": 15000000,
       "isActive": true,
       "createdAt": "2025-06-26T13:20:00Z",
       "updatedAt": "2025-06-26T13:20:00Z",
-      "transactionStatus": "available",
+      "transactionStatus": "sold",
       "viewCount": 167,
       "tags": ["electronics", "home"],
-      "distanceRadius": 12
+      "distanceRadius": 12,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 167,
+          "totalSaves": 5,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_006",
       "sellerId": "user_006",
-      "itemId": "item_007",
+      "itemId": "item_006",
       "price": 1200000,
       "isActive": true,
       "createdAt": "2025-06-25T09:10:00Z",
@@ -76,20 +146,40 @@
       "transactionStatus": "available",
       "viewCount": 78,
       "tags": ["education", "manga"],
-      "distanceRadius": 18
+      "distanceRadius": 18,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 78,
+          "totalSaves": 2,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_007",
       "sellerId": "user_007",
-      "itemId": "item_004",
+      "itemId": "item_007",
       "price": 3500000,
       "isActive": true,
       "createdAt": "2025-06-29T15:45:00Z",
       "updatedAt": "2025-06-29T15:45:00Z",
-      "transactionStatus": "available",
+      "transactionStatus": "sold",
       "viewCount": 98,
       "tags": ["fitness", "outdoor"],
-      "distanceRadius": 25
+      "distanceRadius": 25,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 98,
+          "totalSaves": 3,
+          "totalShares": 1
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_008",
@@ -99,10 +189,20 @@
       "isActive": true,
       "createdAt": "2025-06-24T10:20:00Z",
       "updatedAt": "2025-06-24T10:20:00Z",
-      "transactionStatus": "available",
+      "transactionStatus": "sold",
       "viewCount": 145,
       "tags": ["collectible", "educational"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 145,
+          "totalSaves": 6,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_009",
@@ -115,7 +215,17 @@
       "transactionStatus": "available",
       "viewCount": 203,
       "tags": ["professional", "audio"],
-      "distanceRadius": 14
+      "distanceRadius": 14,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 203,
+          "totalSaves": 8,
+          "totalShares": 2
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_010",
@@ -128,7 +238,17 @@
       "transactionStatus": "available",
       "viewCount": 56,
       "tags": ["textbook", "student"],
-      "distanceRadius": 9
+      "distanceRadius": 9,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 56,
+          "totalSaves": 1,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_011",
@@ -141,7 +261,17 @@
       "transactionStatus": "available",
       "viewCount": 0,
       "tags": ["sample"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 0,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_012",
@@ -151,10 +281,20 @@
       "isActive": true,
       "createdAt": "2025-07-01T10:00:00Z",
       "updatedAt": "2025-07-01T10:00:00Z",
-      "transactionStatus": "available",
+      "transactionStatus": "sold",
       "viewCount": 0,
       "tags": ["sample"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 0,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_013",
@@ -167,7 +307,17 @@
       "transactionStatus": "available",
       "viewCount": 0,
       "tags": ["sample"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 0,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_014",
@@ -180,7 +330,17 @@
       "transactionStatus": "available",
       "viewCount": 0,
       "tags": ["sample"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 0,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_015",
@@ -193,7 +353,17 @@
       "transactionStatus": "available",
       "viewCount": 0,
       "tags": ["sample"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 0,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_016",
@@ -203,10 +373,20 @@
       "isActive": true,
       "createdAt": "2025-07-01T10:00:00Z",
       "updatedAt": "2025-07-01T10:00:00Z",
-      "transactionStatus": "available",
+      "transactionStatus": "sold",
       "viewCount": 0,
       "tags": ["sample"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 0,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_017",
@@ -219,7 +399,17 @@
       "transactionStatus": "available",
       "viewCount": 0,
       "tags": ["sample"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 0,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_018",
@@ -229,10 +419,20 @@
       "isActive": true,
       "createdAt": "2025-07-01T10:00:00Z",
       "updatedAt": "2025-07-01T10:00:00Z",
-      "transactionStatus": "available",
+      "transactionStatus": "pending",
       "viewCount": 0,
       "tags": ["sample"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 0,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_019",
@@ -242,10 +442,20 @@
       "isActive": true,
       "createdAt": "2025-07-01T10:00:00Z",
       "updatedAt": "2025-07-01T10:00:00Z",
-      "transactionStatus": "available",
+      "transactionStatus": "pending",
       "viewCount": 0,
       "tags": ["sample"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 0,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_020",
@@ -258,7 +468,17 @@
       "transactionStatus": "available",
       "viewCount": 0,
       "tags": ["sample"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 0,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_021",
@@ -271,7 +491,17 @@
       "transactionStatus": "available",
       "viewCount": 0,
       "tags": ["sample"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 0,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_022",
@@ -284,7 +514,17 @@
       "transactionStatus": "available",
       "viewCount": 0,
       "tags": ["sample"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 0,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_023",
@@ -297,7 +537,17 @@
       "transactionStatus": "available",
       "viewCount": 0,
       "tags": ["sample"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 0,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_024",
@@ -310,7 +560,17 @@
       "transactionStatus": "available",
       "viewCount": 0,
       "tags": ["sample"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 0,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     },
     {
       "id": "listing_025",
@@ -320,10 +580,20 @@
       "isActive": true,
       "createdAt": "2025-07-01T10:00:00Z",
       "updatedAt": "2025-07-01T10:00:00Z",
-      "transactionStatus": "available",
+      "transactionStatus": "sold",
       "viewCount": 0,
       "tags": ["sample"],
-      "distanceRadius": 10
+      "distanceRadius": 10,
+      "allowOffers": true,
+      "allowReturns": false,
+      "interactions": {
+        "aggregate": {
+          "totalViews": 0,
+          "totalSaves": 0,
+          "totalShares": 0
+        },
+        "userInteractions": []
+      }
     }
   ]
 }

@@ -1,6 +1,5 @@
 package com.example.tradeupapp.features.home.adapter;
 
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,44 +19,35 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.imageview.ShapeableImageView;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
-public class ItemCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-
-    // Define view types for different card layouts - using only 2 types now
-    public static final int VIEW_TYPE_VERTICAL = 0;  // Full featured listing (vertical)
-    public static final int VIEW_TYPE_HORIZONTAL = 1;  // Horizontal scrolling card
+public class ItemCardAdapter extends RecyclerView.Adapter<ItemCardAdapter.ItemViewHolder> {
 
     private final List<ListingModel> listings;
-    private final int viewType;
     private final OnItemClickListener listener;
-    private final OnFavoriteClickListener favoriteListener;
+    private final OnSaveClickListener saveListener;
     private final ItemRepository itemRepository;
 
     public interface OnItemClickListener {
         void onItemClick(ListingModel listing);
     }
 
-    public interface OnFavoriteClickListener {
-        void onFavoriteClick(ListingModel listing, boolean isFavorite);
+    public interface OnSaveClickListener {
+        void onSaveClick(ListingModel listing, boolean isSaved);
     }
 
-    public ItemCardAdapter(int viewType, OnItemClickListener listener, ItemRepository itemRepository) {
+    public ItemCardAdapter(OnItemClickListener listener, ItemRepository itemRepository) {
         this.listings = new ArrayList<>();
-        this.viewType = viewType;
         this.listener = listener;
-        this.favoriteListener = null;
+        this.saveListener = null;
         this.itemRepository = itemRepository;
     }
 
-    public ItemCardAdapter(int viewType, OnItemClickListener listener, OnFavoriteClickListener favoriteListener, ItemRepository itemRepository) {
+    public ItemCardAdapter(OnItemClickListener listener, OnSaveClickListener saveListener, ItemRepository itemRepository) {
         this.listings = new ArrayList<>();
-        this.viewType = viewType;
         this.listener = listener;
-        this.favoriteListener = favoriteListener;
+        this.saveListener = saveListener;
         this.itemRepository = itemRepository;
     }
 
@@ -69,27 +59,16 @@ public class ItemCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-
-        if (this.viewType == VIEW_TYPE_HORIZONTAL) {
-            View horizontalView = inflater.inflate(R.layout.item_card_horizontal, parent, false);
-            return new HorizontalViewHolder(horizontalView);
-        } else {
-            View verticalView = inflater.inflate(R.layout.item_listing, parent, false);
-            return new VerticalViewHolder(verticalView);
-        }
+        View view = inflater.inflate(R.layout.item_listing, parent, false);
+        return new ItemViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ItemViewHolder holder, int position) {
         ListingModel listing = listings.get(position);
-
-        if (holder instanceof HorizontalViewHolder) {
-            ((HorizontalViewHolder) holder).bind(listing, listener, itemRepository);
-        } else if (holder instanceof VerticalViewHolder) {
-            ((VerticalViewHolder) holder).bind(listing, listener, favoriteListener, itemRepository);
-        }
+        holder.bind(listing, listener, saveListener, itemRepository);
     }
 
     @Override
@@ -97,8 +76,8 @@ public class ItemCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return listings.size();
     }
 
-    // ViewHolder for item_listing.xml (vertical layout)
-    static class VerticalViewHolder extends RecyclerView.ViewHolder {
+    // Single ViewHolder for item_listing.xml
+    static class ItemViewHolder extends RecyclerView.ViewHolder {
         private final ShapeableImageView imageView;
         private final TextView titleView;
         private final TextView priceView;
@@ -106,10 +85,11 @@ public class ItemCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         private final TextView statusView;
         private final TextView timeView;
         private final TextView viewCountView;
-        private final MaterialCardView favoriteButton;
-        private final ImageView favoriteIcon;
+        private final MaterialCardView saveButton;
+        private final ImageView saveIcon;
+        private final Chip chipCondition;
 
-        public VerticalViewHolder(@NonNull View itemView) {
+        public ItemViewHolder(@NonNull View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.iv_item_image);
             titleView = itemView.findViewById(R.id.tv_title);
@@ -118,23 +98,47 @@ public class ItemCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             statusView = itemView.findViewById(R.id.tv_status);
             timeView = itemView.findViewById(R.id.tv_time);
             viewCountView = itemView.findViewById(R.id.tv_view_count);
-            favoriteButton = itemView.findViewById(R.id.btn_favorite);
-            favoriteIcon = itemView.findViewById(R.id.iv_favorite);
+            saveButton = itemView.findViewById(R.id.btn_save);
+            saveIcon = itemView.findViewById(R.id.iv_save);
+            chipCondition = itemView.findViewById(R.id.chip_condition);
         }
 
-        public void bind(ListingModel listing, OnItemClickListener listener, OnFavoriteClickListener favoriteListener, ItemRepository itemRepository) {
-            // Set placeholders first
-            titleView.setText("Loading...");
-            priceView.setText(String.valueOf(listing.getPrice()));
-
+        public void bind(ListingModel listing, OnItemClickListener listener, OnSaveClickListener saveListener, ItemRepository itemRepository) {
+            // Listing info
+            priceView.setText(String.format("₫%,.0f", listing.getPrice()));
+            if (statusView != null) {
+                statusView.setText(listing.getTransactionStatus());
+                statusView.setVisibility(listing.getTransactionStatus() != null && !listing.getTransactionStatus().isEmpty() ? View.VISIBLE : View.GONE);
+            }
+            if (timeView != null) {
+                timeView.setText(formatTimeAgo(listing.getCreatedAtTimestamp().toDate()));
+            }
+            if (viewCountView != null) {
+                viewCountView.setText(String.valueOf(listing.getViewCount()));
+            }
             // Fetch ItemModel asynchronously
             itemRepository.getItemById(listing.getItemId(), new ItemRepository.ItemCallback() {
                 @Override
                 public void onItemLoaded(ItemModel item) {
                     if (item != null) {
                         titleView.setText(item.getTitle());
-                        if (locationView != null) locationView.setText(item.getLocation());
-
+                        if (locationView != null) {
+                            String locationText = "";
+                            if (item.getLocation() != null) {
+                                Object addressObj = item.getLocation().get("address");
+                                if (addressObj != null) {
+                                    locationText = addressObj.toString();
+                                } else {
+                                    Double lat = item.getLocationLatitude();
+                                    Double lng = item.getLocationLongitude();
+                                    if (lat != null && lng != null) {
+                                        locationText = String.format("%.5f, %.5f", lat, lng);
+                                    }
+                                }
+                            }
+                            locationView.setText(locationText);
+                        }
+                        if (chipCondition != null && item.getCondition() != null) chipCondition.setText(item.getCondition());
                         // Load image if available
                         if (item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) {
                             Glide.with(imageView.getContext())
@@ -147,89 +151,19 @@ public class ItemCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         } else {
                             imageView.setImageResource(R.drawable.placeholder_image);
                         }
+                        // Do NOT override statusView here, always show transactionStatus from ListingModel only
                     }
                 }
             });
 
-            if (statusView != null) {
-                statusView.setText(listing.getTransactionStatus());
-                // Set visibility of status based on availability
-                statusView.setVisibility(listing.getTransactionStatus() != null && !listing.getTransactionStatus().isEmpty() ?
-                        View.VISIBLE : View.GONE);
-            }
-
-            if (timeView != null) {
-                // Set time ago text (using a utility method)
-                timeView.setText(formatTimeAgo(listing.getCreatedAt() != null ? listing.getCreatedAt().toDate() : null));
-            }
-
-            if (viewCountView != null) {
-                // Set view count
-                viewCountView.setText(String.valueOf(listing.getViewCount()));
-            }
-
-            // Set favorite button click listener if available
-            if (favoriteButton != null && favoriteListener != null) {
-                favoriteButton.setOnClickListener(v -> {
-                    // Toggle favorite state (actual favorite state should be managed by the app)
-                    favoriteListener.onFavoriteClick(listing, true);
+            if (saveButton != null && saveListener != null) {
+                saveButton.setOnClickListener(v -> {
+                    // Toggle save state (actual save state should be managed by the app)
+                    saveListener.onSaveClick(listing, true);
                 });
             }
 
             // Set item click listener
-            itemView.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onItemClick(listing);
-                }
-            });
-        }
-    }
-
-    // ViewHolder for item_card_horizontal.xml (horizontal scrolling)
-    static class HorizontalViewHolder extends RecyclerView.ViewHolder {
-        private final ImageView imageView;
-        private final TextView titleView;
-        private final TextView priceView;
-        private final TextView locationView;
-        private final TextView conditionView;
-
-        public HorizontalViewHolder(@NonNull View itemView) {
-            super(itemView);
-            imageView = itemView.findViewById(R.id.iv_item_image);
-            titleView = itemView.findViewById(R.id.tv_item_title);
-            priceView = itemView.findViewById(R.id.tv_item_price);
-            locationView = itemView.findViewById(R.id.tv_item_location);
-            conditionView = itemView.findViewById(R.id.tv_item_condition);
-        }
-
-        public void bind(ListingModel listing, OnItemClickListener listener, ItemRepository itemRepository) {
-            titleView.setText("Loading...");
-            priceView.setText(String.valueOf(listing.getPrice()));
-
-            itemRepository.getItemById(listing.getItemId(), new ItemRepository.ItemCallback() {
-                @Override
-                public void onItemLoaded(ItemModel item) {
-                    if (item != null) {
-                        titleView.setText(item.getTitle());
-                        locationView.setText(item.getLocation());
-                        conditionView.setText(item.getCondition());
-
-                        if (item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) {
-                            Glide.with(imageView.getContext())
-                                    .load(item.getPhotoUris().get(0))
-                                    .transition(DrawableTransitionOptions.withCrossFade())
-                                    .centerCrop()
-                                    .placeholder(R.drawable.placeholder_image)
-                                    .error(R.drawable.error_image)
-                                    .into(imageView);
-                        } else {
-                            imageView.setImageResource(R.drawable.placeholder_image);
-                        }
-                    }
-                }
-            });
-
-            // Set click listener
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onItemClick(listing);
@@ -255,14 +189,10 @@ public class ItemCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     // Static factory methods for easy instantiation
     public static ItemCardAdapter createVerticalAdapter(OnItemClickListener listener, ItemRepository itemRepository) {
-        return new ItemCardAdapter(VIEW_TYPE_VERTICAL, listener, itemRepository);
+        return new ItemCardAdapter(listener, itemRepository);
     }
 
-    public static ItemCardAdapter createVerticalAdapter(OnItemClickListener listener, OnFavoriteClickListener favoriteListener, ItemRepository itemRepository) {
-        return new ItemCardAdapter(VIEW_TYPE_VERTICAL, listener, favoriteListener, itemRepository);
-    }
-
-    public static ItemCardAdapter createHorizontalAdapter(OnItemClickListener listener, ItemRepository itemRepository) {
-        return new ItemCardAdapter(VIEW_TYPE_HORIZONTAL, listener, itemRepository);
+    public static ItemCardAdapter createVerticalAdapter(OnItemClickListener listener, OnSaveClickListener saveListener, ItemRepository itemRepository) {
+        return new ItemCardAdapter(listener, saveListener, itemRepository);
     }
 }

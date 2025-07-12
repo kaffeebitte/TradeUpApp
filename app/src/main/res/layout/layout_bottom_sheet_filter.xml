@@ -40,239 +40,135 @@
             android:textColor="?attr/colorPrimary" />
     </LinearLayout>
 
-    <!-- Keyword -->
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Keyword"
-        app:startIconDrawable="@drawable/ic_search_24"
-        app:startIconTint="?attr/colorPrimary"
-        app:endIconMode="clear_text"
-        app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_keyword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Category -->
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Category"
-        android:layout_marginTop="16dp"
-        app:startIconDrawable="@drawable/ic_category_24"
-        app:startIconTint="?attr/colorPrimary"
-        app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
-
-        <AutoCompleteTextView
-            android:id="@+id/actv_category"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="none"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Price Range section title -->
+    <!-- Category Spinner -->
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Price Range"
-        android:textAppearance="?attr/textAppearanceTitleMedium"
-        android:textColor="?attr/colorOnSurface"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="8dp" />
+        android:text="Category"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:layout_marginTop="8dp" />
+    <Spinner
+        android:id="@+id/spinner_category"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp" />
 
     <!-- Price Range -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Price Range"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:layout_marginTop="8dp" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+        <EditText
+            android:id="@+id/et_min_price"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="Min Price"
             android:layout_weight="1"
-            app:prefixText="$"
-            app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_min_price"
-                android:inputType="numberDecimal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <Space android:layout_width="16dp" android:layout_height="0dp"/>
-
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:hint="Max Price"
-            android:layout_weight="1"
-            app:prefixText="$"
-            app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_max_price"
-                android:inputType="numberDecimal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
-        </com.google.android.material.textfield.TextInputLayout>
-    </LinearLayout>
-
-    <!-- Additional Filters section title -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Additional Filters"
-        android:textAppearance="?attr/textAppearanceTitleMedium"
-        android:textColor="?attr/colorOnSurface"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="8dp" />
-
-    <!-- Condition -->
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Condition"
-        app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
-
-        <AutoCompleteTextView
-            android:id="@+id/actv_condition"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="none"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Location section title -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Location"
-        android:textAppearance="?attr/textAppearanceTitleMedium"
-        android:textColor="?attr/colorOnSurface"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="8dp" />
-
-    <!-- Location Selection -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/til_filter_location"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Select Location"
-        app:startIconDrawable="@drawable/ic_location_24"
-        app:startIconTint="?attr/colorPrimary"
-        app:endIconMode="custom"
-        app:endIconDrawable="@drawable/ic_my_location_24"
-        app:endIconTint="?attr/colorPrimary"
-        app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_filter_location"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="none"
-            android:focusable="false"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:hint="Tap to select a location" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Max Distance -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="12dp">
-
+            android:hint="Min"
+            android:inputType="numberDecimal" />
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Max Distance: 50km"
-            android:id="@+id/tv_distance_value"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:layout_marginBottom="8dp"/>
-
-        <com.google.android.material.slider.Slider
-            android:id="@+id/slider_distance"
-            android:layout_width="match_parent"
+            android:text="-"
+            android:gravity="center"
+            android:padding="8dp" />
+        <EditText
+            android:id="@+id/et_max_price"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:valueFrom="1"
-            android:valueTo="100"
-            android:value="50"
-            android:stepSize="1"
-            app:thumbColor="?attr/colorPrimary"
-            app:trackColorActive="?attr/colorPrimary"
-            app:trackColorInactive="?attr/colorOutlineVariant"/>
+            android:layout_weight="1"
+            android:hint="Max"
+            android:inputType="numberDecimal" />
     </LinearLayout>
 
-    <!-- Use Current Location switch -->
-    <com.google.android.material.switchmaterial.SwitchMaterial
-        android:id="@+id/switch_use_gps"
+    <!-- Condition Spinner -->
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Use My Current Location"
-        android:layout_marginTop="16dp" />
+        android:text="Condition"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:layout_marginTop="8dp" />
 
-    <!-- Custom Location Input -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/til_custom_location"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+    <Spinner
+        android:id="@+id/spinner_condition"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter Custom Location"
-        android:layout_marginTop="16dp"
-        app:startIconDrawable="@drawable/ic_my_location_24"
-        app:startIconTint="?attr/colorPrimary"
-        app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
+        android:layout_marginBottom="12dp" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_custom_location"
-            android:layout_width="match_parent"
+    <!-- Distance Slider -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Distance (km)"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:layout_marginTop="8dp" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+        <TextView
+            android:id="@+id/tv_distance_value"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:text="5 km"
+            android:layout_marginEnd="8dp"/>
+        <com.google.android.material.slider.RangeSlider
+            android:id="@+id/slider_distance"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:valueFrom="5"
+            android:valueTo="100"
+            android:stepSize="1"
+            app:labelBehavior="gone" />
+    </LinearLayout>
 
-    <!-- Sort By -->
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+    <!-- Location Section -->
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Sort By"
-        android:layout_marginTop="16dp"
-        app:startIconDrawable="@drawable/ic_sort_24"
-        app:startIconTint="?attr/colorPrimary"
-        app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
-
-        <AutoCompleteTextView
-            android:id="@+id/actv_sort"
-            android:layout_width="match_parent"
+        android:text="Location (for distance search)"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:layout_marginTop="8dp" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+        <TextView
+            android:id="@+id/tv_gps_location"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:inputType="none"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:layout_weight="1"
+            android:text="No GPS location selected"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:ellipsize="end"
+            android:maxLines="1"/>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_use_gps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Use GPS"
+            android:icon="@drawable/ic_gps_fixed_24"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
 
-    <!-- Apply button -->
-    <com.google.android.material.button.MaterialButton
+    <!-- Apply Button -->
+    <Button
         android:id="@+id/btn_apply_filters"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Apply Filters"
-        android:textAppearance="?attr/textAppearanceLabelLarge"
-        android:layout_marginTop="32dp"
-        android:paddingVertical="16dp"
-        app:cornerRadius="16dp" />
+        android:backgroundTint="?attr/colorPrimary"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="16dp" />
+
 </LinearLayout>

@@ -149,14 +149,28 @@ public class MapPickerFragment extends Fragment implements OnMapReadyCallback {
             List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
             if (addresses != null && !addresses.isEmpty()) {
                 Address address = addresses.get(0);
+                // Lấy phường/xã, quận/huyện, tỉnh/thành phố
+                String ward = address.getSubLocality(); // phường/xã
+                String district = address.getLocality(); // quận/huyện
+                if (district == null) district = address.getSubAdminArea(); // fallback
+                String city = address.getAdminArea(); // tỉnh/thành phố
                 StringBuilder addressText = new StringBuilder();
-                for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
-                    addressText.append(address.getAddressLine(i));
-                    if (i < address.getMaxAddressLineIndex()) {
-                        addressText.append(", ");
-                    }
+                if (ward != null && !ward.isEmpty()) {
+                    addressText.append(ward);
                 }
-                tvAddress.setText(addressText.toString());
+                if (district != null && !district.isEmpty()) {
+                    if (addressText.length() > 0) addressText.append(", ");
+                    addressText.append(district);
+                }
+                if (city != null && !city.isEmpty()) {
+                    if (addressText.length() > 0) addressText.append(", ");
+                    addressText.append(city);
+                }
+                if (addressText.length() > 0) {
+                    tvAddress.setText(addressText.toString());
+                } else {
+                    tvAddress.setText("Address not found");
+                }
             } else {
                 tvAddress.setText("Address not found");
             }

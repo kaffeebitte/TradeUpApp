@@ -17,7 +17,7 @@ import com.example.tradeupapp.core.services.FirebaseService;
 import com.example.tradeupapp.R;
 import com.example.tradeupapp.models.ListingModel;
 import com.example.tradeupapp.models.ItemModel;
-import com.example.tradeupapp.features.listing.ui.UserListingsAdapter;
+import com.example.tradeupapp.features.listing.adapter.UserListingsAdapter;
 import com.google.firebase.firestore.GeoPoint;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +27,7 @@ import java.util.Map;
 public class PublicProfileFragment extends Fragment {
     private String userId;
     private TextView tvName, tvLocation, tvRating, tvReviewsCount, tvBio;
+    private TextView tvEmail, tvPhone, tvListingsCount;
     private ImageView ivAvatar;
     private FirebaseService firebaseService;
     private RecyclerView rvUserListings;
@@ -43,6 +44,9 @@ public class PublicProfileFragment extends Fragment {
         tvRating = view.findViewById(R.id.tv_rating);
         tvReviewsCount = view.findViewById(R.id.tv_reviews_count);
         tvBio = view.findViewById(R.id.tv_bio);
+        tvEmail = view.findViewById(R.id.tv_email);
+        tvPhone = view.findViewById(R.id.tv_phone);
+        tvListingsCount = view.findViewById(R.id.tv_listings_count);
         ivAvatar = view.findViewById(R.id.iv_avatar);
         rvUserListings = view.findViewById(R.id.rv_user_listings);
         firebaseService = FirebaseService.getInstance();
@@ -78,6 +82,8 @@ public class PublicProfileFragment extends Fragment {
                 }
                 tvRating.setText(String.format("%.1f", user.getRating()));
                 tvReviewsCount.setText(String.format("(%d)", user.getTotalReviews()));
+                tvEmail.setText(user.getEmail() != null ? user.getEmail() : "-");
+                tvPhone.setText(user.getPhoneNumber() != null ? user.getPhoneNumber() : "-");
                 if (isValidUrl(user.getPhotoUrl())) {
                     Glide.with(requireContext())
                         .load(user.getPhotoUrl())
@@ -97,6 +103,8 @@ public class PublicProfileFragment extends Fragment {
                 tvLocation.setText("");
                 tvRating.setText("");
                 tvReviewsCount.setText("");
+                tvEmail.setText("-");
+                tvPhone.setText("-");
                 ivAvatar.setImageResource(R.drawable.ic_user_24);
             }
         });
@@ -108,6 +116,7 @@ public class PublicProfileFragment extends Fragment {
             public void onSuccess(List<ListingModel> listings) {
                 userListings.clear();
                 userListings.addAll(listings);
+                tvListingsCount.setText(String.valueOf(listings.size()));
                 if (listings.isEmpty()) {
                     listingsAdapter.setItemMap(new HashMap<>());
                     listingsAdapter.notifyDataSetChanged();

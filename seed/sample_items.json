@@ -13,7 +13,11 @@
       "subcategory": "Smartphones",
       "brand": "Apple",
       "condition": "Like New",
-      "location": "District 1, Ho Chi Minh City",
+      "location": {
+        "address": "District 1, Ho Chi Minh City",
+        "_latitude": 10.7769,
+        "_longitude": 106.7009
+      },
       "weight": 0.238,
       "dimensions": { "length": 16.07, "width": 7.85, "height": 0.78 },
       "keyFeatures": ["256GB", "Deep Purple", "A16 Bionic"],
@@ -31,7 +35,11 @@
       "subcategory": "Laptops",
       "brand": "Apple",
       "condition": "Excellent",
-      "location": "District 7, Ho Chi Minh City",
+      "location": {
+        "address": "District 7, Ho Chi Minh City",
+        "_latitude": 10.7298,
+        "_longitude": 106.7217
+      },
       "weight": 1.24,
       "dimensions": { "length": 30.41, "width": 21.5, "height": 1.13 },
       "keyFeatures": ["M2 Chip", "8GB RAM", "256GB SSD"],
@@ -50,7 +58,11 @@
       "subcategory": "Motorcycles",
       "brand": "Honda",
       "condition": "Good",
-      "location": "Binh Thanh District, Ho Chi Minh City",
+      "location": {
+        "address": "Binh Thanh District, Ho Chi Minh City",
+        "_latitude": 10.8039,
+        "_longitude": 106.7077
+      },
       "weight": 96,
       "dimensions": { "length": 186, "width": 70, "height": 105 },
       "keyFeatures": ["110cc", "2022", "New Tires"],
@@ -68,7 +80,11 @@
       "subcategory": "Fitness",
       "brand": "PowerTech",
       "condition": "Like New",
-      "location": "Thu Duc City, Ho Chi Minh City",
+      "location": {
+        "address": "Thu Duc City, Ho Chi Minh City",
+        "_latitude": 10.8506,
+        "_longitude": 106.7714
+      },
       "weight": 85,
       "dimensions": { "length": 120, "width": 40, "height": 45 },
       "keyFeatures": ["Adjustable", "Bench", "Mat"],
@@ -87,7 +103,11 @@
       "subcategory": "Bags",
       "brand": "Louis Vuitton",
       "condition": "Excellent",
-      "location": "District 3, Ho Chi Minh City",
+      "location": {
+        "address": "District 3, Ho Chi Minh City",
+        "_latitude": 10.7840,
+        "_longitude": 106.6848
+      },
       "weight": 0.8,
       "dimensions": { "length": 32, "width": 29, "height": 17 },
       "keyFeatures": ["Damier Ebene", "Authentic", "Dustbag"],
@@ -105,7 +125,11 @@
       "subcategory": "Home Appliances",
       "brand": "Samsung",
       "condition": "Like New",
-      "location": "Go Vap District, Ho Chi Minh City",
+      "location": {
+        "address": "Go Vap District, Ho Chi Minh City",
+        "_latitude": 10.8380,
+        "_longitude": 106.6686
+      },
       "weight": 22,
       "dimensions": { "length": 144.8, "width": 83.3, "height": 5.9 },
       "keyFeatures": ["65-inch", "QLED", "4K"],
@@ -123,7 +147,11 @@
       "subcategory": "Textbooks",
       "brand": "Various",
       "condition": "Good",
-      "location": "Tan Binh District, Ho Chi Minh City",
+      "location": {
+        "address": "Tan Binh District, Ho Chi Minh City",
+        "_latitude": 10.8015,
+        "_longitude": 106.6520
+      },
       "weight": 8,
       "dimensions": { "length": 25, "width": 20, "height": 35 },
       "keyFeatures": ["Clean Code", "Design Patterns", "Python Crash Course"],
@@ -141,7 +169,11 @@
       "subcategory": "Collectibles",
       "brand": "LEGO",
       "condition": "Like New",
-      "location": "District 2, Ho Chi Minh City",
+      "location": {
+        "address": "District 2, Ho Chi Minh City",
+        "_latitude": 10.7872,
+        "_longitude": 106.7498
+      },
       "weight": 2.5,
       "dimensions": { "length": 56, "width": 25, "height": 14 },
       "keyFeatures": ["Bugatti Chiron", "LEGO Creator Expert", "Collectible"],
@@ -160,7 +192,11 @@
       "subcategory": "Cameras",
       "brand": "Canon",
       "condition": "Excellent",
-      "location": "District 5, Ho Chi Minh City",
+      "location": {
+        "address": "District 5, Ho Chi Minh City",
+        "_latitude": 10.7547,
+        "_longitude": 106.6639
+      },
       "weight": 0.588,
       "dimensions": { "length": 13.8, "width": 9.8, "height": 8.8 },
       "keyFeatures": ["Mirrorless", "Low Shutter Count", "Professional"],
@@ -177,7 +213,11 @@
       "subcategory": "Textbooks",
       "brand": "Pearson",
       "condition": "Like New",
-      "location": "District 9, Ho Chi Minh City",
+      "location": {
+        "address": "District 9, Ho Chi Minh City",
+        "_latitude": 10.8521,
+        "_longitude": 106.7857
+      },
       "weight": 1.2,
       "dimensions": { "length": 28, "width": 22, "height": 4 },
       "keyFeatures": ["Calculus", "3rd Edition", "Access Code"],
@@ -195,7 +235,11 @@
       "subcategory": "Gaming",
       "brand": "Sony",
       "condition": "Excellent",
-      "location": "District 1, Ho Chi Minh City",
+      "location": {
+        "address": "District 1, Ho Chi Minh City",
+        "_latitude": 10.7769,
+        "_longitude": 106.7009
+      },
       "weight": 4.2,
       "dimensions": { "length": 39, "width": 26, "height": 10.4 },
       "keyFeatures": ["PS5", "DualSense Controller", "4K Gaming"],
@@ -213,7 +257,11 @@
       "subcategory": "Bicycles",
       "brand": "Giant",
       "condition": "Good",
-      "location": "Binh Thanh District, Ho Chi Minh City",
+      "location": {
+        "address": "Binh Thanh District, Ho Chi Minh City",
+        "_latitude": 10.8039,
+        "_longitude": 106.7077
+      },
       "weight": 12.5,
       "dimensions": { "length": 180, "width": 60, "height": 110 },
       "keyFeatures": ["Mountain Bike", "27.5 inch", "Aluminum Frame"],
@@ -231,7 +279,11 @@
       "subcategory": "Accessories",
       "brand": "Gucci",
       "condition": "Like New",
-      "location": "District 3, Ho Chi Minh City",
+      "location": {
+        "address": "District 3, Ho Chi Minh City",
+        "_latitude": 10.7840,
+        "_longitude": 106.6848
+      },
       "weight": 0.2,
       "dimensions": { "length": 110, "width": 4, "height": 0.5 },
       "keyFeatures": ["GG Buckle", "Black Leather", "Size 85cm"],
@@ -249,7 +301,11 @@
       "subcategory": "Home Appliances",
       "brand": "Dyson",
       "condition": "Like New",
-      "location": "Go Vap District, Ho Chi Minh City",
+      "location": {
+        "address": "Go Vap District, Ho Chi Minh City",
+        "_latitude": 10.8380,
+        "_longitude": 106.6686
+      },
       "weight": 3.1,
       "dimensions": { "length": 126, "width": 25, "height": 26 },
       "keyFeatures": ["Cordless", "Laser Dust Detection", "Latest Model"],
@@ -267,7 +323,11 @@
       "subcategory": "Fiction",
       "brand": "Scholastic",
       "condition": "Excellent",
-      "location": "Tan Binh District, Ho Chi Minh City",
+      "location": {
+        "address": "Tan Binh District, Ho Chi Minh City",
+        "_latitude": 10.8015,
+        "_longitude": 106.6520
+      },
       "weight": 3.5,
       "dimensions": { "length": 25, "width": 18, "height": 25 },
       "keyFeatures": ["Complete Series", "Hardcover", "Collector's Item"],
@@ -285,7 +345,11 @@
       "subcategory": "Camping",
       "brand": "Coleman",
       "condition": "Like New",
-      "location": "Thu Duc City, Ho Chi Minh City",
+      "location": {
+        "address": "Thu Duc City, Ho Chi Minh City",
+        "_latitude": 10.8506,
+        "_longitude": 106.7714
+      },
       "weight": 4.5,
       "dimensions": { "length": 65, "width": 25, "height": 25 },
       "keyFeatures": ["4-Person", "Waterproof", "Easy Setup"],
@@ -303,7 +367,11 @@
       "subcategory": "Educational Toys",
       "brand": "KidKraft",
       "condition": "Good",
-      "location": "District 2, Ho Chi Minh City",
+      "location": {
+        "address": "District 2, Ho Chi Minh City",
+        "_latitude": 10.7872,
+        "_longitude": 106.7498
+      },
       "weight": 15,
       "dimensions": { "length": 80, "width": 30, "height": 90 },
       "keyFeatures": ["Wooden", "Complete Set", "Imaginative Play"],
@@ -321,7 +389,11 @@
       "subcategory": "Audio",
       "brand": "Sony",
       "condition": "Excellent",
-      "location": "District 5, Ho Chi Minh City",
+      "location": {
+        "address": "District 5, Ho Chi Minh City",
+        "_latitude": 10.7547,
+        "_longitude": 106.6639
+      },
       "weight": 0.25,
       "dimensions": { "length": 26, "width": 20, "height": 8 },
       "keyFeatures": ["Noise Cancelling", "Wireless", "High Sound Quality"],
@@ -339,7 +411,11 @@
       "subcategory": "Tablets",
       "brand": "Apple",
       "condition": "Excellent",
-      "location": "District 9, Ho Chi Minh City",
+      "location": {
+        "address": "District 9, Ho Chi Minh City",
+        "_latitude": 10.8521,
+        "_longitude": 106.7857
+      },
       "weight": 0.461,
       "dimensions": { "length": 24.76, "width": 17.85, "height": 0.61 },
       "keyFeatures": ["64GB", "Wi-Fi", "Pink"],
@@ -357,7 +433,11 @@
       "subcategory": "Gaming",
       "brand": "Nintendo",
       "condition": "Like New",
-      "location": "District 1, Ho Chi Minh City",
+      "location": {
+        "address": "District 1, Ho Chi Minh City",
+        "_latitude": 10.7769,
+        "_longitude": 106.7009
+      },
       "weight": 0.398,
       "dimensions": { "length": 24.2, "width": 10.7, "height": 1.39 },
       "keyFeatures": ["OLED", "Joy-Con Controllers", "Portable Gaming"],
@@ -375,7 +455,11 @@
       "subcategory": "Laptops",
       "brand": "Dell",
       "condition": "Excellent",
-      "location": "District 7, Ho Chi Minh City",
+      "location": {
+        "address": "District 7, Ho Chi Minh City",
+        "_latitude": 10.7298,
+        "_longitude": 106.7217
+      },
       "weight": 6.2,
       "dimensions": { "length": 61.1, "width": 18.5, "height": 41.2 },
       "keyFeatures": ["27-inch", "4K", "UltraSharp"],
@@ -394,7 +478,11 @@
       "subcategory": "Motorcycles",
       "brand": "Yamaha",
       "condition": "Like New",
-      "location": "Binh Thanh District, Ho Chi Minh City",
+      "location": {
+        "address": "Binh Thanh District, Ho Chi Minh City",
+        "_latitude": 10.8039,
+        "_longitude": 106.7077
+      },
       "weight": 116,
       "dimensions": { "length": 197, "width": 76, "height": 108 },
       "keyFeatures": ["155 VVA", "2023", "Sporty Design"],
@@ -412,7 +500,11 @@
       "subcategory": "Accessories",
       "brand": "Various",
       "condition": "Excellent",
-      "location": "District 3, Ho Chi Minh City",
+      "location": {
+        "address": "District 3, Ho Chi Minh City",
+        "_latitude": 10.7840,
+        "_longitude": 106.6848
+      },
       "weight": 0.5,
       "dimensions": { "length": 30, "width": 20, "height": 15 },
       "keyFeatures": ["Ray-Ban", "Oakley", "Prada"],
@@ -430,7 +522,11 @@
       "subcategory": "Furniture",
       "brand": "IKEA",
       "condition": "Good",
-      "location": "Go Vap District, Ho Chi Minh City",
+      "location": {
+        "address": "Go Vap District, Ho Chi Minh City",
+        "_latitude": 10.8380,
+        "_longitude": 106.6686
+      },
       "weight": 180,
       "dimensions": { "length": 200, "width": 150, "height": 90 },
       "keyFeatures": ["Queen Size", "Complete Set", "White Finish"],
@@ -448,7 +544,11 @@
       "subcategory": "Comics",
       "brand": "Kodansha",
       "condition": "Excellent",
-      "location": "Tan Binh District, Ho Chi Minh City",
+      "location": {
+        "address": "Tan Binh District, Ho Chi Minh City",
+        "_latitude": 10.8015,
+        "_longitude": 106.6520
+      },
       "weight": 6.8,
       "dimensions": { "length": 30, "width": 20, "height": 40 },
       "keyFeatures": ["Complete Series", "Volumes 1-34", "Collector's Item"],

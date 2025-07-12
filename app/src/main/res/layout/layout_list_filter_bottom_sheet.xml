@@ -155,7 +155,7 @@
             android:layout_height="wrap_content"
             android:hint="Min Price"
             android:layout_weight="1"
-            app:prefixText="$"
+            app:prefixText="đ"
             app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -174,7 +174,7 @@
             android:layout_height="wrap_content"
             android:hint="Max Price"
             android:layout_weight="1"
-            app:prefixText="$"
+            app:prefixText="đ"
             app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
 
             <com.google.android.material.textfield.TextInputEditText

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -35,8 +36,10 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.io.IOException;
 import java.util.List;
@@ -56,12 +59,16 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
     private TextInputEditText etPrice;
     private TextInputEditText etDescription;
     private TextInputEditText etLocation;
-    private TextInputEditText etTag;
+    private TextInputEditText etTagInput;
     private AutoCompleteTextView actvCategory;
     private AutoCompleteTextView actvCondition;
     private RecyclerView recyclerPhotos;
     private PhotoUploadAdapter photoAdapter;
     private MaterialButton btnContinue;
+    private MaterialSwitch switchAllowOffers;
+    private MaterialSwitch switchAllowReturns;
+    private MaterialSwitch switchFeatured;
+    private RecyclerView recyclerTags; // Use RecyclerView for tags
 
     // Activity Result Launcher for picking images
     private ActivityResultLauncher<Intent> photoPickerLauncher;
@@ -69,11 +76,36 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
     private ActivityResultLauncher<String> locationPermissionLauncher;
 
     private FusedLocationProviderClient fusedLocationClient;
+    private static final int REQUEST_LOCATION_PERMISSION = 1001;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_add_item, container, false);
+        View view = inflater.inflate(R.layout.fragment_add_item, container, false);
+        // Initialize views
+        initViews(view);
+
+        // Setup photo adapter
+        setupPhotoAdapter();
+
+        // Setup category and condition dropdowns
+        setupDropdowns();
+
+        // Setup click listeners for buttons
+        setupClickListeners();
+
+        // Set up observer for map picker result - moved from onCreate()
+        setupMapPickerResultObserver();
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+        // Tự động lấy location khi vào màn hình
+        requestLocationWithPermission();
+        etLocation.setOnClickListener(v -> {
+            // Chỉ mở map picker khi click vào field
+            NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+            navController.navigate(R.id.action_nav_add_to_mapPickerFragment);
+        });
+        tilLocation.setEndIconOnClickListener(v -> requestLocationWithPermission());
+        return view;
     }
 
     @Override
@@ -85,9 +117,39 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == android.app.Activity.RESULT_OK && result.getData() != null) {
-                        Uri selectedImageUri = result.getData().getData();
-                        if (selectedImageUri != null) {
-                            photoAdapter.addPhoto(selectedImageUri);
+                        if (result.getData().getClipData() != null) {
+                            // Multiple images selected
+                            int count = result.getData().getClipData().getItemCount();
+                            int currentCount = photoAdapter.getItemCount();
+                            for (int i = 0; i < count; i++) {
+                                if (currentCount >= 10) {
+                                    Toast.makeText(requireContext(), "You can upload up to 10 images only.", Toast.LENGTH_SHORT).show();
+                                    break;
+                                }
+                                Uri imageUri = result.getData().getClipData().getItemAt(i).getUri();
+                                String type = requireContext().getContentResolver().getType(imageUri);
+                                if (type != null && (type.equals("image/jpeg") || type.equals("image/png"))) {
+                                    photoAdapter.addPhoto(imageUri);
+                                    currentCount++;
+                                } else {
+                                    Toast.makeText(requireContext(), "Only JPEG and PNG images are supported.", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        } else {
+                            // Single image selected
+                            Uri selectedImageUri = result.getData().getData();
+                            if (selectedImageUri != null) {
+                                if (photoAdapter.getItemCount() >= 10) {
+                                    Toast.makeText(requireContext(), "You can upload up to 10 images only.", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                String type = requireContext().getContentResolver().getType(selectedImageUri);
+                                if (type != null && (type.equals("image/jpeg") || type.equals("image/png"))) {
+                                    photoAdapter.addPhoto(selectedImageUri);
+                                } else {
+                                    Toast.makeText(requireContext(), "Only JPEG and PNG images are supported.", Toast.LENGTH_SHORT).show();
+                                }
+                            }
                         }
                     }
                 }
@@ -108,26 +170,6 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
     }
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        // Initialize views
-        initViews(view);
-
-        // Setup photo adapter
-        setupPhotoAdapter();
-
-        // Setup category and condition dropdowns
-        setupDropdowns();
-
-        // Setup click listeners for buttons
-        setupClickListeners();
-
-        // Set up observer for map picker result - moved from onCreate()
-        setupMapPickerResultObserver();
-    }
-
     private void initViews(View view) {
         // Initialize toolbar using the tag we added
         toolbar = view.findViewById(R.id.add_item_toolbar);
@@ -145,14 +187,14 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
         etPrice = view.findViewById(R.id.et_price);
         etDescription = view.findViewById(R.id.et_description);
         etLocation = view.findViewById(R.id.et_location);
-        etTag = view.findViewById(R.id.et_tag);
-
+        etTagInput = view.findViewById(R.id.et_tag_input);
+        recyclerPhotos = view.findViewById(R.id.recycler_photos);
         actvCategory = view.findViewById(R.id.actv_category);
         actvCondition = view.findViewById(R.id.actv_condition);
-
-        recyclerPhotos = view.findViewById(R.id.recycler_photos);
-        // Use the correct button ID from the layout
         btnContinue = view.findViewById(R.id.btn_preview);
+        switchAllowOffers = view.findViewById(R.id.switch_allow_offers);
+        switchAllowReturns = view.findViewById(R.id.switch_allow_returns);
+        recyclerTags = view.findViewById(R.id.recycler_tags); // Use RecyclerView for tags
     }
 
     private void setupPhotoAdapter() {
@@ -309,7 +351,11 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
             item.setCondition(actvCondition.getText().toString());
 
             // Set location
-            item.setLocation(etLocation.getText().toString().trim());
+            String address = etLocation.getText().toString().trim();
+            java.util.Map<String, Object> locationMap = new java.util.HashMap<>();
+            locationMap.put("address", address);
+            // Nếu có lat/lng, thêm vào locationMap.put("_latitude", lat); locationMap.put("_longitude", lng);
+            item.setLocation(locationMap);
 
             // Set photos (convert List<Uri> to List<String>)
             if (photoAdapter != null) {
@@ -321,10 +367,28 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
                 item.setPhotoUris(stringList);
             }
 
+            // Get tags from etTagInput
+            String tagsRaw = etTagInput.getText() != null ? etTagInput.getText().toString() : "";
+            java.util.List<String> tags = new java.util.ArrayList<>();
+            for (String tag : tagsRaw.split(",")) {
+                String trimmed = tag.trim();
+                if (!trimmed.isEmpty()) tags.add(trimmed);
+            }
+            item.setTags(tags); // Set tags to ItemModel
+
             // Navigate to preview fragment
             Bundle args = new Bundle();
             args.putParcelable("item", item);
             args.putDouble("price", price); // Pass price separately
+
+            args.putStringArrayList("tags", new java.util.ArrayList<>(tags)); // Pass tags as ArrayList
+
+            // Get item behaviour from switches, always set default if null
+            boolean allowOffers = switchAllowOffers != null ? switchAllowOffers.isChecked() : true;
+            boolean allowReturns = switchAllowReturns != null ? switchAllowReturns.isChecked() : false;
+            args.putBoolean("allowOffers", allowOffers);
+            args.putBoolean("allowReturns", allowReturns);
+
             NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
             navController.navigate(R.id.action_nav_add_to_itemPreviewFragment, args);
 
@@ -388,8 +452,10 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
 
     @Override
     public void onAddPhotoClicked() {
-        // Launch the photo picker intent
+        // Launch the photo picker intent for multiple images
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        intent.setType("image/*");
         photoPickerLauncher.launch(intent);
     }
 
@@ -399,15 +465,89 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
         photoAdapter.removePhoto(position);
     }
 
+    private void requestLocationWithPermission() {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION_PERMISSION);
+        } else {
+            autofillLocation();
+        }
+    }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        if (requestCode == 1001 && grantResults.length > 0 &&
-            grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            getCurrentLocation();
-        } else {
-            Toast.makeText(getContext(), "Location permission denied", Toast.LENGTH_SHORT).show();
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_LOCATION_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                autofillLocation();
+            } else {
+                Snackbar.make(requireView(), "Location permission denied", Snackbar.LENGTH_SHORT).show();
+            }
         }
+    }
+
+    private void autofillLocation() {
+        try {
+            if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                Snackbar.make(requireView(), "Location permission not granted", Snackbar.LENGTH_SHORT).show();
+                return;
+            }
+            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+                if (location != null) {
+                    fillLocationField(location);
+                } else {
+                    Snackbar.make(requireView(), "Unable to get current location", Snackbar.LENGTH_SHORT).show();
+                }
+            }).addOnFailureListener(e -> {
+                Snackbar.make(requireView(), "Failed to get location", Snackbar.LENGTH_SHORT).show();
+            });
+        } catch (SecurityException e) {
+            Snackbar.make(requireView(), "Location permission denied (SecurityException)", Snackbar.LENGTH_SHORT).show();
+        }
+    }
+
+    private void fillLocationField(Location location) {
+        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                Address address = addresses.get(0);
+                String addressLine = address.getAddressLine(0);
+                etLocation.setText(addressLine);
+            } else {
+                etLocation.setText(location.getLatitude() + ", " + location.getLongitude());
+            }
+        } catch (IOException e) {
+            etLocation.setText(location.getLatitude() + ", " + location.getLongitude());
+        }
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        // Prefill tags if editing (for update or draft)
+        if (getArguments() != null && getArguments().containsKey("item")) {
+            ItemModel item = getArguments().getParcelable("item");
+            if (item != null && item.getTags() != null && !item.getTags().isEmpty()) {
+                etTagInput.setText(android.text.TextUtils.join(", ", item.getTags()));
+            }
+        }
+        // Listen for tag input changes to update chips
+        etTagInput.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(android.text.Editable s) {
+                String tagsRaw = s.toString();
+                java.util.List<String> tags = new java.util.ArrayList<>();
+                for (String tag : tagsRaw.split(",")) {
+                    String trimmed = tag.trim();
+                    if (!trimmed.isEmpty()) tags.add(trimmed);
+                }
+            }
+        });
     }
 }

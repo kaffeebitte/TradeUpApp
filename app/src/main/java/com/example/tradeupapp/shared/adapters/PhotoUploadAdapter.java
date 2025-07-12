@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.tradeupapp.R;
 
 import java.util.ArrayList;
@@ -64,8 +65,13 @@ public class PhotoUploadAdapter extends RecyclerView.Adapter<PhotoUploadAdapter.
             holder.ivAddPhoto.setVisibility(View.GONE);
             holder.btnRemovePhoto.setVisibility(View.VISIBLE);
 
-            // Load image
-            holder.ivPhoto.setImageURI(photoUri);
+            // Load image using Glide for both local and remote (Cloudinary) URIs
+            Glide.with(holder.ivPhoto.getContext())
+                    .load(photoUri.toString())
+                    .placeholder(R.drawable.ic_image_placeholder)
+                    .error(R.drawable.ic_image_placeholder)
+                    .centerCrop()
+                    .into(holder.ivPhoto);
 
             // Set up remove button
             final int photoPosition = position;

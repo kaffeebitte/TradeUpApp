@@ -185,7 +185,7 @@ public class SavedItemsFragment extends Fragment implements ListFilterBottomShee
         java.util.Date startDate = calendar.getTime();
         return listings.stream()
                 .filter(listing -> {
-                    com.google.firebase.Timestamp ts = listing.getCreatedAt();
+                    com.google.firebase.Timestamp ts = listing.getCreatedAtTimestamp();
                     java.util.Date listingDate = ts != null ? ts.toDate() : null;
                     return listingDate != null && !listingDate.before(startDate) && !listingDate.after(currentDate);
                 })
@@ -195,10 +195,10 @@ public class SavedItemsFragment extends Fragment implements ListFilterBottomShee
     private void sortItems(List<ListingModel> listings, String sortBy) {
         switch (sortBy) {
             case "Newest First":
-                listings.sort((l1, l2) -> l2.getCreatedAt().toDate().compareTo(l1.getCreatedAt().toDate()));
+                listings.sort((l1, l2) -> l2.getCreatedAtTimestamp().toDate().compareTo(l1.getCreatedAtTimestamp().toDate()));
                 break;
             case "Oldest First":
-                listings.sort((l1, l2) -> l1.getCreatedAt().toDate().compareTo(l2.getCreatedAt().toDate()));
+                listings.sort((l1, l2) -> l1.getCreatedAtTimestamp().toDate().compareTo(l2.getCreatedAtTimestamp().toDate()));
                 break;
             case "Price: Low to High":
                 listings.sort((l1, l2) -> Double.compare(l1.getPrice(), l2.getPrice()));

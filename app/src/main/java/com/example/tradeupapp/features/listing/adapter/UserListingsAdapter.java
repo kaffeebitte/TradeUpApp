@@ -1,6 +1,5 @@
-package com.example.tradeupapp.features.listing.ui;
+package com.example.tradeupapp.features.listing.adapter;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -79,12 +78,36 @@ public class UserListingsAdapter extends RecyclerView.Adapter<UserListingsAdapte
         public void bind(ListingModel listing, ItemModel item) {
             // Listing info
             tvPrice.setText(String.format("₫%,.0f", listing.getPrice()));
-            tvViewCount.setText(String.valueOf(listing.getViewCount()));
+            // Show interaction counts from new structure
+            if (listing.getInteractions() != null && listing.getInteractions().getAggregate() != null) {
+                tvViewCount.setText(String.valueOf(listing.getInteractions().getAggregate().getTotalViews()));
+                // If you have UI for favorites/shares, set them here, e.g.:
+                // tvFavoriteCount.setText(String.valueOf(listing.getInteractions().getAggregate().getTotalFavorites()));
+                // tvShareCount.setText(String.valueOf(listing.getInteractions().getAggregate().getTotalShares()));
+            } else {
+                tvViewCount.setText("0");
+                // tvFavoriteCount.setText("0");
+                // tvShareCount.setText("0");
+            }
             tvStatus.setText(listing.getTransactionStatus());
             // Item info
             if (item != null) {
                 tvTitle.setText(item.getTitle());
-                tvLocation.setText(item.getLocation());
+                // Show address if available, else lat/lng, else empty
+                String locationText = "";
+                if (item.getLocation() != null) {
+                    Object addressObj = item.getLocation().get("address");
+                    if (addressObj != null) {
+                        locationText = addressObj.toString();
+                    } else {
+                        Double lat = item.getLocationLatitude();
+                        Double lng = item.getLocationLongitude();
+                        if (lat != null && lng != null) {
+                            locationText = String.format("%.5f, %.5f", lat, lng);
+                        }
+                    }
+                }
+                tvLocation.setText(locationText);
                 chipCondition.setText(item.getCondition());
                 if (item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) {
                     Glide.with(itemView.getContext())

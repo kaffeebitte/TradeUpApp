@@ -66,6 +66,7 @@ async function seedAll() {
       { name: 'categories', file: 'sample_categories.json', dataKey: 'categories' },
       { name: 'users', file: 'sample_users.json', dataKey: 'users' },
       { name: 'items', file: 'sample_items.json', dataKey: 'items' },
+      { name: 'listings', file: 'sample_listings.json', dataKey: 'listings' },
       { name: 'offers', file: 'sample_offers.json', dataKey: 'offers' },
       { name: 'chats', file: 'sample_chats.json', dataKey: 'chats' },
       { name: 'chat_messages', file: 'sample_chat_messages.json', dataKey: 'messages' },
@@ -97,6 +98,7 @@ async function seedAll() {
     console.log('- Categories: 7 items');
     console.log('- Users: 10 users');
     console.log('- Items: 25 products');
+    console.log('- Listings: 25 listings');
     console.log('- Offers: 12 offers');
     console.log('- Chats: 10 conversations');
     console.log('- Chat Messages: 33 messages');
@@ -121,6 +123,7 @@ async function seedSpecific(collectionName) {
     'categories': { file: 'sample_categories.json', dataKey: 'categories' },
     'users': { file: 'sample_users.json', dataKey: 'users' },
     'items': { file: 'sample_items.json', dataKey: 'items' },
+    'listings': { file: 'sample_listings.json', dataKey: 'listings' },
     'offers': { file: 'sample_offers.json', dataKey: 'offers' },
     'chats': { file: 'sample_chats.json', dataKey: 'chats' },
     'chat_messages': { file: 'sample_chat_messages.json', dataKey: 'messages' },

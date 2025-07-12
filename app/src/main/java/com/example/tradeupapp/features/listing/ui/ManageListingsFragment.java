@@ -162,12 +162,19 @@ public class ManageListingsFragment extends Fragment {
                 .setTitle("Delete Listing")
                 .setMessage("Are you sure you want to delete this listing?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    allListings.remove(listing);
-                    filteredListings.remove(listing);
-                    adapter.notifyDataSetChanged();
-                    // TODO: Delete from backend/database as needed
-                    updateEmptyState();
-                    showFeedbackMessage("Listing deleted successfully");
+                    // Call FirebaseService to delete with transaction check
+                    firebaseService.deleteListingWithItem(listing.getId(),
+                        () -> {
+                            allListings.remove(listing);
+                            filteredListings.remove(listing);
+                            if (adapter != null) adapter.notifyDataSetChanged();
+                            updateEmptyState();
+                            showFeedbackMessage("Listing deleted successfully");
+                        },
+                        errorMsg -> {
+                            showFeedbackMessage(errorMsg);
+                        }
+                    );
                 })
                 .setNegativeButton("Cancel", null)
                 .show();

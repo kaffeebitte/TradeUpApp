@@ -7,6 +7,8 @@ import com.example.tradeupapp.models.CategoryModel;
 import com.example.tradeupapp.models.ItemModel;
 import com.example.tradeupapp.models.ListingModel;
 import com.example.tradeupapp.models.NotificationModel;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -14,6 +16,7 @@ import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -433,6 +436,92 @@ public class FirebaseService {
         });
     }
 
+    // Haversine formula for distance in km
+    private double haversine(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // Radius of the earth in km
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    // Overload to support distance filter
+    public void searchListingsWithFilters(String keyword, String category, double minPrice, double maxPrice, String condition, String sortBy, Double userLat, Double userLng, Double maxDistanceKm, ListingsCallback callback) {
+        Query query = db.collection("listings");
+        if (category != null && !category.equals("All Categories") && !category.isEmpty()) {
+            query = query.whereEqualTo("category", category);
+        }
+        if (minPrice > 0) {
+            query = query.whereGreaterThanOrEqualTo("price", minPrice);
+        }
+        if (maxPrice > 0 && maxPrice >= minPrice) {
+            query = query.whereLessThanOrEqualTo("price", maxPrice);
+        }
+        if (condition != null && !condition.equals("Any Condition") && !condition.isEmpty()) {
+            query = query.whereEqualTo("condition", condition);
+        }
+        query = query.orderBy("createdAt", Query.Direction.DESCENDING);
+        query.get().addOnSuccessListener(queryDocumentSnapshots -> {
+            List<ListingModel> listings = new ArrayList<>();
+            List<ListingModel> filteredListings = new ArrayList<>();
+            List<Task<DocumentSnapshot>> itemTasks = new ArrayList<>();
+            Map<String, ListingModel> listingByItemId = new HashMap<>();
+            for (DocumentSnapshot document : queryDocumentSnapshots) {
+                ListingModel listing = document.toObject(ListingModel.class);
+                if (listing != null) {
+                    // Keyword filter (client-side)
+                    if (keyword == null || keyword.isEmpty()) {
+                        listings.add(listing);
+                    } else {
+                        listings.add(listing); // filter by keyword after joining with ItemModel in UI
+                    }
+                    // Prepare to fetch related ItemModel for distance filtering
+                    if (userLat != null && userLng != null && maxDistanceKm != null && maxDistanceKm > 0) {
+                        String itemId = listing.getItemId();
+                        if (itemId != null) {
+                            Task<DocumentSnapshot> itemTask = db.collection("items").document(itemId).get();
+                            itemTasks.add(itemTask);
+                            listingByItemId.put(itemId, listing);
+                        }
+                    }
+                }
+            }
+            if (userLat != null && userLng != null && maxDistanceKm != null && maxDistanceKm > 0 && !itemTasks.isEmpty()) {
+                Tasks.whenAllSuccess(itemTasks).addOnSuccessListener(results -> {
+                    for (Object obj : results) {
+                        if (obj instanceof DocumentSnapshot) {
+                            DocumentSnapshot itemDoc = (DocumentSnapshot) obj;
+                            ItemModel item = documentToItemModel(itemDoc);
+                            if (item != null) {
+                                Double lat = item.getLocationLatitude();
+                                Double lng = item.getLocationLongitude();
+                                if (lat != null && lng != null) {
+                                    double distance = haversine(userLat, userLng, lat, lng);
+                                    if (distance <= maxDistanceKm) {
+                                        ListingModel listing = listingByItemId.get(item.getId());
+                                        if (listing != null) {
+                                            filteredListings.add(listing);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    callback.onSuccess(filteredListings);
+                }).addOnFailureListener(e -> {
+                    callback.onError(e.getMessage());
+                });
+            } else {
+                callback.onSuccess(listings);
+            }
+        }).addOnFailureListener(e -> {
+            callback.onError(e.getMessage());
+        });
+    }
+
     // Helper method to check if item matches search query
     private boolean matchesSearchQuery(ItemModel item, String query) {
         if (query == null || query.isEmpty()) {
@@ -457,20 +546,14 @@ public class FirebaseService {
             item.setSubcategory(document.getString("subcategory"));
             item.setBrand(document.getString("brand"));
             item.setCondition(document.getString("condition"));
-            item.setLocation(document.getString("location"));
+            // Parse location as Map<String, Object>
+            Object locObj = document.get("location");
+            if (locObj instanceof Map) {
+                item.setLocation((Map<String, Object>) locObj);
+            } else {
+                item.setLocation(null);
+            }
             Object weightObj = document.get("weight");
-            // If you need to access ListingModel for price, you can fetch it here:
-            // Example (pseudo-code, async):
-            // String listingId = document.getString("listingId");
-            // if (listingId != null) {
-            //     db.collection("listings").document(listingId).get().addOnSuccessListener(listingDoc -> {
-            //         ListingModel listing = listingDoc.toObject(ListingModel.class);
-            //         if (listing != null) {
-            //             double price = listing.getPrice();
-            //             // Use price as needed
-            //         }
-            //     });
-            // }
             if (weightObj instanceof Number) {
                 item.setWeight(((Number) weightObj).doubleValue());
             }
@@ -570,6 +653,93 @@ public class FirebaseService {
         }
     }
 
+    // Helper to safely extract a Date from Firestore field
+    private Date getDateFromField(Object field) {
+        if (field == null) return null;
+        if (field instanceof com.google.firebase.Timestamp) {
+            return ((com.google.firebase.Timestamp) field).toDate();
+        } else if (field instanceof Date) {
+            return (Date) field;
+        } else if (field instanceof Long) {
+            return new Date((Long) field);
+        } else if (field instanceof String) {
+            String str = (String) field;
+            // Try ISO8601 parse (e.g. 2023-07-12T23:18:51.452Z)
+            try {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US);
+                sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                return sdf.parse(str);
+            } catch (Exception e1) {
+                try {
+                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US);
+                    sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                    return sdf.parse(str);
+                } catch (Exception e2) {
+                    // Fallback: try parse as long
+                    try {
+                        return new Date(Long.parseLong(str));
+                    } catch (Exception ignored) {}
+                }
+            }
+        }
+        return null;
+    }
+
+    // Helper method to convert Firestore document to ListingModel
+    private ListingModel documentToListingModel(com.google.firebase.firestore.DocumentSnapshot document) {
+        try {
+            ListingModel listing = new ListingModel();
+            listing.setId(document.getId());
+            listing.setItemId(document.getString("itemId"));
+            listing.setSellerId(document.getString("sellerId"));
+            listing.setPrice(document.getDouble("price") != null ? document.getDouble("price") : 0.0);
+            listing.setTransactionStatus(document.getString("transactionStatus"));
+            listing.setCreatedAt(getDateFromField(document.get("createdAt")));
+            listing.setUpdatedAt(getDateFromField(document.get("updatedAt")));
+            // Set additional fields
+            if (document.contains("viewCount")) {
+                Number viewCount = document.getLong("viewCount");
+                listing.setViewCount(viewCount != null ? viewCount.intValue() : 0);
+            }
+            if (document.contains("tags")) {
+                Object tagsObj = document.get("tags");
+                if (tagsObj instanceof List) {
+                    listing.setTags(new ArrayList<>((List<String>) tagsObj));
+                }
+            }
+            if (document.contains("distanceRadius")) {
+                Number distance = document.getDouble("distanceRadius");
+                listing.setDistanceRadius(distance != null ? distance.doubleValue() : 0.0);
+            }
+            if (document.contains("allowOffers")) {
+                Boolean allowOffers = document.getBoolean("allowOffers");
+                listing.setAllowOffers(allowOffers != null ? allowOffers : true);
+            }
+            if (document.contains("allowReturns")) {
+                Boolean allowReturns = document.getBoolean("allowReturns");
+                listing.setAllowReturns(allowReturns != null ? allowReturns : false);
+            }
+            if (document.contains("isActive")) {
+                Boolean isActive = document.getBoolean("isActive");
+                listing.setActive(isActive != null ? isActive : true);
+            }
+            // Interactions (nested object)
+            if (document.contains("interactions")) {
+                Object interactionsObj = document.get("interactions");
+                if (interactionsObj instanceof Map) {
+                    com.google.gson.Gson gson = new com.google.gson.Gson();
+                    String json = gson.toJson(interactionsObj);
+                    ListingModel.Interactions interactions = gson.fromJson(json, ListingModel.Interactions.class);
+                    listing.setInteractions(interactions);
+                }
+            }
+            return listing;
+        } catch (Exception e) {
+            Log.e(TAG, "Error converting document to ListingModel", e);
+            return null;
+        }
+    }
+
     // Get current user ID
     public String getCurrentUserId() {
         if (auth.getCurrentUser() != null) {
@@ -622,7 +792,7 @@ public class FirebaseService {
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<ListingModel> listings = new ArrayList<>();
                     for (DocumentSnapshot document : queryDocumentSnapshots) {
-                        ListingModel listing = document.toObject(ListingModel.class);
+                        ListingModel listing = documentToListingModel(document);
                         if (listing != null) {
                             listings.add(listing);
                         }
@@ -630,39 +800,303 @@ public class FirebaseService {
                     callback.onSuccess(listings);
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error getting all listings", e);
+                    Log.e(TAG, "Error getting listings", e);
                     callback.onError(e.getMessage());
                 });
     }
-    // To show item details with each listing, fetch the related ItemModel using listing.getItemId()
-    // Example (pseudo-code):
-    // for (ListingModel listing : listings) {
-    //     db.collection("items").document(listing.getItemId()).get().addOnSuccessListener(itemDoc -> {
-    //         ItemModel item = itemDoc.toObject(ItemModel.class);
-    //         // Combine listing and item info as needed
-    //     });
     // }
 
-    // Get listings by category
+    // Get listings by category (category is a field of Item, not Listing)
     public void getListingsByCategory(String category, ListingsCallback callback) {
-        db.collection("listings")
+        // Step 1: Get all items with the given category
+        db.collection("items")
                 .whereEqualTo("category", category)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .whereEqualTo("status", "Available")
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<ListingModel> listings = new ArrayList<>();
-                    for (DocumentSnapshot document : queryDocumentSnapshots) {
-                        ListingModel listing = document.toObject(ListingModel.class);
-                        if (listing != null) {
-                            listings.add(listing);
-                        }
+                .addOnSuccessListener(itemSnapshots -> {
+                    List<String> itemIds = new ArrayList<>();
+                    for (DocumentSnapshot doc : itemSnapshots) {
+                        itemIds.add(doc.getId());
                     }
-                    callback.onSuccess(listings);
+                    if (itemIds.isEmpty()) {
+                        callback.onSuccess(new ArrayList<>());
+                        return;
+                    }
+                    // Step 2: Get all listings with itemId in itemIds (handle Firestore limitation: max 10 for whereIn)
+                    List<ListingModel> allListings = new ArrayList<>();
+                    List<List<String>> batches = new ArrayList<>();
+                    int batchSize = 10;
+                    for (int i = 0; i < itemIds.size(); i += batchSize) {
+                        batches.add(itemIds.subList(i, Math.min(itemIds.size(), i + batchSize)));
+                    }
+                    if (batches.isEmpty()) {
+                        callback.onSuccess(new ArrayList<>());
+                        return;
+                    }
+                    final int[] completed = {0};
+                    final boolean[] failed = {false};
+                    for (List<String> batch : batches) {
+                        db.collection("listings")
+                                .whereIn("itemId", batch)
+                                .orderBy("createdAt", Query.Direction.DESCENDING)
+                                .get()
+                                .addOnSuccessListener(listingSnapshots -> {
+                                    for (DocumentSnapshot doc : listingSnapshots) {
+                                        ListingModel listing = doc.toObject(ListingModel.class);
+                                        if (listing != null) {
+                                            allListings.add(listing);
+                                        }
+                                    }
+                                    completed[0]++;
+                                    if (completed[0] == batches.size() && !failed[0]) {
+                                        // Sort all listings by createdAt desc
+                                        allListings.sort((a, b) -> {
+                                            if (a.getCreatedAt() == null && b.getCreatedAt() == null) return 0;
+                                            if (a.getCreatedAt() == null) return 1;
+                                            if (b.getCreatedAt() == null) return -1;
+                                            Comparable bCreated = (Comparable) b.getCreatedAt();
+                                            Comparable aCreated = (Comparable) a.getCreatedAt();
+                                            if (bCreated == null && aCreated == null) return 0;
+                                            if (bCreated == null) return 1;
+                                            if (aCreated == null) return -1;
+                                            return bCreated.compareTo(aCreated);
+                                        });
+                                        callback.onSuccess(allListings);
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    if (!failed[0]) {
+                                        failed[0] = true;
+                                        Log.e(TAG, "Error getting listings by category (step 2)", e);
+                                        callback.onError(e.getMessage());
+                                    }
+                                });
+                    }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error getting listings by category", e);
+                    Log.e(TAG, "Error getting items for category (step 1)", e);
                     callback.onError(e.getMessage());
                 });
+    }
+
+
+    // Delete a listing by ID, only if not in transaction, and delete the item as well
+    public void deleteListingWithItem(String listingId, Runnable onSuccess, java.util.function.Consumer<String> onError) {
+        if (listingId == null) {
+            if (onError != null) onError.accept("Listing ID is null");
+            return;
+        }
+        db.collection("transactions").whereEqualTo("listingId", listingId).get()
+            .addOnSuccessListener(transSnapshots -> {
+                if (!transSnapshots.isEmpty()) {
+                    if (onError != null) onError.accept("Cannot delete: Listing already has a transaction (sold or in progress)");
+                    return;
+                }
+                // Get the listing to find the itemId
+                db.collection("listings").document(listingId).get()
+                    .addOnSuccessListener(listingDoc -> {
+                        if (!listingDoc.exists()) {
+                            if (onError != null) onError.accept("Listing not found");
+                            return;
+                        }
+                        ListingModel listing = listingDoc.toObject(ListingModel.class);
+                        String itemId = listing != null ? listing.getItemId() : null;
+                        // Delete the listing
+                        db.collection("listings").document(listingId).delete()
+                            .addOnSuccessListener(aVoid -> {
+                                if (itemId != null) {
+                                    db.collection("items").document(itemId).delete()
+                                        .addOnSuccessListener(aVoid2 -> {
+                                            if (onSuccess != null) onSuccess.run();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            if (onError != null) onError.accept("Failed to delete item: " + e.getMessage());
+                                        });
+                                } else {
+                                    if (onSuccess != null) onSuccess.run();
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                if (onError != null) onError.accept("Failed to delete listing: " + e.getMessage());
+                            });
+                    })
+                    .addOnFailureListener(e -> {
+                        if (onError != null) onError.accept("Failed to fetch listing: " + e.getMessage());
+                    });
+            })
+            .addOnFailureListener(e -> {
+                if (onError != null) onError.accept("Failed to check transaction: " + e.getMessage());
+            });
+    }
+
+    // Update both ListingModel and ItemModel in Firestore
+    public interface SimpleCallback {
+        void onSuccess();
+        void onError(String error);
+    }
+
+    public void updateListingAndItem(ListingModel listing, ItemModel item, SimpleCallback callback) {
+        if (listing == null || item == null || listing.getId() == null || item.getId() == null) {
+            if (callback != null) callback.onError("Invalid listing or item data");
+            return;
+        }
+        db.collection("items").document(item.getId()).set(item)
+            .addOnSuccessListener(aVoid -> {
+                db.collection("listings").document(listing.getId()).set(listing)
+                    .addOnSuccessListener(aVoid2 -> {
+                        if (callback != null) callback.onSuccess();
+                    })
+                    .addOnFailureListener(e -> {
+                        if (callback != null) callback.onError(e.getMessage());
+                    });
+            })
+            .addOnFailureListener(e -> {
+                if (callback != null) callback.onError(e.getMessage());
+            });
+    }
+
+    // Log a user interaction (e.g., view or search) to Firestore
+    public void logUserInteraction(String userId, String type, String listingId, String query) {
+        Map<String, Object> interaction = new HashMap<>();
+        interaction.put("type", type); // e.g., "view", "search"
+        interaction.put("timestamp", new Date());
+        if (listingId != null) interaction.put("listingId", listingId);
+        if (query != null) interaction.put("query", query);
+        db.collection("browsingHistory")
+                .document(userId)
+                .collection("history")
+                .add(interaction)
+                .addOnSuccessListener(documentReference -> Log.d(TAG, "Interaction logged"))
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to log interaction", e));
+        // If this is a view, also log to listing's userInteractions
+        if ("view".equals(type) && listingId != null) {
+            logListingViewInteraction(listingId, userId);
+        }
+    }
+
+    // Update userInteractions in a listing's interactions field when a user views a listing
+    public void logListingViewInteraction(String listingId, String userId) {
+        if (listingId == null || userId == null) return;
+        db.collection("listings").document(listingId).get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (!documentSnapshot.exists()) return;
+                Map<String, Object> data = documentSnapshot.getData();
+                if (data == null) return;
+                Map<String, Object> interactions = (Map<String, Object>) data.get("interactions");
+                List<Map<String, Object>> userInteractions;
+                if (interactions != null && interactions.get("userInteractions") instanceof List) {
+                    userInteractions = (List<Map<String, Object>>) interactions.get("userInteractions");
+                } else {
+                    userInteractions = new ArrayList<>();
+                }
+                boolean found = false;
+                for (Map<String, Object> entry : userInteractions) {
+                    if (userId.equals(entry.get("userId"))) {
+                        entry.put("viewedAt", new java.util.Date());
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    Map<String, Object> newEntry = new HashMap<>();
+                    newEntry.put("userId", userId);
+                    newEntry.put("viewedAt", new java.util.Date());
+                    newEntry.put("savedAt", null);
+                    newEntry.put("sharedAt", null);
+                    userInteractions.add(newEntry);
+                }
+                if (interactions == null) interactions = new HashMap<>();
+                interactions.put("userInteractions", userInteractions);
+                db.collection("listings").document(listingId)
+                    .update("interactions", interactions);
+            });
+    }
+
+    // Log when a user saves a listing
+    public void logListingSavedInteraction(String listingId, String userId) {
+        if (listingId == null || userId == null) return;
+        db.collection("listings").document(listingId).get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (!documentSnapshot.exists()) return;
+                Map<String, Object> data = documentSnapshot.getData();
+                if (data == null) return;
+                Map<String, Object> interactions = (Map<String, Object>) data.get("interactions");
+                List<Map<String, Object>> userInteractions;
+                if (interactions != null && interactions.get("userInteractions") instanceof List) {
+                    userInteractions = (List<Map<String, Object>>) interactions.get("userInteractions");
+                } else {
+                    userInteractions = new ArrayList<>();
+                }
+                boolean found = false;
+                for (Map<String, Object> entry : userInteractions) {
+                    if (userId.equals(entry.get("userId"))) {
+                        entry.put("savedAt", new java.util.Date());
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    Map<String, Object> newEntry = new HashMap<>();
+                    newEntry.put("userId", userId);
+                    newEntry.put("viewedAt", null);
+                    newEntry.put("savedAt", new java.util.Date());
+                    newEntry.put("sharedAt", null);
+                    userInteractions.add(newEntry);
+                }
+                if (interactions == null) interactions = new HashMap<>();
+                interactions.put("userInteractions", userInteractions);
+                db.collection("listings").document(listingId)
+                    .update("interactions", interactions);
+            });
+    }
+
+    // Log when a user shares a listing
+    public void logListingSharedInteraction(String listingId, String userId) {
+        if (listingId == null || userId == null) return;
+        db.collection("listings").document(listingId).get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (!documentSnapshot.exists()) return;
+                Map<String, Object> data = documentSnapshot.getData();
+                if (data == null) return;
+                Map<String, Object> interactions = (Map<String, Object>) data.get("interactions");
+                List<Map<String, Object>> userInteractions;
+                if (interactions != null && interactions.get("userInteractions") instanceof List) {
+                    userInteractions = (List<Map<String, Object>>) interactions.get("userInteractions");
+                } else {
+                    userInteractions = new ArrayList<>();
+                }
+                boolean found = false;
+                for (Map<String, Object> entry : userInteractions) {
+                    if (userId.equals(entry.get("userId"))) {
+                        entry.put("sharedAt", new java.util.Date());
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    Map<String, Object> newEntry = new HashMap<>();
+                    newEntry.put("userId", userId);
+                    newEntry.put("viewedAt", null);
+                    newEntry.put("savedAt", null);
+                    newEntry.put("sharedAt", new java.util.Date());
+                    userInteractions.add(newEntry);
+                }
+                if (interactions == null) interactions = new HashMap<>();
+                interactions.put("userInteractions", userInteractions);
+                db.collection("listings").document(listingId)
+                    .update("interactions", interactions);
+            });
+    }
+
+    // Log a listing viewed interaction (for adapter usage)
+    public void logListingViewedInteraction(String listingId, String userId) {
+        logUserInteraction(userId, "view", listingId, null);
+    }
+
+    // Callback for browsing history
+    public interface BrowsingHistoryCallback {
+        void onSuccess(List<Map<String, Object>> history);
+        void onFailure(Exception e);
     }
 
     // Callback interfaces
@@ -759,5 +1193,144 @@ public class FirebaseService {
                     callback.onSuccess(itemMap);
                 })
                 .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
+    // Get all transactions for a listing
+    public void getTransactionsByListingId(String listingId, TransactionsCallback callback) {
+        db.collection("transaction")
+            .whereEqualTo("listingId", listingId)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                List<com.example.tradeupapp.models.TransactionModel> transactions = new ArrayList<>();
+                for (DocumentSnapshot document : queryDocumentSnapshots) {
+                    com.example.tradeupapp.models.TransactionModel txn = document.toObject(com.example.tradeupapp.models.TransactionModel.class);
+                    if (txn != null) {
+                        transactions.add(txn);
+                    }
+                }
+                callback.onSuccess(transactions);
+            })
+            .addOnFailureListener(e -> {
+                callback.onError(e.getMessage());
+            });
+    }
+
+    // Callback for fetching transactions
+    public interface TransactionsCallback {
+        void onSuccess(List<com.example.tradeupapp.models.TransactionModel> transactions);
+        void onError(String error);
+    }
+
+    // Get popular listings sorted by interactions.aggregate.totalViews descending
+    public void getPopularListingsByTotalViews(int limit, ListingsCallback callback) {
+        db.collection("listings")
+            .orderBy("interactions.aggregate.totalViews", Query.Direction.DESCENDING)
+            .limit(limit)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                List<ListingModel> listings = new ArrayList<>();
+                for (DocumentSnapshot document : queryDocumentSnapshots) {
+                    ListingModel listing = documentToListingModel(document);
+                    if (listing != null) {
+                        listings.add(listing);
+                    }
+                }
+                callback.onSuccess(listings);
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error getting popular listings by totalViews", e);
+                callback.onError(e.getMessage());
+            });
+    }
+
+    // Lấy danh sách listing user đã viewed/saved/shared (dựa vào interactions.userInteractions)
+    public void getUserHistoryListings(String userId, String type, ListingsCallback callback) {
+        // type: "viewedAt", "savedAt", "sharedAt"
+        db.collection("listings").get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                List<ListingModel> result = new ArrayList<>();
+                for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                    Map<String, Object> data = doc.getData();
+                    if (data == null) continue;
+                    Map<String, Object> interactions = (Map<String, Object>) data.get("interactions");
+                    if (interactions == null) continue;
+                    List<Map<String, Object>> userInteractions = (List<Map<String, Object>>) interactions.get("userInteractions");
+                    if (userInteractions == null) continue;
+                    for (Map<String, Object> entry : userInteractions) {
+                        if (userId.equals(entry.get("userId")) && entry.get(type) != null) {
+                            ListingModel listing = doc.toObject(ListingModel.class);
+                            if (listing != null) {
+                                listing.setId(doc.getId());
+                                result.add(listing);
+                            }
+                            break;
+                        }
+                    }
+                }
+                callback.onSuccess(result);
+            })
+            .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
+    // Callback for search history
+    public interface SearchHistoryCallback {
+        void onSuccess(List<String> history);
+        void onFailure(Exception e);
+    }
+
+    // Get user search history (latest 20 queries, sorted by timestamp desc)
+    public void getUserSearchHistory(String userId, SearchHistoryCallback callback) {
+        db.collection("browsingHistory")
+            .document(userId)
+            .collection("history")
+            .whereEqualTo("type", "search")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .limit(20)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                List<String> history = new ArrayList<>();
+                for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                    String query = doc.getString("query");
+                    if (query != null && !history.contains(query)) {
+                        history.add(query);
+                    }
+                }
+                callback.onSuccess(history);
+            })
+            .addOnFailureListener(callback::onFailure);
+    }
+
+    // Delete a search query from user history
+    public void deleteUserSearchQuery(String userId, String query, SimpleCallback callback) {
+        db.collection("browsingHistory")
+            .document(userId)
+            .collection("history")
+            .whereEqualTo("type", "search")
+            .whereEqualTo("query", query)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                List<Task<Void>> tasks = new ArrayList<>();
+                for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                    tasks.add(doc.getReference().delete());
+                }
+                Tasks.whenAllComplete(tasks)
+                    .addOnSuccessListener(aVoid -> callback.onSuccess())
+                    .addOnFailureListener(e -> callback.onError(e.getMessage()));
+            })
+            .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
+    // Add a search query to user search history
+    public void addUserSearchHistory(String userId, String query, SimpleCallback callback) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("query", query);
+        data.put("type", "search");
+        data.put("timestamp", com.google.firebase.firestore.FieldValue.serverTimestamp());
+        db.collection("browsingHistory")
+            .document(userId)
+            .collection("history")
+            .add(data)
+            .addOnSuccessListener(documentReference -> callback.onSuccess())
+            .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 }

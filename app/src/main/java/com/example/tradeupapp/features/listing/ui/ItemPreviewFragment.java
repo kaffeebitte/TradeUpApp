@@ -37,6 +37,10 @@ public class ItemPreviewFragment extends Fragment {
     private MaterialButton btnEdit;
     private MaterialButton btnPublish;
     private ImagePhotoAdapter photoAdapter;
+    private TextView tvTags;
+    private TextView tvAllowOffers;
+    private TextView tvAllowReturns;
+    private TextView tvFeatured;
 
     public static ItemPreviewFragment newInstance(ItemModel item) {
         ItemPreviewFragment fragment = new ItemPreviewFragment();
@@ -83,6 +87,10 @@ public class ItemPreviewFragment extends Fragment {
         tvLocation = view.findViewById(R.id.tv_item_location);
         btnEdit = view.findViewById(R.id.btn_edit);
         btnPublish = view.findViewById(R.id.btn_publish);
+        tvTags = view.findViewById(R.id.tv_item_tags);
+        tvAllowOffers = view.findViewById(R.id.tv_allow_offers);
+        tvAllowReturns = view.findViewById(R.id.tv_allow_returns);
+        tvFeatured = view.findViewById(R.id.tv_featured);
     }
 
     private void populateItemDetails() {
@@ -103,14 +111,47 @@ public class ItemPreviewFragment extends Fragment {
         tvTitle.setText(item.getTitle());
         // Show price if listing is available, otherwise hide or show placeholder
         if (listing != null) {
-            tvPrice.setText(String.format("$%.2f", listing.getPrice()));
+            tvPrice.setText(String.format("%,.0f VNĐ", listing.getPrice()));
         } else {
             tvPrice.setText(""); // or hide the view
         }
         tvDescription.setText(item.getDescription());
         tvCategory.setText(item.getCategory());
         tvCondition.setText(item.getCondition());
-        tvLocation.setText(item.getLocation());
+        // Show address if available, else lat/lng, else empty
+        String locationText = "";
+        if (item.getLocation() != null) {
+            Object addressObj = item.getLocation().get("address");
+            if (addressObj != null) {
+                locationText = addressObj.toString();
+            } else {
+                Double lat = item.getLocationLatitude();
+                Double lng = item.getLocationLongitude();
+                if (lat != null && lng != null) {
+                    locationText = String.format("%.5f, %.5f", lat, lng);
+                }
+            }
+        }
+        tvLocation.setText(locationText);
+        // Show tags (comma separated)
+        if (item.getKeyFeatures() != null && !item.getKeyFeatures().isEmpty()) {
+            tvTags.setText(android.text.TextUtils.join(", ", item.getKeyFeatures()));
+        } else {
+            tvTags.setText("-");
+        }
+        // Show item behavior (these should be added to ItemModel and set in AddItemFragment)
+        boolean allowOffers = false;
+        boolean allowReturns = false;
+        boolean featured = false;
+        Bundle args = getArguments();
+        if (args != null) {
+            allowOffers = args.getBoolean("allow_offers", false);
+            allowReturns = args.getBoolean("allow_returns", false);
+            featured = args.getBoolean("featured", false);
+        }
+        tvAllowOffers.setText(allowOffers ? "Allow Offers from Buyers" : "Offers Not Allowed");
+        tvAllowReturns.setText(allowReturns ? "Allow Returns" : "No Returns");
+        tvFeatured.setText(featured ? "Featured Listing" : "Not Featured");
     }
 
     private void setupListeners() {

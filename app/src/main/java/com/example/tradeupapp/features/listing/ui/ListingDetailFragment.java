@@ -48,6 +48,7 @@ public class ListingDetailFragment extends Fragment {
     private View sellerContainer;
     private ImageView ivSellerAvatar, ivStar;
     private TextView tvSellerName, tvSellerRating;
+    private TextView tvViewCount, tvSaveCount, tvShareCount;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -125,7 +126,12 @@ public class ListingDetailFragment extends Fragment {
             tvCondition.setText(item.getCondition());
         }
         if (tvItemLocation != null && item.getLocation() != null) {
-            tvItemLocation.setText(item.getLocation());
+            java.util.Map<String, Object> location = item.getLocation();
+            if (location != null && location.get("address") != null) {
+                tvItemLocation.setText(location.get("address").toString());
+            } else {
+                tvItemLocation.setText(""); // or a default value
+            }
         }
         if (item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) {
             // Convert List<String> to List<Uri>
@@ -142,8 +148,8 @@ public class ListingDetailFragment extends Fragment {
                     Uri uri = uriList.get(position);
                     Glide.with(imageView.getContext())
                         .load(uri)
-                        .placeholder(R.drawable.ic_image_placeholder)
-                        .error(R.drawable.ic_image_placeholder)
+                        .placeholder(R.drawable.tradeuplogo)
+                        .error(R.drawable.tradeuplogo)
                         .into(imageView);
                 }
             };
@@ -159,8 +165,8 @@ public class ListingDetailFragment extends Fragment {
                     ImageView imageView = holder.itemView.findViewById(R.id.image_view); // Ensure this ID matches your layout
                     Glide.with(imageView.getContext())
                         .load(defaultList.get(position))
-                        .placeholder(R.drawable.ic_image_placeholder)
-                        .error(R.drawable.ic_image_placeholder)
+                        .placeholder(R.drawable.tradeuplogo)
+                        .error(R.drawable.tradeuplogo)
                         .into(imageView);
                 }
             };
@@ -179,11 +185,11 @@ public class ListingDetailFragment extends Fragment {
                     if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
                         Glide.with(requireContext())
                             .load(user.getPhotoUrl())
-                            .placeholder(R.drawable.ic_person_24)
-                            .error(R.drawable.ic_person_24)
+                            .placeholder(R.drawable.tradeuplogo)
+                            .error(R.drawable.tradeuplogo)
                             .into(ivSellerAvatar);
                     } else {
-                        ivSellerAvatar.setImageResource(R.drawable.ic_person_24);
+                        ivSellerAvatar.setImageResource(R.drawable.tradeuplogo);
                     }
                 }
                 @Override
@@ -191,20 +197,52 @@ public class ListingDetailFragment extends Fragment {
                     if (getActivity() == null || !isAdded()) return;
                     tvSellerName.setText("Unknown Seller");
                     tvSellerRating.setText("");
-                    ivSellerAvatar.setImageResource(R.drawable.ic_person_24);
+                    ivSellerAvatar.setImageResource(R.drawable.tradeuplogo);
                 }
             });
+        }
+        // Show interaction counts from new structure
+        if (listing.getInteractions() != null && listing.getInteractions().getAggregate() != null) {
+            tvViewCount.setText(String.valueOf(listing.getInteractions().getAggregate().getTotalViews()));
+            tvSaveCount.setText(String.valueOf(listing.getInteractions().getAggregate().getTotalSaves()));
+            tvShareCount.setText(String.valueOf(listing.getInteractions().getAggregate().getTotalShares()));
+        } else {
+            tvViewCount.setText("0");
+            tvSaveCount.setText("0");
+            tvShareCount.setText("0");
+        }
+        // Show/hide Buy Now button based on listing availability
+        if (btnBuyNow != null) {
+            if (isListingAvailableForPurchase(listing)) {
+                btnBuyNow.setVisibility(View.VISIBLE);
+            } else {
+                btnBuyNow.setVisibility(View.GONE);
+            }
         }
         setupButtonClickListeners();
     }
 
-    private String formatPrice(double price) {
+    /**
+     * Determines if the listing is available for purchase.
+     * You can adjust the logic as needed (e.g., check for sold/reserved status).
+     */
+    private boolean isListingAvailableForPurchase(ListingModel listing) {
+        // Example: assuming ListingModel has isSold() and isReserved() methods
+        // If not, adjust this logic to fit your model
         try {
-            Currency currency = Currency.getInstance(Locale.getDefault());
-            return String.format(Locale.getDefault(), "%s%.2f", currency.getSymbol(), price);
+            java.lang.reflect.Method isSoldMethod = listing.getClass().getMethod("isSold");
+            java.lang.reflect.Method isReservedMethod = listing.getClass().getMethod("isReserved");
+            boolean isSold = (boolean) isSoldMethod.invoke(listing);
+            boolean isReserved = (boolean) isReservedMethod.invoke(listing);
+            return !isSold && !isReserved;
         } catch (Exception e) {
-            return String.format(Locale.getDefault(), "$%.2f", price);
+            // If methods do not exist, default to always available
+            return true;
         }
+    }
+
+    private String formatPrice(double price) {
+        return String.format(Locale.getDefault(), "%,.0f đ", price);
     }
 
     private void showError() {
@@ -229,6 +267,9 @@ public class ListingDetailFragment extends Fragment {
         ivStar = view.findViewById(R.id.iv_star);
         tvSellerName = view.findViewById(R.id.tv_seller_name);
         tvSellerRating = view.findViewById(R.id.tv_seller_rating);
+        tvViewCount = view.findViewById(R.id.tv_view_count);
+        tvSaveCount = view.findViewById(R.id.tv_save_count);
+        tvShareCount = view.findViewById(R.id.tv_share_count);
     }
 
     private void setupToolbar() {
@@ -239,6 +280,12 @@ public class ListingDetailFragment extends Fragment {
 
     private void setupButtonClickListeners() {
         // ...existing code for button click listeners...
+        if (btnBuyNow != null) {
+            btnBuyNow.setOnClickListener(v -> {
+                Toast.makeText(requireContext(), "Buy Now clicked", Toast.LENGTH_SHORT).show();
+                // TODO: Implement actual buy logic here
+            });
+        }
         if (sellerContainer != null && listing != null && listing.getSellerId() != null) {
             sellerContainer.setOnClickListener(v -> {
                 Bundle args = new Bundle();

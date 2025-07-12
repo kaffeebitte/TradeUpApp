@@ -3,9 +3,7 @@
     {
       "id": "report_001",
       "reporterId": "user_005",
-      "reporterName": "Quan Vo",
       "reportedUserId": "user_015",
-      "reportedUserName": "Suspicious User",
       "reportedItemId": "item_999",
       "reportType": "fake_item",
       "reason": "Suspected counterfeit product",
@@ -22,9 +20,7 @@
     {
       "id": "report_002",
       "reporterId": "user_008",
-      "reporterName": "Lan Nguyen",
       "reportedUserId": "user_012",
-      "reportedUserName": "Scam User",
       "reportedItemId": "item_888",
       "reportType": "scam",
       "reason": "Payment fraud",
@@ -41,9 +37,7 @@
     {
       "id": "report_003",
       "reporterId": "user_002",
-      "reporterName": "Linh Tran",
       "reportedUserId": "user_014",
-      "reportedUserName": "Spam User",
       "reportedItemId": null,
       "reportType": "harassment",
       "reason": "Inappropriate messages",
@@ -59,9 +53,7 @@
     {
       "id": "report_004",
       "reporterId": "user_007",
-      "reporterName": "Tuan Bui",
       "reportedUserId": "user_013",
-      "reportedUserName": "Overpriced Seller",
       "reportedItemId": "item_777",
       "reportType": "price_manipulation",
       "reason": "Extreme overpricing",
@@ -75,9 +67,7 @@
     {
       "id": "report_005",
       "reporterId": "user_003",
-      "reporterName": "Duc Le",
       "reportedUserId": "user_011",
-      "reportedUserName": "Fake Profile",
       "reportedItemId": null,
       "reportType": "fake_profile",
       "reason": "Using stolen photos",
@@ -94,9 +84,7 @@
     {
       "id": "report_006",
       "reporterId": "user_009",
-      "reporterName": "Nam Tran",
       "reportedUserId": "user_016",
-      "reportedUserName": "Damaged Goods Seller",
       "reportedItemId": "item_666",
       "reportType": "misleading_description",
       "reason": "Item condition misrepresented",
@@ -114,9 +102,7 @@
     {
       "id": "report_007",
       "reporterId": "user_004",
-      "reporterName": "Hoa Pham",
       "reportedUserId": "user_017",
-      "reportedUserName": "Copyright Violator",
       "reportedItemId": "item_555",
       "reportType": "copyright_violation",
       "reason": "Using my photos without permission",
@@ -133,9 +119,7 @@
     {
       "id": "report_008",
       "reporterId": "user_010",
-      "reporterName": "Thao Le",
       "reportedUserId": "user_018",
-      "reportedUserName": "No Show Seller",
       "reportedItemId": "item_444",
       "reportType": "no_show",
       "reason": "Failed to show up for meeting",

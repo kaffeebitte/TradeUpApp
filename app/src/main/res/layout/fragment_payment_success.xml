@@ -145,7 +145,7 @@
                     android:id="@+id/tv_amount_paid"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="$199.99"
+                    android:text="199.99 đ"
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                     android:textColor="?attr/colorPrimary"
                     android:textStyle="bold" />

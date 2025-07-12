@@ -51,6 +51,20 @@ public class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.ViewHold
         holder.price.setText(String.format("₫%,.0f", listing.getPrice()));
         holder.title.setText("Loading...");
         holder.image.setImageResource(R.drawable.ic_image_placeholder);
+        holder.status.setText(listing.getTransactionStatus());
+        holder.status.setVisibility(listing.getTransactionStatus() != null && !listing.getTransactionStatus().isEmpty() ? View.VISIBLE : View.GONE);
+        // Show interaction counts from new structure
+        if (listing.getInteractions() != null && listing.getInteractions().getAggregate() != null) {
+            holder.viewCount.setText(String.valueOf(listing.getInteractions().getAggregate().getTotalViews()));
+            // If you have UI for saves/shares, set them here, e.g.:
+            // holder.saveCount.setText(String.valueOf(listing.getInteractions().getAggregate().getTotalSaves()));
+            // holder.shareCount.setText(String.valueOf(listing.getInteractions().getAggregate().getTotalShares()));
+        } else {
+            holder.viewCount.setText("0");
+            // holder.saveCount.setText("0");
+            // holder.shareCount.setText("0");
+        }
+        holder.time.setText("Recently");
         // Fetch ItemModel for details (title, image, etc.)
         firebaseService.getItemById(listing.getItemId(), new FirebaseService.ItemCallback() {
             @Override
@@ -65,6 +79,23 @@ public class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.ViewHold
                     } else {
                         holder.image.setImageResource(R.drawable.ic_image_placeholder);
                     }
+                    // Fix: Show location address if available, else show lat/lng or empty
+                    String locationText = "";
+                    if (item.getLocation() != null) {
+                        Object addressObj = item.getLocation().get("address");
+                        if (addressObj != null) {
+                            locationText = addressObj.toString();
+                        } else {
+                            Double lat = item.getLocationLatitude();
+                            Double lng = item.getLocationLongitude();
+                            if (lat != null && lng != null) {
+                                locationText = String.format("%.5f, %.5f", lat, lng);
+                            }
+                        }
+                    }
+                    holder.location.setText(locationText);
+                    if (holder.chipCondition != null && item.getCondition() != null)
+                        holder.chipCondition.setText(item.getCondition());
                 } else {
                     holder.title.setText("No title");
                 }
@@ -74,7 +105,33 @@ public class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.ViewHold
                 holder.title.setText("No title");
             }
         });
-        holder.itemView.setOnClickListener(v -> listener.onItemClick(listing));
+        holder.itemView.setOnClickListener(v -> {
+            String userId = firebaseService.getCurrentUserId();
+            if (userId != null) {
+                firebaseService.logListingViewedInteraction(listing.getId(), userId);
+            }
+            listener.onItemClick(listing);
+        });
+        holder.btnSave.setOnClickListener(v -> {
+            String userId = firebaseService.getCurrentUserId();
+            if (userId != null) {
+                firebaseService.logListingSavedInteraction(listing.getId(), userId);
+            }
+        });
+        holder.btnShare.setOnClickListener(v -> {
+            String userId = firebaseService.getCurrentUserId();
+            if (userId != null) {
+                firebaseService.logListingSharedInteraction(listing.getId(), userId);
+            }
+            // Optional: share intent (native Android share)
+            /*
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, holder.title.getText());
+            shareIntent.putExtra(Intent.EXTRA_TEXT, "Check out this listing: ...");
+            context.startActivity(Intent.createChooser(shareIntent, "Share via"));
+            */
+        });
     }
 
     @Override
@@ -94,13 +151,22 @@ public class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.ViewHold
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView image;
-        TextView title, price;
+        TextView title, price, location, status, viewCount, time;
+        com.google.android.material.chip.Chip chipCondition;
+        View btnSave, btnShare;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.iv_item_image);
             title = itemView.findViewById(R.id.tv_title);
             price = itemView.findViewById(R.id.tv_price);
+            location = itemView.findViewById(R.id.tv_location);
+            status = itemView.findViewById(R.id.tv_status);
+            viewCount = itemView.findViewById(R.id.tv_view_count);
+            time = itemView.findViewById(R.id.tv_time);
+            chipCondition = itemView.findViewById(R.id.chip_condition);
+            btnSave = itemView.findViewById(R.id.btn_save);
+            btnShare = itemView.findViewById(R.id.btn_share);
         }
     }
 }

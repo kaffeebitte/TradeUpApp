@@ -191,7 +191,7 @@
                 android:layout_marginBottom="24dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 android:orientation="horizontal"
-                tools:listitem="@layout/item_card_horizontal"
+                tools:listitem="@layout/item_listing"
                 tools:itemCount="3"/>
 
             <!-- 3. Nearby Picks with See All option -->
@@ -232,7 +232,7 @@
                 android:layout_marginBottom="24dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 android:orientation="horizontal"
-                tools:listitem="@layout/item_card_horizontal"
+                tools:listitem="@layout/item_listing"
                 tools:itemCount="3"/>
 
             <!-- 4. Recently Added with See All option -->
@@ -272,7 +272,7 @@
                 android:overScrollMode="never"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 android:orientation="horizontal"
-                tools:listitem="@layout/item_card_horizontal"
+                tools:listitem="@layout/item_listing"
                 tools:itemCount="3"/>
 
         </LinearLayout>

@@ -82,7 +82,7 @@ public class MakeOfferDialogFragment extends DialogFragment {
                     tvItemTitle.setText("");
                 }
             });
-            tvItemPrice.setText("$" + listing.getPrice());
+            tvItemPrice.setText(String.format("%,.0f VNĐ", listing.getPrice()));
             // Set initial offer amount to 90% of the item price as a suggestion
             double suggestedOffer = listing.getPrice() * 0.9;
             etOfferAmount.setText(String.format("%.2f", suggestedOffer));

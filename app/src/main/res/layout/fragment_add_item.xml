@@ -114,11 +114,11 @@
             <!-- Price -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/til_price"
-                android:hint="Price"
+                android:hint="Price (đ)"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:startIconDrawable="@drawable/ic_price_24"
+                app:startIconDrawable="@drawable/ic_price_tag_vn"
                 app:startIconTint="?attr/colorPrimary"
                 android:layout_marginBottom="16dp"
                 app:helperText="Set a reasonable price to attract buyers"
@@ -129,8 +129,15 @@
                     android:id="@+id/et_price"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+                    android:inputType="number"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:maxLength="15"
+                    android:digits="0123456789"
+                    android:importantForAutofill="yes"
+                    android:autofillHints="price"
+                    android:imeOptions="actionNext"
+                    android:gravity="start"
+                    android:singleLine="true"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Category -->
@@ -180,25 +187,62 @@
             <!-- Tag -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/til_tag"
-                android:hint="Tag"
+                android:hint="Tags (comma separated)"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:startIconDrawable="@drawable/ic_tag_24"
                 app:startIconTint="?attr/colorPrimary"
-                app:helperText="Add a tag to help buyers find your item"
+                app:helperText="Separate tags with commas (e.g. laptop, apple, m1)"
                 app:helperTextEnabled="true"
                 app:shapeAppearance="?attr/shapeAppearanceSmallComponent">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_tag"
+                    android:id="@+id/et_tag_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text"
-                    android:maxLength="30"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+                    android:maxLength="100"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:imeOptions="actionDone"/>
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Tag Chips -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_tags"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:overScrollMode="never"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/item_tag_chip" />
+
+            <!-- Optional Fields: Item Behavior -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Item Behavior"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorPrimary"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switch_allow_offers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Allow Offers from Buyers"
+                android:checked="true"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switch_allow_returns"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Allow Returns"
+                android:checked="false"
+                android:layout_marginBottom="8dp" />
 
             <!-- Section: Location -->
             <TextView

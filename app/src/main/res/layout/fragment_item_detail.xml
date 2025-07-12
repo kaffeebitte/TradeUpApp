@@ -1,451 +1,514 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    android:layout_height="match_parent">
 
-    <!-- Top App Bar -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_arrow_back_24"
-            app:title="Item Details" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <androidx.core.widget.NestedScrollView
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:background="?attr/colorSurface"
+        android:fitsSystemWindows="true">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <!-- Top App Bar -->
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true">
 
-            <!-- Image ViewPager for multiple item images -->
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/item_images_viewpager"
-                android:layout_width="0dp"
-                android:layout_height="300dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <!-- Image Indicator -->
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/image_indicator"
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                app:layout_constraintBottom_toBottomOf="@id/item_images_viewpager"
-                app:tabBackground="@drawable/tab_selector"
-                app:tabGravity="center"
-                app:tabIndicatorHeight="0dp" />
+                app:navigationIcon="@drawable/ic_arrow_back_24"
+                app:title="Item Details" />
 
-            <!-- Favorites and Share buttons -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btn_favorite"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="4dp"
-                app:layout_constraintEnd_toStartOf="@id/btn_share"
-                app:layout_constraintTop_toTopOf="@id/item_images_viewpager">
+        </com.google.android.material.appbar.AppBarLayout>
 
-                <ImageView
-                    android:id="@+id/iv_favorite"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_favorite_24"
-                    app:tint="?attr/colorPrimary" />
-            </com.google.android.material.card.MaterialCardView>
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:fitsSystemWindows="true"
+            android:clipToPadding="false"
+            android:paddingBottom="96dp">
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btn_share"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="4dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/item_images_viewpager">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_share_24"
-                    app:tint="?attr/colorPrimary" />
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Item Details Container -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="16dp"
-                app:layout_constraintTop_toBottomOf="@id/item_images_viewpager">
+                android:layout_height="wrap_content">
 
-                <!-- Item Title -->
-                <TextView
-                    android:id="@+id/tv_item_title"
+                <!-- Image ViewPager for multiple item images -->
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/item_images_viewpager"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                    android:textStyle="bold"
+                    android:layout_height="300dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    tools:text="Vintage Camera Collection" />
+                    android:contentDescription="@string/cd_item_images" />
 
-                <!-- Item Price -->
-                <TextView
-                    android:id="@+id/tv_item_price"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textAppearance="?attr/textAppearanceTitleLarge"
-                    android:textColor="?attr/colorPrimary"
-                    android:textStyle="bold"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tv_item_title"
-                    tools:text="$250.00" />
-
-                <!-- Item Condition Tag -->
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_condition"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    app:chipBackgroundColor="?attr/colorSurfaceVariant"
-                    app:layout_constraintBottom_toBottomOf="@id/tv_item_price"
-                    app:layout_constraintStart_toEndOf="@id/tv_item_price"
-                    app:layout_constraintTop_toTopOf="@id/tv_item_price"
-                    tools:text="Like New" />
-
-                <!-- Item Status (Available/Pending/Sold) -->
-                <TextView
-                    android:id="@+id/tv_item_status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_status_tag"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="4dp"
-                    android:textColor="@android:color/white"
-                    app:layout_constraintBottom_toBottomOf="@id/tv_item_price"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@id/tv_item_price"
-                    tools:backgroundTint="#4CAF50"
-                    tools:text="Available" />
-
-                <!-- Location Info -->
-                <ImageView
-                    android:id="@+id/iv_location_icon"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginTop="16dp"
-                    android:src="@drawable/ic_location_24"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tv_item_price"
-                    app:tint="?attr/colorOnSurfaceVariant" />
-
-                <TextView
-                    android:id="@+id/tv_item_location"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    app:layout_constraintBottom_toBottomOf="@id/iv_location_icon"
-                    app:layout_constraintStart_toEndOf="@id/iv_location_icon"
-                    app:layout_constraintTop_toTopOf="@id/iv_location_icon"
-                    tools:text="Ho Chi Minh City" />
-
-                <TextView
-                    android:id="@+id/tv_distance"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    app:layout_constraintBottom_toBottomOf="@id/iv_location_icon"
-                    app:layout_constraintStart_toEndOf="@id/tv_item_location"
-                    app:layout_constraintTop_toTopOf="@id/iv_location_icon"
-                    tools:text="(2.5 km away)" />
-
-                <!-- Posted Date -->
-                <ImageView
-                    android:id="@+id/iv_date_icon"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginTop="8dp"
-                    android:src="@drawable/ic_tag_24"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/iv_location_icon"
-                    app:tint="?attr/colorOnSurfaceVariant" />
-
-                <TextView
-                    android:id="@+id/tv_category"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    app:layout_constraintBottom_toBottomOf="@id/iv_date_icon"
-                    app:layout_constraintStart_toEndOf="@id/iv_date_icon"
-                    app:layout_constraintTop_toTopOf="@id/iv_date_icon"
-                    tools:text="Electronics" />
-
-                <TextView
-                    android:id="@+id/tv_posted_date"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    app:layout_constraintBottom_toBottomOf="@id/iv_date_icon"
-                    app:layout_constraintStart_toEndOf="@id/tv_category"
-                    app:layout_constraintTop_toTopOf="@id/iv_date_icon"
-                    tools:text="Posted 5 days ago" />
-
-                <!-- Description Section -->
-                <TextView
-                    android:id="@+id/tv_description_label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:text="Description"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textStyle="bold"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/iv_date_icon" />
-
-                <TextView
-                    android:id="@+id/tv_description"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tv_description_label"
-                    tools:text="This is a vintage camera collection including three cameras from the 1970s. All in working condition. Perfect for collectors or photography enthusiasts. Original cases included." />
-
-                <!-- Tags -->
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/tag_group"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tv_description">
-
-                    <com.google.android.material.chip.Chip
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="vintage"
-                        app:chipBackgroundColor="?attr/colorSurfaceVariant" />
-
-                    <com.google.android.material.chip.Chip
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="camera"
-                        app:chipBackgroundColor="?attr/colorSurfaceVariant" />
-
-                    <com.google.android.material.chip.Chip
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="photography"
-                        app:chipBackgroundColor="?attr/colorSurfaceVariant" />
-                </com.google.android.material.chip.ChipGroup>
-
-                <!-- Seller Info Section -->
-                <TextView
-                    android:id="@+id/tv_seller_label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:text="Seller"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textStyle="bold"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tag_group" />
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/seller_container"
+                <!-- Image Indicator -->
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/image_indicator"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:padding="8dp"
-                    app:layout_constraintTop_toBottomOf="@id/tv_seller_label">
+                    android:layout_marginBottom="8dp"
+                    app:layout_constraintBottom_toBottomOf="@id/item_images_viewpager"
+                    app:tabBackground="@drawable/tab_selector"
+                    app:tabGravity="center"
+                    app:tabIndicatorHeight="0dp" />
 
-                    <!-- Seller Profile Image -->
-                    <com.google.android.material.imageview.ShapeableImageView
-                        android:id="@+id/iv_seller_avatar"
-                        android:layout_width="56dp"
-                        android:layout_height="56dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/ic_person_24"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:shapeAppearanceOverlay="@style/circleImageView" />
+                <!-- Favorites and Share buttons -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btn_save"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="16dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="4dp"
+                    app:layout_constraintEnd_toStartOf="@id/btn_share"
+                    app:layout_constraintTop_toTopOf="@id/item_images_viewpager">
 
-                    <!-- Seller Name -->
-                    <TextView
-                        android:id="@+id/tv_seller_name"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:textAppearance="?attr/textAppearanceBodyLarge"
-                        android:textStyle="bold"
-                        app:layout_constraintEnd_toStartOf="@id/ic_chevron"
-                        app:layout_constraintStart_toEndOf="@id/iv_seller_avatar"
-                        app:layout_constraintTop_toTopOf="@id/iv_seller_avatar"
-                        tools:text="Anh Nguyen" />
-
-                    <!-- Seller Rating -->
                     <ImageView
-                        android:id="@+id/iv_star"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginTop="4dp"
-                        android:src="@drawable/ic_star_24"
-                        app:layout_constraintStart_toEndOf="@id/iv_seller_avatar"
-                        app:layout_constraintTop_toBottomOf="@id/tv_seller_name"
-                        app:tint="?attr/colorPrimary" />
-
-                    <TextView
-                        android:id="@+id/tv_seller_rating"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        app:layout_constraintBottom_toBottomOf="@id/iv_star"
-                        app:layout_constraintStart_toEndOf="@id/iv_star"
-                        app:layout_constraintTop_toTopOf="@id/iv_star"
-                        tools:text="4.8 (56 reviews)" />
-
-                    <!-- Chevron Icon -->
-                    <ImageView
-                        android:id="@+id/ic_chevron"
+                        android:id="@+id/iv_save"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/ic_arrow_back_24"
-                        android:rotation="180"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:tint="?attr/colorOnSurfaceVariant" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_bookmark_24"
+                        app:tint="?attr/colorPrimary" />
+                </com.google.android.material.card.MaterialCardView>
 
-                <!-- Stats section -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/btn_share"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="16dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="4dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/item_images_viewpager">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_share_24"
+                        app:tint="?attr/colorPrimary" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Item Details Container -->
                 <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/stats_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    app:layout_constraintTop_toBottomOf="@id/seller_container">
+                    android:padding="16dp"
+                    app:layout_constraintTop_toBottomOf="@id/item_images_viewpager">
 
+                    <!-- Item Title -->
                     <TextView
-                        android:id="@+id/tv_views_count"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/tv_item_title"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:drawablePadding="8dp"
-                        android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        app:drawableStartCompat="@drawable/ic_eye_24"
-                        app:drawableTint="?attr/colorOnSurfaceVariant"
+                        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorOnSurface"
+                        app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        tools:text="245 views" />
+                        tools:text="Vintage Camera Collection" />
 
+                    <!-- Item Price -->
                     <TextView
-                        android:id="@+id/tv_saved_count"
+                        android:id="@+id/tv_item_price"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="24dp"
-                        android:drawablePadding="8dp"
+                        android:layout_marginTop="8dp"
+                        android:textAppearance="?attr/textAppearanceTitleLarge"
+                        android:textColor="?attr/colorPrimary"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tv_item_title"
+                        tools:text="$250.00" />
+
+                    <!-- Item Condition Tag -->
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_condition"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        app:chipBackgroundColor="?attr/colorSurfaceVariant"
+                        app:chipStrokeColor="?attr/colorOutline"
+                        app:chipStrokeWidth="1dp"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        app:layout_constraintBottom_toBottomOf="@id/tv_item_price"
+                        app:layout_constraintStart_toEndOf="@id/tv_item_price"
+                        app:layout_constraintTop_toTopOf="@id/tv_item_price"
+                        tools:text="Like New" />
+
+                    <!-- Interaction Counts Row -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/layout_interaction_counts"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/iv_location_icon">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                            <TextView
+                                android:id="@+id/tv_view_count"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:drawableStartCompat="@drawable/ic_eye_24"
+                                android:drawablePadding="4dp"
+                                android:paddingEnd="16dp"
+                                android:paddingStart="16dp"
+                                android:text="@string/view_count_zero"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                tools:text="245" />
+
+                            <TextView
+                                android:id="@+id/tv_save_count"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:drawableStartCompat="@drawable/ic_bookmark_24"
+                                android:drawablePadding="4dp"
+                                android:paddingEnd="16dp"
+                                android:paddingStart="16dp"
+                                android:text="@string/save_count_zero"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                tools:text="12" />
+
+                            <TextView
+                                android:id="@+id/tv_share_count"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:drawableLeftCompat="@drawable/ic_share_24"
+                                android:drawablePadding="4dp"
+                                android:text="@string/share_count_zero"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                tools:text="3" />
+                        </LinearLayout>
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Item Status (Available/Pending/Sold) -->
+                    <TextView
+                        android:id="@+id/tv_item_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_status_tag"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="@color/md_theme_onSuccess"
+                        app:layout_constraintBottom_toBottomOf="@id/tv_item_price"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/tv_item_price"
+                        tools:backgroundTint="#4CAF50"
+                        tools:text="Available" />
+
+                    <!-- Location Info -->
+                    <ImageView
+                        android:id="@+id/iv_location_icon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginTop="16dp"
+                        android:src="@drawable/ic_location_24"
+                        app:layout_constraintBottom_toBottomOf="@id/tv_item_location"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tv_item_price"
+                        app:tint="@color/md_theme_secondary"
+                        android:contentDescription="@string/cd_location" />
+
+                    <TextView
+                        android:id="@+id/tv_item_location"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        app:layout_constraintStart_toEndOf="@id/iv_location_icon"
+                        app:layout_constraintTop_toBottomOf="@id/tv_item_price"
+                        app:layout_constraintBottom_toBottomOf="@id/iv_location_icon"
+                        app:layout_constraintBaseline_toBaselineOf="@id/iv_location_icon"
+                        tools:text="Ho Chi Minh City" />
+
+                    <!-- Remove posted date and category if not used in fragment logic -->
+                    <!-- If you want to keep posted date and category, uncomment and update below -->
+                    <!--
+                    <ImageView
+                        android:id="@+id/iv_date_icon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginTop="8dp"
+                        android:src="@drawable/ic_tag_24"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/iv_location_icon"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:id="@+id/tv_category"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?attr/colorOnSurfaceVariant"
-                        app:drawableStartCompat="@drawable/ic_bookmark_24"
-                        app:drawableTint="?attr/colorOnSurfaceVariant"
-                        app:layout_constraintStart_toEndOf="@id/tv_views_count"
-                        app:layout_constraintTop_toTopOf="parent"
-                        tools:text="13 saves" />
+                        app:layout_constraintBottom_toBottomOf="@id/iv_date_icon"
+                        app:layout_constraintStart_toEndOf="@id/iv_date_icon"
+                        app:layout_constraintTop_toTopOf="@id/iv_date_icon"
+                        tools:text="Electronics" />
+
+                    <TextView
+                        android:id="@+id/tv_posted_date"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        app:layout_constraintBottom_toBottomOf="@id/iv_date_icon"
+                        app:layout_constraintStart_toEndOf="@id/tv_category"
+                        app:layout_constraintTop_toTopOf="@id/iv_date_icon"
+                        tools:text="Posted 5 days ago" />
+                    -->
+
+                    <!-- Description Section -->
+                    <TextView
+                        android:id="@+id/tv_description_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:text="@string/description"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorOnSurface"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/layout_interaction_counts" />
+
+                    <TextView
+                        android:id="@+id/tv_description"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tv_description_label"
+                        tools:text="This is a vintage camera collection including three cameras from the 1970s. All in working condition. Perfect for collectors or photography enthusiasts. Original cases included." />
+
+                    <!-- Tags -->
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/tag_group"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tv_description">
+
+                        <com.google.android.material.chip.Chip
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/tag_vintage"
+                            app:chipBackgroundColor="?attr/colorSurfaceVariant"
+                            app:chipStrokeColor="?attr/colorOutline"
+                            app:chipStrokeWidth="1dp"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                        <com.google.android.material.chip.Chip
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/tag_camera"
+                            app:chipBackgroundColor="?attr/colorSurfaceVariant"
+                            app:chipStrokeColor="?attr/colorOutline"
+                            app:chipStrokeWidth="1dp"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                        <com.google.android.material.chip.Chip
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/tag_photography"
+                            app:chipBackgroundColor="?attr/colorSurfaceVariant"
+                            app:chipStrokeColor="?attr/colorOutline"
+                            app:chipStrokeWidth="1dp"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+                    </com.google.android.material.chip.ChipGroup>
+
+                    <!-- Seller Info Section -->
+                    <TextView
+                        android:id="@+id/tv_seller_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:text="@string/seller"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorOnSurface"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tag_group" />
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/seller_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="8dp"
+                        app:layout_constraintTop_toBottomOf="@id/tv_seller_label">
+
+                        <!-- Seller Profile Image -->
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/iv_seller_avatar"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/ic_person_24"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:shapeAppearanceOverlay="@style/circleImageView" />
+
+                        <!-- Seller Name -->
+                        <TextView
+                            android:id="@+id/tv_seller_name"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textStyle="bold"
+                            android:textColor="?attr/colorOnSurface"
+                            app:layout_constraintEnd_toStartOf="@id/ic_chevron"
+                            app:layout_constraintStart_toEndOf="@id/iv_seller_avatar"
+                            app:layout_constraintTop_toTopOf="@id/iv_seller_avatar"
+                            tools:text="Anh Nguyen" />
+
+                        <!-- Seller Rating -->
+                        <ImageView
+                            android:id="@+id/iv_star"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginTop="4dp"
+                            android:src="@drawable/ic_star_24"
+                            app:layout_constraintStart_toEndOf="@id/iv_seller_avatar"
+                            app:layout_constraintTop_toBottomOf="@id/tv_seller_name"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:id="@+id/tv_seller_rating"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            app:layout_constraintBottom_toBottomOf="@id/iv_star"
+                            app:layout_constraintStart_toEndOf="@id/iv_star"
+                            app:layout_constraintTop_toTopOf="@id/iv_star"
+                            tools:text="4.8 (56 reviews)" />
+
+                        <!-- Chevron Icon -->
+                        <ImageView
+                            android:id="@+id/ic_chevron"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_arrow_back_24"
+                            android:rotation="180"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:tint="?attr/colorOnSurfaceVariant" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Stats section -->
+
+                    <!-- Space for bottom buttons -->
+                    <Space
+                        android:layout_width="match_parent"
+                        android:layout_height="80dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/seller_container" />
+
                 </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <!-- Space for bottom buttons -->
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="80dp"
-                    app:layout_constraintTop_toBottomOf="@id/stats_container" />
-
             </androidx.constraintlayout.widget.ConstraintLayout>
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom Actions Bar -->
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        app:cardElevation="8dp">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        </androidx.core.widget.NestedScrollView>
+
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/bottom_action_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp">
+            android:layout_gravity="bottom"
+            app:cardElevation="8dp">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_make_offer"
-                style="@style/Widget.Material3.Button.ElevatedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:text="Make Offer"
-                app:icon="@drawable/ic_local_offer_24"
-                app:layout_constraintEnd_toStartOf="@id/btn_message"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintWidth_percent="0.48" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_message"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:text="Message"
-                app:icon="@drawable/ic_chat_24"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/btn_make_offer"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintWidth_percent="0.48" />
-
-            <!-- Buy Now Button (Visible when applicable) -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_buy_now"
-                style="@style/Widget.Material3.Button"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Buy Now"
-                android:visibility="gone"
-                app:icon="@drawable/ic_shopping_cart_24"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:visibility="visible" />
+                android:padding="16dp">
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </com.google.android.material.card.MaterialCardView>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_make_offer"
+                    style="@style/Widget.Material3.Button.ElevatedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/make_offer"
+                    app:icon="@drawable/ic_local_offer_24"
+                    app:iconTint="?attr/colorOnPrimary"
+                    app:layout_constraintEnd_toStartOf="@id/btn_message"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintWidth_percent="0.48"
+                    app:backgroundTint="?attr/colorPrimary"
+                    android:textColor="?attr/colorOnPrimary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_message"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/message"
+                    app:icon="@drawable/ic_chat_24"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/btn_make_offer"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintWidth_percent="0.48"
+                    app:backgroundTint="?attr/colorSecondary"
+                    android:textColor="?attr/colorOnSecondary" />
+
+                <!-- Buy Now Button (Visible when applicable) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_buy_now"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/buy_now"
+                    android:textColor="?attr/colorOnTertiary"
+                    android:visibility="gone"
+                    app:backgroundTint="?attr/colorTertiary"
+                    app:icon="@drawable/ic_shopping_cart_24"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/btn_make_offer"
+                    app:layout_constraintWidth_percent="1.0"
+                    tools:visibility="visible" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+</FrameLayout>

@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Initialize the AppBarConfiguration with your top-level destinations
             appBarConfiguration = new AppBarConfiguration.Builder(
-                    R.id.nav_recommendations, R.id.nav_search, R.id.nav_chat, R.id.nav_profile)
+                    R.id.nav_recommendations, R.id.nav_search, R.id.nav_chat, R.id.nav_my_store, R.id.nav_profile)
                     .build();
 
             // Store the last selected item ID to track navigation state
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // Always clear backstack to main destinations when clicking bottom nav
                 if (itemId == R.id.nav_recommendations || itemId == R.id.nav_search ||
-                        itemId == R.id.nav_chat || itemId == R.id.nav_profile) {
+                        itemId == R.id.nav_chat || itemId == R.id.nav_my_store || itemId == R.id.nav_profile) {
 
                     // Navigate to the start destination of the graph to clear everything
                     navController.popBackStack(R.id.nav_recommendations, false);
