@@ -79,6 +79,8 @@ public class User implements Serializable {
     // Add this field
     private boolean deactivated;
 
+    private String id; // sample id, e.g. "user_001"
+
     /**
      * Custom serialization method
      */
@@ -396,5 +398,26 @@ public class User implements Serializable {
     }
     public void setDeactivated(boolean deactivated) {
         this.deactivated = deactivated;
+    }
+
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
+     * Get user ID or UID
+     * @return UID if available, otherwise ID
+     */
+    public String getUserIdOrUid() {
+        if (getUid() != null && !getUid().isEmpty()) {
+            return getUid();
+        }
+        if (getId() != null && !getId().isEmpty()) {
+            return getId();
+        }
+        return null;
     }
 }

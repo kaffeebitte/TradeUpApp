@@ -12,12 +12,29 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tradeupapp.R;
+import com.example.tradeupapp.core.services.FirebaseService;
+import com.example.tradeupapp.core.session.UserSession;
+import com.example.tradeupapp.models.OfferModel;
+import com.example.tradeupapp.models.ListingModel;
+import com.example.tradeupapp.models.ItemModel;
+import com.example.tradeupapp.shared.adapters.OfferAdapter;
 import com.google.android.material.textview.MaterialTextView;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class OfferHistoryFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private MaterialTextView emptyStateTextView;
+
+    private FirebaseService firebaseService;
+    private OfferAdapter offerAdapter;
+    private final List<OfferModel> offerList = new ArrayList<>();
+    private final Map<String, ListingModel> listingMap = new HashMap<>();
+    private final Map<String, ItemModel> itemMap = new HashMap<>();
 
     public static OfferHistoryFragment newInstance() {
         return new OfferHistoryFragment();
@@ -40,9 +57,71 @@ public class OfferHistoryFragment extends Fragment {
         // Setup RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        // TODO: Load offers data and set adapter
-        // For now, just show empty state
-        showEmptyState();
+        firebaseService = FirebaseService.getInstance();
+        offerAdapter = new OfferAdapter(requireContext(), offerList, listingMap, itemMap, null);
+        recyclerView.setAdapter(offerAdapter);
+
+        loadOffersOfCurrentSeller();
+    }
+
+    private void loadOffersOfCurrentSeller() {
+        String currentUserId = UserSession.getInstance().getCurrentUser().getUserIdOrUid();
+        if (currentUserId == null) {
+            showEmptyState();
+            return;
+        }
+        firebaseService.getOffersBySellerId(currentUserId, new FirebaseService.OffersCallback() {
+            @Override
+            public void onSuccess(List<OfferModel> offers) {
+                offerList.clear();
+                offerList.addAll(offers);
+                if (offers.isEmpty()) {
+                    showEmptyState();
+                    return;
+                }
+                // Lấy danh sách listingId và itemId từ các offer
+                List<String> listingIds = new ArrayList<>();
+                List<String> itemIds = new ArrayList<>();
+                for (OfferModel offer : offers) {
+                    if (offer.getListingId() != null) listingIds.add(offer.getListingId());
+                }
+                // Lấy thông tin listing
+                firebaseService.getListingsByIds(listingIds, new FirebaseService.ListingsCallback() {
+                    @Override
+                    public void onSuccess(List<ListingModel> listings) {
+                        listingMap.clear();
+                        for (ListingModel listing : listings) {
+                            listingMap.put(listing.getId(), listing);
+                            if (listing.getItemId() != null) itemIds.add(listing.getItemId());
+                        }
+                        // Lấy thông tin item
+                        firebaseService.getItemsByIds(itemIds, new FirebaseService.ItemsByIdsCallback() {
+                            @Override
+                            public void onSuccess(Map<String, ItemModel> items) {
+                                itemMap.clear();
+                                itemMap.putAll(items);
+                                offerAdapter.notifyDataSetChanged();
+                                showContent();
+                            }
+                            @Override
+                            public void onError(String error) {
+                                offerAdapter.notifyDataSetChanged();
+                                showContent();
+                            }
+                        });
+                    }
+                    @Override
+                    public void onError(String error) {
+                        offerAdapter.notifyDataSetChanged();
+                        showContent();
+                    }
+                });
+            }
+            @Override
+            public void onError(String error) {
+                showEmptyState();
+            }
+        });
     }
 
     private void showEmptyState() {

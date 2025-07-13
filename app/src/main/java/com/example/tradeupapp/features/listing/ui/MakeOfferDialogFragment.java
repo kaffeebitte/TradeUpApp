@@ -132,8 +132,9 @@ public class MakeOfferDialogFragment extends DialogFragment {
             // Create offer object using the proper OfferModel structure
             OfferModel offer = new OfferModel(
                 listing.getId(),            // listingId
+                listing.getSellerId(),      // sellerId
                 auth.getCurrentUser().getUid(), // buyerId
-                offerAmount,                // offeredPrice
+                offerAmount,                // offerAmount
                 message                     // message
             );
 

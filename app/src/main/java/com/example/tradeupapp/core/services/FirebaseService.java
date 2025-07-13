@@ -7,6 +7,7 @@ import com.example.tradeupapp.models.CategoryModel;
 import com.example.tradeupapp.models.ItemModel;
 import com.example.tradeupapp.models.ListingModel;
 import com.example.tradeupapp.models.NotificationModel;
+import com.example.tradeupapp.models.OfferModel;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
@@ -1130,6 +1131,69 @@ public class FirebaseService {
         void onError(String error);
     }
 
+    // Callback for offers
+    public interface OffersCallback {
+        void onSuccess(List<OfferModel> offers);
+        void onError(String error);
+    }
+
+    // Lấy danh sách offer theo nhiều listingId
+    public void getOffersByListingIds(List<String> listingIds, OffersCallback callback) {
+        getOffersByListingIds(listingIds, 20, callback); // Default limit 20
+    }
+
+    // Overloaded method with limit
+    public void getOffersByListingIds(List<String> listingIds, int limit, OffersCallback callback) {
+        if (listingIds == null || listingIds.isEmpty()) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+        db.collection("offers")
+            .whereIn("listingId", listingIds)
+            .limit(limit)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                List<OfferModel> offers = new ArrayList<>();
+                for (DocumentSnapshot document : queryDocumentSnapshots) {
+                    OfferModel offer = document.toObject(OfferModel.class);
+                    if (offer != null) {
+                        offer.setId(document.getId());
+                        offers.add(offer);
+                    }
+                }
+                callback.onSuccess(offers);
+            })
+            .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
+    // Phân trang lấy offer theo nhiều listingId, sắp xếp theo createdAt desc
+    public void getOffersByListingIdsPaginated(List<String> listingIds, int limit, Object lastCreatedAt, OffersCallback callback) {
+        if (listingIds == null || listingIds.isEmpty()) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+        Query query = db.collection("offers")
+            .whereIn("listingId", listingIds)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .limit(limit);
+        if (lastCreatedAt != null) {
+            query = query.startAfter(lastCreatedAt);
+        }
+        query.get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                List<OfferModel> offers = new ArrayList<>();
+                for (DocumentSnapshot document : queryDocumentSnapshots) {
+                    OfferModel offer = document.toObject(OfferModel.class);
+                    if (offer != null) {
+                        offer.setId(document.getId());
+                        offers.add(offer);
+                    }
+                }
+                callback.onSuccess(offers);
+            })
+            .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
     // Get all purchased listings for a user by querying the transaction collection
     public void getUserPurchasedListings(String userId, ListingsCallback callback) {
         db.collection("transaction")
@@ -1191,6 +1255,29 @@ public class FirebaseService {
                         }
                     }
                     callback.onSuccess(itemMap);
+                })
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
+    // Fetch multiple listings by their IDs and return as a list
+    public void getListingsByIds(List<String> listingIds, ListingsCallback callback) {
+        if (listingIds == null || listingIds.isEmpty()) {
+            callback.onSuccess(new java.util.ArrayList<>());
+            return;
+        }
+        db.collection("listings")
+                .whereIn("id", listingIds)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    java.util.List<ListingModel> listingList = new java.util.ArrayList<>();
+                    for (com.google.firebase.firestore.DocumentSnapshot document : queryDocumentSnapshots) {
+                        ListingModel listing = documentToListingModel(document);
+                        if (listing != null) {
+                            listing.setId(document.getId());
+                            listingList.add(listing);
+                        }
+                    }
+                    callback.onSuccess(listingList);
                 })
                 .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
@@ -1332,5 +1419,27 @@ public class FirebaseService {
             .add(data)
             .addOnSuccessListener(documentReference -> callback.onSuccess())
             .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
+    // Lấy danh sách offer theo sellerId (dùng cho MyStore hoặc OfferHistory)
+    public void getOffersBySellerId(String sellerId, OffersCallback callback) {
+        db.collection("offers")
+                .whereEqualTo("sellerId", sellerId)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<OfferModel> offers = new ArrayList<>();
+                    for (var document : queryDocumentSnapshots.getDocuments()) {
+                        OfferModel offer = document.toObject(OfferModel.class);
+                        if (offer != null) {
+                            offer.setId(document.getId());
+                            offers.add(offer);
+                        }
+                    }
+                    callback.onSuccess(offers);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting offers by sellerId", e);
+                    callback.onError(e.getMessage());
+                });
     }
 }

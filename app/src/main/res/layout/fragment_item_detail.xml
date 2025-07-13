@@ -458,6 +458,7 @@
                 android:layout_height="wrap_content"
                 android:padding="16dp">
 
+                <!-- Buyer action buttons (default) -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_make_offer"
                     style="@style/Widget.Material3.Button.ElevatedButton"
@@ -487,7 +488,6 @@
                     app:backgroundTint="?attr/colorSecondary"
                     android:textColor="?attr/colorOnSecondary" />
 
-                <!-- Buy Now Button (Visible when applicable) -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_buy_now"
                     style="@style/Widget.Material3.Button"
@@ -505,6 +505,39 @@
                     app:layout_constraintTop_toBottomOf="@id/btn_make_offer"
                     app:layout_constraintWidth_percent="1.0"
                     tools:visibility="visible" />
+
+                <!-- Owner action buttons (hidden by default) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_view_offers"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/view_offers"
+                    android:visibility="gone"
+                    app:icon="@drawable/ic_local_offer_24"
+                    app:iconTint="?attr/colorPrimary"
+                    app:layout_constraintEnd_toStartOf="@id/btn_update_listing"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintWidth_percent="0.48"
+                    app:backgroundTint="?attr/colorSurface"
+                    android:textColor="?attr/colorPrimary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_update_listing"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/update_listing"
+                    android:visibility="gone"
+                    app:icon="@drawable/ic_edit_24"
+                    app:iconTint="?attr/colorPrimary"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/btn_view_offers"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintWidth_percent="0.48"
+                    app:backgroundTint="?attr/colorSurface"
+                    android:textColor="?attr/colorPrimary" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>

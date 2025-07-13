@@ -147,5 +147,6 @@
     <string name="sold">Sold</string>
     <string name="views">Views</string>
     <string name="saves">Saves</string>
-    <string name="shares">Shares</string>
+    <string name="shares">Shares</string><string name="view_offers">View Offers</string>
+    <string name="update_listing">Update Listing</string>
 </resources>

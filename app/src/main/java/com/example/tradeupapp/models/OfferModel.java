@@ -1,23 +1,23 @@
 package com.example.tradeupapp.models;
 
 import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.Exclude;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Model representing an offer in the TradeUpApp.
  * Contains information about price offers made by buyers on listings.
  */
 public class OfferModel implements Serializable {
-
     // Enum for offer status
     public enum Status {
         PENDING("pending"),
         ACCEPTED("accepted"),
-        REJECTED("rejected"),
-        WITHDRAWN("withdrawn");
+        DECLINED("declined"),
+        COUNTER_OFFERED("counter_offered"),
+        WITHDRAWN("withdrawn"); // User cancelled the offer
 
         private final String value;
 
@@ -39,14 +39,18 @@ public class OfferModel implements Serializable {
         }
     }
 
-    @DocumentId
+    // @DocumentId // <-- Remove this annotation to avoid Firestore mapping conflict
     private String id; // optional - Firestore auto ID
     private String listingId; // required - reference to listing
+    private String sellerId; // required - user selling the item
     private String buyerId; // required - user making the offer
-    private double offeredPrice; // required - proposed price
+    private double offerAmount; // required - proposed price
+    private String status; // required - "pending", "accepted", "declined", "counter_offered"
     private String message; // optional - additional notes
-    private String status; // required - "pending", "accepted", "rejected", "withdrawn"
-    private Timestamp createdAt; // required - when offer was made
+    private Date createdAt; // required - when offer was made
+    private Date expiresAt; // optional - when the offer expires
+    private Date respondedAt; // optional - when the offer was responded to
+    private Double counterOffer; // optional - counter offer amount
 
     /**
      * Default constructor required for Firebase Firestore
@@ -54,33 +58,59 @@ public class OfferModel implements Serializable {
     public OfferModel() {
         // Required empty constructor for Firestore
         this.status = Status.PENDING.getValue();
-        this.createdAt = Timestamp.now();
+        this.createdAt = new Date();
     }
 
     /**
      * Constructor with essential offer information
      */
-    public OfferModel(String listingId, String buyerId, double offeredPrice, String message) {
+    public OfferModel(String listingId, String sellerId, String buyerId, double offerAmount, String message) {
         this.listingId = listingId;
+        this.sellerId = sellerId;
         this.buyerId = buyerId;
-        this.offeredPrice = offeredPrice;
+        this.offerAmount = offerAmount;
         this.message = message;
         this.status = Status.PENDING.getValue();
-        this.createdAt = Timestamp.now();
+        this.createdAt = new Date();
     }
 
     /**
      * Full constructor with all offer properties
      */
-    public OfferModel(String id, String listingId, String buyerId, double offeredPrice,
-                     String message, String status, Timestamp createdAt) {
+    public OfferModel(String id, String listingId, String sellerId, String buyerId, double offerAmount,
+                     String message, String status, Object createdAt, Object expiresAt, Object respondedAt, Double counterOffer) {
         this.id = id;
         this.listingId = listingId;
+        this.sellerId = sellerId;
         this.buyerId = buyerId;
-        this.offeredPrice = offeredPrice;
+        this.offerAmount = offerAmount;
         this.message = message;
         this.status = status != null ? status : Status.PENDING.getValue();
-        this.createdAt = createdAt != null ? createdAt : Timestamp.now();
+        this.createdAt = parseDate(createdAt);
+        this.expiresAt = parseDate(expiresAt);
+        this.respondedAt = parseDate(respondedAt);
+        this.counterOffer = counterOffer;
+    }
+
+    // Helper to parse Firestore Timestamp or String to Date
+    private Date parseDate(Object field) {
+        if (field == null) return null;
+        if (field instanceof Timestamp) return ((Timestamp) field).toDate();
+        if (field instanceof Date) return (Date) field;
+        if (field instanceof Long) return new Date((Long) field);
+        if (field instanceof String) {
+            String str = (String) field;
+            try {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US);
+                sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                return sdf.parse(str);
+            } catch (Exception e) {
+                try {
+                    return new Date(Long.parseLong(str));
+                } catch (Exception ignored) {}
+            }
+        }
+        return null;
     }
 
     // Getters and Setters
@@ -101,6 +131,14 @@ public class OfferModel implements Serializable {
         this.listingId = listingId;
     }
 
+    public String getSellerId() {
+        return sellerId;
+    }
+
+    public void setSellerId(String sellerId) {
+        this.sellerId = sellerId;
+    }
+
     public String getBuyerId() {
         return buyerId;
     }
@@ -109,20 +147,12 @@ public class OfferModel implements Serializable {
         this.buyerId = buyerId;
     }
 
-    public double getOfferedPrice() {
-        return offeredPrice;
+    public double getOfferAmount() {
+        return offerAmount;
     }
 
-    public void setOfferedPrice(double offeredPrice) {
-        this.offeredPrice = offeredPrice;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
+    public void setOfferAmount(double offerAmount) {
+        this.offerAmount = offerAmount;
     }
 
     public String getStatus() {
@@ -133,7 +163,47 @@ public class OfferModel implements Serializable {
         this.status = status != null ? status : Status.PENDING.getValue();
     }
 
-    // Helper methods for status
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Object createdAt) {
+        this.createdAt = parseDate(createdAt);
+    }
+
+    public Date getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(Object expiresAt) {
+        this.expiresAt = parseDate(expiresAt);
+    }
+
+    public Date getRespondedAt() {
+        return respondedAt;
+    }
+
+    public void setRespondedAt(Object respondedAt) {
+        this.respondedAt = parseDate(respondedAt);
+    }
+
+    public Double getCounterOffer() {
+        return counterOffer;
+    }
+
+    public void setCounterOffer(Double counterOffer) {
+        this.counterOffer = counterOffer;
+    }
+
+    // Status helpers
     @Exclude // Not stored in Firestore, computed
     public void setStatusEnum(Status statusEnum) {
         this.status = statusEnum.getValue();
@@ -144,82 +214,28 @@ public class OfferModel implements Serializable {
         return Status.fromString(status);
     }
 
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt != null ? createdAt : Timestamp.now();
-    }
-
-    /**
-     * Accept the offer
-     */
-    public void accept() {
-        this.status = Status.ACCEPTED.getValue();
-    }
-
-    /**
-     * Reject the offer
-     */
-    public void reject() {
-        this.status = Status.REJECTED.getValue();
-    }
-
-    /**
-     * Withdraw the offer (by buyer)
-     */
-    public void withdraw() {
-        this.status = Status.WITHDRAWN.getValue();
-    }
-
-    /**
-     * Check if the offer is pending
-     * @return true if the offer is pending, false otherwise
-     */
     @Exclude // Not stored in Firestore, computed
     public boolean isPending() {
         return Status.PENDING.getValue().equals(this.status);
     }
 
-    /**
-     * Check if the offer is accepted
-     * @return true if the offer is accepted, false otherwise
-     */
     @Exclude // Not stored in Firestore, computed
     public boolean isAccepted() {
         return Status.ACCEPTED.getValue().equals(this.status);
     }
 
-    /**
-     * Check if the offer is rejected
-     * @return true if the offer is rejected, false otherwise
-     */
     @Exclude // Not stored in Firestore, computed
-    public boolean isRejected() {
-        return Status.REJECTED.getValue().equals(this.status);
+    public boolean isDeclined() {
+        return Status.DECLINED.getValue().equals(this.status);
     }
 
-    /**
-     * Check if the offer is withdrawn
-     * @return true if the offer is withdrawn, false otherwise
-     */
+    @Exclude // Not stored in Firestore, computed
+    public boolean isCounterOffered() {
+        return Status.COUNTER_OFFERED.getValue().equals(this.status);
+    }
+
     @Exclude // Not stored in Firestore, computed
     public boolean isWithdrawn() {
         return Status.WITHDRAWN.getValue().equals(this.status);
-    }
-
-    /**
-     * Calculate the discount percentage compared to the original listing price
-     * @param originalPrice the original price of the listing
-     * @return the discount percentage (0-100)
-     */
-    @Exclude // Not stored in Firestore, computed
-    public double getDiscountPercentage(double originalPrice) {
-        if (originalPrice <= 0) {
-            return 0;
-        }
-        double discount = originalPrice - offeredPrice;
-        return Math.round((discount / originalPrice) * 100);
     }
 }

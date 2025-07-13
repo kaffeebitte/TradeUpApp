@@ -313,6 +313,40 @@
             </com.google.android.material.card.MaterialCardView>
             <!-- End Store Analytics Board -->
 
+            <!-- Offers Section -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/tv_offers_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Đề nghị giá từ khách hàng cho sản phẩm của bạn"
+                style="@style/TextAppearance.Material3.TitleMedium"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="4dp"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:textColor="?attr/colorOnSurface" />
+
+            <TextView
+                android:id="@+id/tv_offer_empty_state"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Chưa có đề nghị giá nào cho sản phẩm của bạn."
+                android:textColor="@color/md_theme_onSurfaceVariant"
+                android:gravity="center"
+                android:visibility="gone"
+                android:padding="16dp"
+                android:textSize="15sp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_store_offers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:clipToPadding="false"
+                android:overScrollMode="never" />
+            <!-- End Offers Section -->
+
             <!-- Listings Preview Title -->
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="match_parent"

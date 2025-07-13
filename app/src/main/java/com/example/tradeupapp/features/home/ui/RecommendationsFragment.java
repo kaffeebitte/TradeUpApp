@@ -271,16 +271,33 @@ public class RecommendationsFragment extends Fragment {
         firebaseService.getAllListings(new FirebaseService.ListingsCallback() {
             @Override
             public void onSuccess(List<ListingModel> listings) {
+                String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+                // Filter out listings where sellerId == currentUserId and only available listings (transactionStatus == "available")
+                List<ListingModel> filteredListings = new ArrayList<>();
+                for (ListingModel l : listings) {
+                    boolean isAvailable = false;
+                    try {
+                        java.lang.reflect.Method getStatusMethod = l.getClass().getMethod("getTransactionStatus");
+                        String status = (String) getStatusMethod.invoke(l);
+                        isAvailable = "available".equalsIgnoreCase(status);
+                    } catch (Exception e) {
+                        // If method does not exist, assume not available
+                        isAvailable = false;
+                    }
+                    if ((currentUserId == null || !l.getSellerId().equals(currentUserId)) && isAvailable) {
+                        filteredListings.add(l);
+                    }
+                }
                 firebaseService.getAllItems(new FirebaseService.ItemsCallback() {
                     @Override
                     public void onSuccess(List<ItemModel> allItems) {
-                        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+                        String userId = currentUserId;
                         if (userId == null) {
                             // fallback: show popular listings
-                            showPersonalizedByPopularity(listings);
+                            showPersonalizedByPopularity(filteredListings);
                             return;
                         }
-                        getUserViewedCategoriesFromListings(listings, allItems, userId, viewedCategories -> {
+                        getUserViewedCategoriesFromListings(filteredListings, allItems, userId, viewedCategories -> {
                             Double userLat = homeViewModel.getLatitude().getValue();
                             Double userLng = homeViewModel.getLongitude().getValue();
                             if (userLat == null || userLng == null) {
@@ -295,7 +312,7 @@ public class RecommendationsFragment extends Fragment {
                                 ListingWithMeta(ListingModel l, ItemModel i, double d) { listing = l; item = i; distance = d; }
                             }
                             List<ListingWithMeta> metaList = new ArrayList<>();
-                            for (ListingModel listing : listings) {
+                            for (ListingModel listing : filteredListings) {
                                 ItemModel item = null;
                                 for (ItemModel i : allItems) {
                                     if (i.getId().equals(listing.getItemId())) { item = i; break; }
@@ -330,7 +347,7 @@ public class RecommendationsFragment extends Fragment {
                     }
                     @Override
                     public void onError(String error) {
-                        showPersonalizedByPopularity(listings);
+                        showPersonalizedByPopularity(filteredListings);
                     }
                 });
             }
@@ -345,7 +362,13 @@ public class RecommendationsFragment extends Fragment {
 
     // Fallback: show by popularity only
     private void showPersonalizedByPopularity(List<ListingModel> listings) {
-        List<ListingModel> sorted = new ArrayList<>(listings);
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        List<ListingModel> sorted = new ArrayList<>();
+        for (ListingModel l : listings) {
+            if (currentUserId == null || !l.getSellerId().equals(currentUserId)) {
+                sorted.add(l);
+            }
+        }
         sorted.sort((a, b) -> Integer.compare(b.getViewCount(), a.getViewCount()));
         if (sorted.size() > 5) sorted = sorted.subList(0, 5);
         personalizedAdapter = new ListingAdapter(
@@ -360,6 +383,21 @@ public class RecommendationsFragment extends Fragment {
         firebaseService.getAllListings(new FirebaseService.ListingsCallback() {
             @Override
             public void onSuccess(List<ListingModel> listings) {
+                String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+                List<ListingModel> filteredListings = new ArrayList<>();
+                for (ListingModel l : listings) {
+                    boolean isAvailable = false;
+                    try {
+                        java.lang.reflect.Method getStatusMethod = l.getClass().getMethod("getTransactionStatus");
+                        String status = (String) getStatusMethod.invoke(l);
+                        isAvailable = "available".equalsIgnoreCase(status);
+                    } catch (Exception e) {
+                        isAvailable = false;
+                    }
+                    if ((currentUserId == null || !l.getSellerId().equals(currentUserId)) && isAvailable) {
+                        filteredListings.add(l);
+                    }
+                }
                 if (getActivity() != null && isAdded()) {
                     Double userLat = homeViewModel.getLatitude().getValue();
                     Double userLng = homeViewModel.getLongitude().getValue();
@@ -368,7 +406,6 @@ public class RecommendationsFragment extends Fragment {
                     }
                     final Double finalUserLat = userLat;
                     final Double finalUserLng = userLng;
-                    // Store listings with their distance
                     class ListingWithDistance {
                         ListingModel listing;
                         double distance;
@@ -376,7 +413,7 @@ public class RecommendationsFragment extends Fragment {
                     }
                     List<ListingWithDistance> filteredWithDistance = new ArrayList<>();
                     List<ItemModel> itemModels = new ArrayList<>();
-                    List<ListingModel> allListings = new ArrayList<>(listings);
+                    List<ListingModel> allListings = new ArrayList<>(filteredListings);
                     class Counter { int count = 0; }
                     Counter counter = new Counter();
                     for (ListingModel listing : allListings) {
@@ -394,7 +431,6 @@ public class RecommendationsFragment extends Fragment {
                                 }
                                 counter.count++;
                                 if (counter.count == allListings.size()) {
-                                    // Sort by distance ascending
                                     filteredWithDistance.sort((a, b) -> Double.compare(a.distance, b.distance));
                                     List<ListingModel> sortedNearby = new ArrayList<>();
                                     for (ListingWithDistance lwd : filteredWithDistance) {
@@ -444,8 +480,23 @@ public class RecommendationsFragment extends Fragment {
         firebaseService.getAllListings(new FirebaseService.ListingsCallback() {
             @Override
             public void onSuccess(List<ListingModel> listings) {
+                String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+                List<ListingModel> filteredListings = new ArrayList<>();
+                for (ListingModel l : listings) {
+                    boolean isAvailable = false;
+                    try {
+                        java.lang.reflect.Method getStatusMethod = l.getClass().getMethod("getTransactionStatus");
+                        String status = (String) getStatusMethod.invoke(l);
+                        isAvailable = "available".equalsIgnoreCase(status);
+                    } catch (Exception e) {
+                        isAvailable = false;
+                    }
+                    if ((currentUserId == null || !l.getSellerId().equals(currentUserId)) && isAvailable) {
+                        filteredListings.add(l);
+                    }
+                }
                 if (getActivity() != null && isAdded()) {
-                    List<ListingModel> recentListings = listings.size() > 3 ? listings.subList(0, 3) : listings;
+                    List<ListingModel> recentListings = filteredListings.size() > 3 ? filteredListings.subList(0, 3) : filteredListings;
                     recentAdapter = new ListingAdapter(
                             requireContext(),
                             recentListings,
@@ -454,7 +505,6 @@ public class RecommendationsFragment extends Fragment {
                     recentRecyclerView.setAdapter(recentAdapter);
                 }
             }
-
             @Override
             public void onError(String error) {
                 if (getActivity() != null && isAdded()) {

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:background="@color/md_theme_surface">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp">
+
+        <!-- Section 1: Image + Info -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/iv_offer_image"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@color/md_theme_surfaceVariant"
+            android:scaleType="centerCrop"
+            android:src="@drawable/sample_item_image"
+            android:visibility="visible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small"
+            tools:src="@drawable/sample_item_image"
+            tools:ignore="ContentDescription" />
+
+        <LinearLayout
+            android:id="@+id/ll_info"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/iv_offer_image"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/tv_offer_product_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                android:textColor="@color/md_theme_onSurface"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                tools:text="Canon Camera" />
+
+            <TextView
+                android:id="@+id/tv_offer_product_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                android:textColor="@color/md_theme_onSurfaceVariant"
+                android:textSize="13sp"
+                tools:text="Original Price: 1,800,000₫" />
+
+            <TextView
+                android:id="@+id/tv_offer_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:textColor="@color/md_theme_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="Offer Price: 1,500,000₫" />
+
+        </LinearLayout>
+
+        <!-- Divider -->
+
+        <!-- Section 2: Message -->
+        <TextView
+            android:id="@+id/tv_offer_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+            android:textColor="@color/md_theme_onSurfaceVariant"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="@+id/ll_info"
+            app:layout_constraintStart_toStartOf="@+id/ll_info"
+            app:layout_constraintTop_toBottomOf="@+id/ll_info"
+            tools:text="Can I buy at this price?" />
+
+        <!-- Section 3: Actions -->
+        <LinearLayout
+            android:id="@+id/offer_actions_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/tv_offer_message"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_offer_view_detail"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="View Details"
+                android:textColor="@color/md_theme_primary"
+                tools:text="View Details" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_offer_reject"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reject"
+                android:textColor="@color/md_theme_error"
+                android:layout_marginStart="8dp"
+                tools:text="Reject" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_offer_accept"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Accept"
+                android:textColor="@color/md_theme_primary"
+                android:layout_marginStart="8dp"
+                tools:text="Accept" />
+        </LinearLayout>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_offer_status"
+            style="@style/Widget.Material3.Chip.Assist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Pending"
+            app:chipBackgroundColor="@color/md_theme_secondaryContainer"
+            app:chipCornerRadius="8dp"
+            app:chipMinHeight="24dp"
+            app:chipStrokeColor="@color/md_theme_secondary"
+            app:chipStrokeWidth="0.5dp"
+            app:layout_constraintStart_toStartOf="@+id/iv_offer_image"
+            app:layout_constraintTop_toBottomOf="@+id/iv_offer_image"
+            tools:text="Pending" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -27,6 +27,8 @@ import com.example.tradeupapp.models.User;
 import com.example.tradeupapp.shared.adapters.ImageSliderAdapter;
 import com.example.tradeupapp.shared.adapters.ListingAdapter;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -42,13 +44,15 @@ public class ListingDetailFragment extends Fragment {
     private TextView tvItemTitle, tvItemPrice, tvDescription, tvCondition, tvItemLocation;
     private ViewPager2 itemImagesViewPager;
     private TabLayout imageIndicator;
-    private MaterialButton btnBuyNow, btnMakeOffer, btnMessage;
+    private MaterialButton btnBuyNow, btnMakeOffer, btnMessage, btnViewOffers, btnUpdateListing;
     private FirebaseService firebaseService;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private View sellerContainer;
     private ImageView ivSellerAvatar, ivStar;
     private TextView tvSellerName, tvSellerRating;
     private TextView tvViewCount, tvSaveCount, tvShareCount;
+    private TextView tvItemStatus;
+    private ChipGroup tagGroup;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -211,6 +215,40 @@ public class ListingDetailFragment extends Fragment {
             tvSaveCount.setText("0");
             tvShareCount.setText("0");
         }
+        // Set transaction status to tvItemStatus
+        if (tvItemStatus != null) {
+            String status = null;
+            try {
+                java.lang.reflect.Method getStatusMethod = listing.getClass().getMethod("getTransactionStatus");
+                status = (String) getStatusMethod.invoke(listing);
+            } catch (Exception e) {
+                status = null;
+            }
+            if (status != null) {
+                // Capitalize first letter
+                String displayStatus = status.substring(0, 1).toUpperCase() + status.substring(1).toLowerCase();
+                tvItemStatus.setText(displayStatus);
+                // Optionally, set color based on status
+                int colorRes;
+                switch (status.toLowerCase()) {
+                    case "available":
+                        colorRes = R.color.md_theme_onSuccess;
+                        break;
+                    case "pending":
+                        colorRes = R.color.md_theme_onSecondary;
+                        break;
+                    case "sold":
+                        colorRes = R.color.md_theme_onError;
+                        break;
+                    default:
+                        colorRes = R.color.md_theme_onSurfaceVariant;
+                        break;
+                }
+                tvItemStatus.setTextColor(getResources().getColor(colorRes, null));
+            } else {
+                tvItemStatus.setText("");
+            }
+        }
         // Show/hide Buy Now button based on listing availability
         if (btnBuyNow != null) {
             if (isListingAvailableForPurchase(listing)) {
@@ -219,6 +257,49 @@ public class ListingDetailFragment extends Fragment {
                 btnBuyNow.setVisibility(View.GONE);
             }
         }
+        // Hide Make Offer button if not allowed
+        if (btnMakeOffer != null) {
+            boolean allowOffers = false;
+            try {
+                java.lang.reflect.Method getAllowOffersMethod = listing.getClass().getMethod("getAllowOffers");
+                allowOffers = (boolean) getAllowOffersMethod.invoke(listing);
+            } catch (Exception e) {
+                // fallback: check field directly if public
+                try {
+                    java.lang.reflect.Field allowOffersField = listing.getClass().getField("allowOffers");
+                    allowOffers = allowOffersField.getBoolean(listing);
+                } catch (Exception ignored) {}
+            }
+            if (!allowOffers) {
+                btnMakeOffer.setVisibility(View.GONE);
+            } else {
+                btnMakeOffer.setVisibility(View.VISIBLE);
+            }
+        }
+        // Tags
+        if (tagGroup != null) {
+            tagGroup.removeAllViews();
+            List<String> tags = null;
+            if (listing != null && listing.getTags() != null) {
+                tags = listing.getTags();
+            }
+            if (tags != null && !tags.isEmpty()) {
+                for (String tag : tags) {
+                    Chip chip = new Chip(requireContext());
+                    chip.setText(tag);
+                    chip.setChipBackgroundColorResource(R.color.md_theme_surfaceVariant);
+                    chip.setTextColor(getResources().getColor(R.color.md_theme_onSurfaceVariant, null));
+                    chip.setChipStrokeColorResource(R.color.md_theme_outline);
+                    chip.setChipStrokeWidth(1f);
+                    tagGroup.addView(chip);
+                }
+                tagGroup.setVisibility(View.VISIBLE);
+            } else {
+                tagGroup.setVisibility(View.GONE);
+            }
+        }
+        // Show owner or buyer buttons
+        showOwnerOrBuyerButtons();
         setupButtonClickListeners();
     }
 
@@ -262,6 +343,8 @@ public class ListingDetailFragment extends Fragment {
         btnBuyNow = view.findViewById(R.id.btn_buy_now);
         btnMakeOffer = view.findViewById(R.id.btn_make_offer);
         btnMessage = view.findViewById(R.id.btn_message);
+        btnViewOffers = view.findViewById(R.id.btn_view_offers);
+        btnUpdateListing = view.findViewById(R.id.btn_update_listing);
         sellerContainer = view.findViewById(R.id.seller_container);
         ivSellerAvatar = view.findViewById(R.id.iv_seller_avatar);
         ivStar = view.findViewById(R.id.iv_star);
@@ -270,6 +353,8 @@ public class ListingDetailFragment extends Fragment {
         tvViewCount = view.findViewById(R.id.tv_view_count);
         tvSaveCount = view.findViewById(R.id.tv_save_count);
         tvShareCount = view.findViewById(R.id.tv_share_count);
+        tvItemStatus = view.findViewById(R.id.tv_item_status);
+        tagGroup = view.findViewById(R.id.tag_group);
     }
 
     private void setupToolbar() {
@@ -278,8 +363,28 @@ public class ListingDetailFragment extends Fragment {
         }
     }
 
+    private void showOwnerOrBuyerButtons() {
+        if (listing == null || firebaseService == null) return;
+        String currentUserId = firebaseService.getCurrentUserId();
+        boolean isOwner = currentUserId != null && currentUserId.equals(listing.getSellerId());
+        if (isOwner) {
+            // Show owner buttons, hide buyer buttons
+            if (btnViewOffers != null) btnViewOffers.setVisibility(View.VISIBLE);
+            if (btnUpdateListing != null) btnUpdateListing.setVisibility(View.VISIBLE);
+            if (btnMakeOffer != null) btnMakeOffer.setVisibility(View.GONE);
+            if (btnMessage != null) btnMessage.setVisibility(View.GONE);
+            if (btnBuyNow != null) btnBuyNow.setVisibility(View.GONE);
+        } else {
+            // Show buyer buttons, hide owner buttons
+            if (btnViewOffers != null) btnViewOffers.setVisibility(View.GONE);
+            if (btnUpdateListing != null) btnUpdateListing.setVisibility(View.GONE);
+            if (btnMakeOffer != null) btnMakeOffer.setVisibility(View.VISIBLE);
+            if (btnMessage != null) btnMessage.setVisibility(View.VISIBLE);
+            // btnBuyNow visibility handled by availability
+        }
+    }
+
     private void setupButtonClickListeners() {
-        // ...existing code for button click listeners...
         if (btnBuyNow != null) {
             btnBuyNow.setOnClickListener(v -> {
                 Toast.makeText(requireContext(), "Buy Now clicked", Toast.LENGTH_SHORT).show();
@@ -292,6 +397,18 @@ public class ListingDetailFragment extends Fragment {
                 args.putString("userId", listing.getSellerId());
                 androidx.navigation.NavController navController = androidx.navigation.Navigation.findNavController(requireView());
                 navController.navigate(R.id.action_itemDetailFragment_to_publicProfileFragment, args);
+            });
+        }
+        if (btnViewOffers != null) {
+            btnViewOffers.setOnClickListener(v -> {
+                Toast.makeText(requireContext(), "View Offers clicked", Toast.LENGTH_SHORT).show();
+                // TODO: Navigate to offers list for this listing
+            });
+        }
+        if (btnUpdateListing != null) {
+            btnUpdateListing.setOnClickListener(v -> {
+                Toast.makeText(requireContext(), "Update Listing clicked", Toast.LENGTH_SHORT).show();
+                // TODO: Navigate to update listing screen
             });
         }
     }

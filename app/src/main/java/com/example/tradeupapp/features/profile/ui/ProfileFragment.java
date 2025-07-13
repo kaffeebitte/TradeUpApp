@@ -327,17 +327,16 @@ public class ProfileFragment extends Fragment {
     }
 
     private void performLogout() {
-        logoutManager.performLogout(requireContext(), new LogoutManager.LogoutCallback() {
-            @Override
-            public void onLogoutComplete() {
-                Toast.makeText(requireContext(), "Successfully logged out", Toast.LENGTH_SHORT).show();
-
-                // Return to login screen
-                Intent intent = new Intent(requireContext(), AuthActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-            }
-        });
+        // Clear saved userId from SharedPreferences
+        com.example.tradeupapp.core.session.UserPrefsHelper.getInstance(requireContext()).clearUserId();
+        // Clear cached user from UserSession
+        com.example.tradeupapp.core.session.UserSession.getInstance().clear();
+        // Sign out from FirebaseAuth
+        com.google.firebase.auth.FirebaseAuth.getInstance().signOut();
+        // Navigate to AuthActivity and clear back stack
+        Intent intent = new Intent(requireContext(), com.example.tradeupapp.features.auth.ui.AuthActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
     }
 
     /**

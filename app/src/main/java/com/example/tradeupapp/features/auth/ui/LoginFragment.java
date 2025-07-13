@@ -223,6 +223,10 @@ public class LoginFragment extends Fragment {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
+                            // Save userId to SharedPreferences for auto-login
+                            com.example.tradeupapp.core.session.UserPrefsHelper.getInstance(requireContext()).saveUserId(user.getUid());
+                            // Fetch user info from Firestore and set to UserSession
+                            fetchAndCacheUser(user.getUid());
                             // Check if the email is verified
                             if (user.isEmailVerified()) {
                                 // Check if user is deleted or deactivated in Firestore
@@ -294,6 +298,10 @@ public class LoginFragment extends Fragment {
                         // Sign in success
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
+                            // Save userId to SharedPreferences for auto-login
+                            com.example.tradeupapp.core.session.UserPrefsHelper.getInstance(requireContext()).saveUserId(user.getUid());
+                            // Fetch user info from Firestore and set to UserSession
+                            fetchAndCacheUser(user.getUid());
                             // Check if user is deleted or deactivated in Firestore (Google login)
                             FirebaseFirestore db = FirebaseFirestore.getInstance();
                             db.collection("users").document(user.getUid()).get()
@@ -334,6 +342,20 @@ public class LoginFragment extends Fragment {
                     } else {
                         // Sign in failed
                         Toast.makeText(requireContext(), "Xác thực Firebase thất bại", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    // Fetch user info from Firestore and cache to UserSession
+    private void fetchAndCacheUser(String userId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("users").document(userId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        com.example.tradeupapp.models.User userModel = documentSnapshot.toObject(com.example.tradeupapp.models.User.class);
+                        if (userModel != null) {
+                            com.example.tradeupapp.core.session.UserSession.getInstance().setCurrentUser(userModel);
+                        }
                     }
                 });
     }
