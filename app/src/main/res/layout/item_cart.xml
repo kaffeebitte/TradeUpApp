@@ -22,8 +22,9 @@
             android:scaleType="centerCrop"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:shapeAppearanceOverlay="@style/RoundedCornerImageView"
-            tools:src="@drawable/sample_item_image" />
+            android:contentDescription="@string/item_image" />
 
         <!-- Item Title -->
         <TextView
@@ -35,10 +36,23 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:textAppearance="?attr/textAppearanceBodyLarge"
-            app:layout_constraintEnd_toStartOf="@id/remove_item"
             app:layout_constraintStart_toEndOf="@id/item_image"
             app:layout_constraintTop_toTopOf="@id/item_image"
+            app:layout_constraintEnd_toStartOf="@id/remove_item"
             tools:text="Bàn học gỗ cao cấp" />
+
+        <!-- Item Condition -->
+        <TextView
+            android:id="@+id/item_condition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintStart_toEndOf="@id/item_image"
+            app:layout_constraintTop_toBottomOf="@id/item_title"
+            tools:text="Mới 99%" />
 
         <!-- Item Price -->
         <TextView
@@ -46,12 +60,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
             android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="?attr/colorPrimary"
             android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@id/quantity_controls"
             app:layout_constraintStart_toEndOf="@id/item_image"
-            app:layout_constraintTop_toBottomOf="@id/item_title"
+            app:layout_constraintTop_toBottomOf="@id/item_condition"
             tools:text="₫850,000" />
 
         <!-- Remove Item Button -->
@@ -65,44 +79,5 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="?attr/colorError" />
-
-        <!-- Quantity Controls -->
-        <LinearLayout
-            android:id="@+id/quantity_controls"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            app:layout_constraintBottom_toBottomOf="@id/item_image"
-            app:layout_constraintStart_toEndOf="@id/item_image">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/decrease_quantity"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:contentDescription="@string/decrease_quantity"
-                app:icon="@drawable/ic_remove_24"
-                app:iconTint="?attr/colorOnSurface" />
-
-            <TextView
-                android:id="@+id/quantity"
-                android:layout_width="40dp"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                tools:text="1" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/increase_quantity"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:contentDescription="@string/increase_quantity"
-                app:icon="@drawable/ic_add_24"
-                app:iconTint="?attr/colorOnSurface" />
-        </LinearLayout>
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -165,7 +165,7 @@ public class ProfileFragment extends Fragment {
 
         purchasesCard.setOnClickListener(v -> {
             NavController navController = NavHostFragment.findNavController(this);
-            navController.navigate(R.id.action_nav_profile_to_purchaseHistoryFragment);
+            navController.navigate(R.id.action_nav_profile_to_purchaseOfferHistoryFragment);
         });
 
         // Account section
@@ -283,9 +283,15 @@ public class ProfileFragment extends Fragment {
         if (currentUser != null && auth.getCurrentUser() != null) {
             String uid = auth.getCurrentUser().getUid();
 
+            View rootView = getView();
+            if (rootView == null) {
+                // View is not available, avoid NullPointerException
+                return;
+            }
+
             // Load basic stats to display in header
-            TextView itemsCount = getView().findViewById(R.id.tv_items_count);
-            TextView reviewsCount = getView().findViewById(R.id.tv_reviews_count);
+            TextView itemsCount = rootView.findViewById(R.id.tv_items_count);
+            TextView reviewsCount = rootView.findViewById(R.id.tv_reviews_count);
 
             // Count user's active listings
             db.collection("items")

@@ -24,5 +24,22 @@ public class ItemRepository {
             })
             .addOnFailureListener(e -> callback.onItemLoaded(null));
     }
-}
 
+    public interface ListingCallback {
+        void onListingLoaded(com.example.tradeupapp.models.ListingModel listing);
+    }
+
+    public void getListingById(String listingId, ListingCallback callback) {
+        db.collection("listings").document(listingId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    com.example.tradeupapp.models.ListingModel listing = documentSnapshot.toObject(com.example.tradeupapp.models.ListingModel.class);
+                    callback.onListingLoaded(listing);
+                } else {
+                    callback.onListingLoaded(null);
+                }
+            })
+            .addOnFailureListener(e -> callback.onListingLoaded(null));
+    }
+}

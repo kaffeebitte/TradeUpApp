@@ -1196,7 +1196,7 @@ public class FirebaseService {
 
     // Get all purchased listings for a user by querying the transaction collection
     public void getUserPurchasedListings(String userId, ListingsCallback callback) {
-        db.collection("transaction")
+        db.collection("transactions")
             .whereEqualTo("buyerId", userId)
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -1284,7 +1284,7 @@ public class FirebaseService {
 
     // Get all transactions for a listing
     public void getTransactionsByListingId(String listingId, TransactionsCallback callback) {
-        db.collection("transaction")
+        db.collection("transactions")
             .whereEqualTo("listingId", listingId)
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -1302,7 +1302,7 @@ public class FirebaseService {
             });
     }
 
-    // Callback for fetching transactions
+    // Callback for transactions
     public interface TransactionsCallback {
         void onSuccess(List<com.example.tradeupapp.models.TransactionModel> transactions);
         void onError(String error);
@@ -1439,6 +1439,29 @@ public class FirebaseService {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error getting offers by sellerId", e);
+                    callback.onError(e.getMessage());
+                });
+    }
+
+    // Get all transactions for a user (by buyerId)
+    public void getUserTransactions(String userId, TransactionsCallback callback) {
+        db.collection("transactions")
+                .whereEqualTo("buyerId", userId)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<com.example.tradeupapp.models.TransactionModel> transactions = new ArrayList<>();
+                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                        com.example.tradeupapp.models.TransactionModel transaction = document.toObject(com.example.tradeupapp.models.TransactionModel.class);
+                        if (transaction != null) {
+                            transaction.setId(document.getId());
+                            transactions.add(transaction);
+                        }
+                    }
+                    callback.onSuccess(transactions);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting purchase transactions", e);
                     callback.onError(e.getMessage());
                 });
     }

@@ -107,7 +107,7 @@
                     app:layout_constraintTop_toTopOf="@id/btn_checkout" />
 
                 <TextView
-                    android:id="@+id/text_total_price"
+                    android:id="@+id/tv_cart_total"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"

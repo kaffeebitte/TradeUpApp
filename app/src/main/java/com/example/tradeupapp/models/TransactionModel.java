@@ -5,8 +5,6 @@ import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.Exclude;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Model representing a transaction in the TradeUpApp.
@@ -70,10 +68,16 @@ public class TransactionModel implements Serializable {
     private String listingId; // required - reference to the listing
     private String buyerId; // required - user buying the item
     private String sellerId; // required - user selling the item
-    private double finalPrice; // required - agreed price
+    private double amount; // required - agreed price (was finalPrice)
     private String paymentMethod; // required - "cash", "bank_transfer"
-    private Map<String, String> deliveryInfo; // required - name, address, phone for delivery
+    private String shippingMethod; // e.g., "pickup", "delivery"
+    private double transactionFee; // transaction fee
+    private double sellerEarnings; // seller's earnings after fee
+    private String offerId; // optional - reference to offer
+    private String address; // delivery address
+    private String phone; // delivery phone
     private String status; // required - "in_progress", "completed", "cancelled"
+    private Timestamp createdAt; // created time
     private Timestamp completedAt; // optional - only set when transaction is completed
 
     /**
@@ -81,7 +85,6 @@ public class TransactionModel implements Serializable {
      */
     public TransactionModel() {
         // Required empty constructor for Firestore
-        this.deliveryInfo = new HashMap<>();
         this.status = Status.IN_PROGRESS.getValue();
     }
 
@@ -89,13 +92,12 @@ public class TransactionModel implements Serializable {
      * Constructor with essential transaction information
      */
     public TransactionModel(String listingId, String buyerId, String sellerId,
-                          double finalPrice, String paymentMethod) {
+                          double amount, String paymentMethod) {
         this.listingId = listingId;
         this.buyerId = buyerId;
         this.sellerId = sellerId;
-        this.finalPrice = finalPrice;
+        this.amount = amount;
         this.paymentMethod = paymentMethod;
-        this.deliveryInfo = new HashMap<>();
         this.status = Status.IN_PROGRESS.getValue();
     }
 
@@ -103,16 +105,21 @@ public class TransactionModel implements Serializable {
      * Full constructor with all transaction properties
      */
     public TransactionModel(String id, String listingId, String buyerId, String sellerId,
-                         double finalPrice, String paymentMethod, Map<String, String> deliveryInfo,
-                         String status, Timestamp completedAt) {
+                         double amount, String paymentMethod, String shippingMethod, double transactionFee, double sellerEarnings, String offerId, String address, String phone, String status, Timestamp createdAt, Timestamp completedAt) {
         this.id = id;
         this.listingId = listingId;
         this.buyerId = buyerId;
         this.sellerId = sellerId;
-        this.finalPrice = finalPrice;
+        this.amount = amount;
         this.paymentMethod = paymentMethod;
-        this.deliveryInfo = deliveryInfo != null ? deliveryInfo : new HashMap<>();
+        this.shippingMethod = shippingMethod;
+        this.transactionFee = transactionFee;
+        this.sellerEarnings = sellerEarnings;
+        this.offerId = offerId;
+        this.address = address;
+        this.phone = phone;
         this.status = status != null ? status : Status.IN_PROGRESS.getValue();
+        this.createdAt = createdAt;
         this.completedAt = completedAt;
     }
 
@@ -150,12 +157,12 @@ public class TransactionModel implements Serializable {
         this.sellerId = sellerId;
     }
 
-    public double getFinalPrice() {
-        return finalPrice;
+    public double getAmount() {
+        return amount;
     }
 
-    public void setFinalPrice(double finalPrice) {
-        this.finalPrice = finalPrice;
+    public void setAmount(double amount) {
+        this.amount = amount;
     }
 
     public String getPaymentMethod() {
@@ -166,51 +173,52 @@ public class TransactionModel implements Serializable {
         this.paymentMethod = paymentMethod;
     }
 
-    // Helper methods for payment method
-    @Exclude // Not stored in Firestore, computed
-    public void setPaymentMethodEnum(PaymentMethod methodEnum) {
-        this.paymentMethod = methodEnum.getValue();
+    public String getShippingMethod() {
+        return shippingMethod;
     }
 
-    @Exclude // Not stored in Firestore, computed
-    public PaymentMethod getPaymentMethodEnum() {
-        return PaymentMethod.fromString(paymentMethod);
+    public void setShippingMethod(String shippingMethod) {
+        this.shippingMethod = shippingMethod;
     }
 
-    public Map<String, String> getDeliveryInfo() {
-        if (deliveryInfo == null) {
-            deliveryInfo = new HashMap<>();
-        }
-        return deliveryInfo;
+    public double getTransactionFee() {
+        return transactionFee;
     }
 
-    public void setDeliveryInfo(Map<String, String> deliveryInfo) {
-        this.deliveryInfo = deliveryInfo != null ? deliveryInfo : new HashMap<>();
+    public void setTransactionFee(double transactionFee) {
+        this.transactionFee = transactionFee;
     }
 
-    /**
-     * Set a specific delivery information field
-     * @param key field name (e.g., "name", "address", "phone")
-     * @param value field value
-     */
-    public void setDeliveryInfoField(String key, String value) {
-        if (this.deliveryInfo == null) {
-            this.deliveryInfo = new HashMap<>();
-        }
-        this.deliveryInfo.put(key, value);
+    public double getSellerEarnings() {
+        return sellerEarnings;
     }
 
-    /**
-     * Get a specific delivery information field
-     * @param key field name (e.g., "name", "address", "phone")
-     * @return value of the field, or null if not found
-     */
-    @Exclude // Not stored in Firestore, computed
-    public String getDeliveryInfoField(String key) {
-        if (this.deliveryInfo == null) {
-            return null;
-        }
-        return this.deliveryInfo.get(key);
+    public void setSellerEarnings(double sellerEarnings) {
+        this.sellerEarnings = sellerEarnings;
+    }
+
+    public String getOfferId() {
+        return offerId;
+    }
+
+    public void setOfferId(String offerId) {
+        this.offerId = offerId;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public String getStatus() {
@@ -221,15 +229,12 @@ public class TransactionModel implements Serializable {
         this.status = status != null ? status : Status.IN_PROGRESS.getValue();
     }
 
-    // Helper methods for status
-    @Exclude // Not stored in Firestore, computed
-    public void setStatusEnum(Status statusEnum) {
-        this.status = statusEnum.getValue();
+    public Timestamp getCreatedAt() {
+        return createdAt;
     }
 
-    @Exclude // Not stored in Firestore, computed
-    public Status getStatusEnum() {
-        return Status.fromString(status);
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Timestamp getCompletedAt() {
@@ -280,20 +285,5 @@ public class TransactionModel implements Serializable {
     @Exclude // Not stored in Firestore, computed
     public boolean isInProgress() {
         return Status.IN_PROGRESS.getValue().equals(this.status);
-    }
-
-    /**
-     * Check if delivery information is complete
-     * @return true if all required delivery fields are present
-     */
-    @Exclude // Not stored in Firestore, computed
-    public boolean hasCompleteDeliveryInfo() {
-        if (deliveryInfo == null) {
-            return false;
-        }
-        // Check for required delivery fields
-        return deliveryInfo.containsKey("name") &&
-               deliveryInfo.containsKey("address") &&
-               deliveryInfo.containsKey("phone");
     }
 }

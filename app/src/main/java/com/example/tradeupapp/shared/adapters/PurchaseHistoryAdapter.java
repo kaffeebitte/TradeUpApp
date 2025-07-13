@@ -1,7 +1,6 @@
 package com.example.tradeupapp.shared.adapters;
 
 import android.content.Context;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,10 +9,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.example.tradeupapp.R;
 import com.example.tradeupapp.models.ItemModel;
-import com.example.tradeupapp.models.ListingModel;
+import com.example.tradeupapp.models.TransactionModel;
 import com.example.tradeupapp.core.services.ItemRepository;
 import com.google.android.material.imageview.ShapeableImageView;
 
@@ -22,26 +20,32 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Adapter for purchase history - uses ListingModel for lightweight transaction records
+ * Adapter for purchase history - uses TransactionModel for lightweight transaction records
  */
 public class PurchaseHistoryAdapter extends RecyclerView.Adapter<PurchaseHistoryAdapter.ViewHolder> {
 
-    private final List<ListingModel> purchasedListings;
+    private final List<TransactionModel> transactions;
     private final OnItemClickListener listener;
     private final Context context;
     private final ItemRepository itemRepository;
+    private final java.util.Map<String, com.example.tradeupapp.models.ListingModel> listingMap;
+    private final java.util.Map<String, com.example.tradeupapp.models.ItemModel> itemMap;
 
     public interface OnItemClickListener {
-        void onItemClick(ListingModel item);
-        void onReorderClick(ListingModel item);
-        void onReviewClick(ListingModel item);
+        void onItemClick(String listingId);
+        void onReorderClick(String listingId);
+        void onReviewClick(String listingId);
     }
 
-    public PurchaseHistoryAdapter(Context context, List<ListingModel> purchasedListings, OnItemClickListener listener, ItemRepository itemRepository) {
+    public PurchaseHistoryAdapter(Context context, List<TransactionModel> transactions, OnItemClickListener listener, ItemRepository itemRepository,
+                                  java.util.Map<String, com.example.tradeupapp.models.ListingModel> listingMap,
+                                  java.util.Map<String, com.example.tradeupapp.models.ItemModel> itemMap) {
         this.context = context;
-        this.purchasedListings = purchasedListings;
+        this.transactions = transactions;
         this.listener = listener;
         this.itemRepository = itemRepository;
+        this.listingMap = listingMap;
+        this.itemMap = itemMap;
     }
 
     @NonNull
@@ -54,59 +58,62 @@ public class PurchaseHistoryAdapter extends RecyclerView.Adapter<PurchaseHistory
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        ListingModel listing = purchasedListings.get(position);
-
-        // Set placeholders first
-        holder.title.setText("Loading...");
-        holder.price.setText(String.format("₫%,.0f", listing.getPrice()));
-
-        // Purchase date (using createdAt as purchase date for purchased listings)
-        if (listing.getCreatedAt() != null) {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
-            holder.purchaseDate.setText("Purchased on " + dateFormat.format(listing.getCreatedAtTimestamp().toDate()));
+        TransactionModel transaction = transactions.get(position);
+        holder.price.setText(String.format(java.util.Locale.getDefault(), "₫%,.0f", transaction.getAmount()));
+        // Purchase date (use completedAt if available, else hide)
+        if (transaction.getCompletedAt() != null) {
+            java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.getDefault());
+            holder.purchaseDate.setText("Purchased on " + dateFormat.format(transaction.getCompletedAt().toDate()));
+            holder.purchaseDate.setVisibility(View.VISIBLE);
+        } else {
+            holder.purchaseDate.setVisibility(View.GONE);
         }
-
         // Transaction status
-        holder.status.setText(listing.getTransactionStatus() != null ? listing.getTransactionStatus() : "Completed");
-
-        // Fetch ItemModel for title and image
-        itemRepository.getItemById(listing.getItemId(), new ItemRepository.ItemCallback() {
-            @Override
-            public void onItemLoaded(ItemModel item) {
+        holder.status.setText(transaction.getStatus() != null ? transaction.getStatus() : "COMPLETED");
+        // Lấy thông tin item thực tế
+        String listingId = transaction.getListingId();
+        String itemTitle = "Unknown Item";
+        String imageUrl = null;
+        if (listingId != null && listingMap.containsKey(listingId)) {
+            com.example.tradeupapp.models.ListingModel listing = listingMap.get(listingId);
+            if (listing != null && listing.getItemId() != null && itemMap.containsKey(listing.getItemId())) {
+                com.example.tradeupapp.models.ItemModel item = itemMap.get(listing.getItemId());
                 if (item != null) {
-                    holder.title.setText(item.getTitle());
-                    // Load image if available
+                    if (item.getTitle() != null) itemTitle = item.getTitle();
                     if (item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) {
-                        String firstImageUriStr = item.getPhotoUris().get(0);
-                        Glide.with(context)
-                            .load(firstImageUriStr)
-                            .placeholder(R.drawable.ic_image_placeholder)
-                            .centerCrop()
-                            .into(holder.image);
-                    } else {
-                        holder.image.setImageResource(R.drawable.ic_image_placeholder);
+                        imageUrl = item.getPhotoUris().get(0);
                     }
-                } else {
-                    holder.title.setText("Unknown Item");
-                    holder.image.setImageResource(R.drawable.ic_image_placeholder);
                 }
             }
-        });
-
+        }
+        holder.title.setText(itemTitle);
+        if (imageUrl != null) {
+            // Sử dụng Glide hoặc Picasso nếu có, ở đây dùng Glide
+            try {
+                com.bumptech.glide.Glide.with(context)
+                        .load(imageUrl)
+                        .placeholder(R.drawable.ic_image_placeholder)
+                        .into(holder.image);
+            } catch (Exception e) {
+                holder.image.setImageResource(R.drawable.ic_image_placeholder);
+            }
+        } else {
+            holder.image.setImageResource(R.drawable.ic_image_placeholder);
+        }
         // Set click listeners
-        holder.itemView.setOnClickListener(v -> listener.onItemClick(listing));
-        holder.btnReorder.setOnClickListener(v -> listener.onReorderClick(listing));
-        holder.btnReview.setOnClickListener(v -> listener.onReviewClick(listing));
+        holder.itemView.setOnClickListener(v -> listener.onItemClick(transaction.getListingId()));
+        holder.btnReorder.setOnClickListener(v -> listener.onReorderClick(transaction.getListingId()));
+        holder.btnReview.setOnClickListener(v -> listener.onReviewClick(transaction.getListingId()));
     }
 
     @Override
     public int getItemCount() {
-        return purchasedListings.size();
+        return transactions.size();
     }
 
-    public void updateItems(List<ListingModel> newListings) {
-        purchasedListings.clear();
-        purchasedListings.addAll(newListings);
+    public void updateTransactions(List<TransactionModel> newTransactions) {
+        transactions.clear();
+        transactions.addAll(newTransactions);
         notifyDataSetChanged();
     }
 
@@ -114,7 +121,6 @@ public class PurchaseHistoryAdapter extends RecyclerView.Adapter<PurchaseHistory
         ShapeableImageView image;
         TextView title, price, purchaseDate, status;
         TextView btnReorder, btnReview;
-
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.iv_item_image);

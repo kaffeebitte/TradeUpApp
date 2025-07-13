@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -12,8 +13,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tradeupapp.R;
+import com.example.tradeupapp.core.services.CartService;
+import com.example.tradeupapp.core.services.FirebaseService;
+import com.example.tradeupapp.features.cart.ui.CartDisplayItem;
+import com.example.tradeupapp.features.cart.ui.CartListAdapter;
+import com.example.tradeupapp.models.CartItem;
 import com.example.tradeupapp.models.ItemModel;
 import com.example.tradeupapp.models.ListingModel;
 import com.google.android.material.button.MaterialButton;
@@ -21,29 +29,36 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class CheckoutFragment extends Fragment {
 
-    private ItemModel item;
-    private boolean isBuyNow;
-    private ListingModel listing; // Store the loaded listing
     private FirebaseFirestore db;
-
     // UI Components
-    private ImageView ivItemImage;
-    private TextView tvItemTitle;
-    private TextView tvItemPrice;
-    private TextView tvItemCondition;
     private TextView tvItemPriceSummary;
     private TextView tvServiceFee;
     private TextView tvTotalAmount;
     private MaterialButton btnCancel;
     private MaterialButton btnProceedPayment;
     private View progressOverlay;
+    private RecyclerView recyclerViewCart;
+    private TextView tvEmptyCart;
+    private com.google.android.material.textfield.TextInputEditText etAddressInput;
+    private com.google.android.material.textfield.TextInputEditText etPhoneInput;
+
+    // Services
+    private CartService cartService;
+    private FirebaseService firebaseService;
+    private String userId;
 
     // Constants
-    private static final double SERVICE_FEE = 2.99;
+    private static final double SERVICE_FEE = 30000; // 30,000 VND
+
+    // Adapter
+    private CartListAdapter cartListAdapter;
+    private List<CartDisplayItem> cartDisplayItems = new ArrayList<>();
 
     @Nullable
     @Override
@@ -54,108 +69,153 @@ public class CheckoutFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // Get arguments from navigation
-        if (getArguments() != null) {
-            item = (ItemModel) getArguments().getSerializable("item");
-            isBuyNow = getArguments().getBoolean("isBuyNow", false);
-        }
-
         db = FirebaseFirestore.getInstance();
         initViews(view);
         setupViews(view);
-        fetchListingAndDisplay();
+        cartService = CartService.getInstance();
+        firebaseService = FirebaseService.getInstance();
+        userId = com.example.tradeupapp.core.session.UserSession.getInstance().getId();
+        // Always auto-fill address and phone
+        com.example.tradeupapp.models.User user = com.example.tradeupapp.core.session.UserSession.getInstance().getCurrentUser();
+        android.util.Log.d("CheckoutAutoFill", "UserSession.getCurrentUser(): " + user);
+        com.google.firebase.firestore.GeoPoint geo = null;
+        if (user != null) {
+            try {
+                geo = user.getLocation();
+                android.util.Log.d("CheckoutAutoFill", "GeoPoint from getLocation(): " + geo);
+                if (geo == null) {
+                    Double lat = user.getLocationLatitude();
+                    Double lng = user.getLocationLongitude();
+                    android.util.Log.d("CheckoutAutoFill", "Fallback lat: " + lat + ", lng: " + lng);
+                    if (lat != null && lng != null) {
+                        geo = new com.google.firebase.firestore.GeoPoint(lat, lng);
+                        android.util.Log.d("CheckoutAutoFill", "Created GeoPoint from lat/lng: " + geo);
+                    }
+                }
+            } catch (Exception e) {
+                android.util.Log.e("CheckoutAutoFill", "Error getting location from user: " + e.getMessage());
+            }
+            autofillAddressFromLocation(geo);
+            String phone = user.getPhoneNumber();
+            android.util.Log.d("CheckoutAutoFill", "Phone: " + phone);
+            if (phone != null) {
+                etPhoneInput.setText(phone);
+            } else {
+                etPhoneInput.setText("");
+            }
+        } else {
+            etAddressInput.setText("");
+            etPhoneInput.setText("");
+            android.util.Log.d("CheckoutAutoFill", "User is null, set both fields empty");
+        }
+        recyclerViewCart.setLayoutManager(new LinearLayoutManager(getContext()));
+        cartListAdapter = new CartListAdapter(new ArrayList<>(), null); // null disables remove button
+        recyclerViewCart.setAdapter(cartListAdapter);
+        loadCartProducts();
     }
 
     private void initViews(View view) {
-        ivItemImage = view.findViewById(R.id.iv_item_image);
-        tvItemTitle = view.findViewById(R.id.tv_item_title);
-        tvItemPrice = view.findViewById(R.id.tv_item_price);
-        tvItemCondition = view.findViewById(R.id.tv_item_condition);
         tvItemPriceSummary = view.findViewById(R.id.tv_item_price_summary);
         tvServiceFee = view.findViewById(R.id.tv_service_fee);
         tvTotalAmount = view.findViewById(R.id.tv_total_amount);
         btnCancel = view.findViewById(R.id.btn_cancel);
         btnProceedPayment = view.findViewById(R.id.btn_proceed_payment);
         progressOverlay = view.findViewById(R.id.progress_overlay);
+        recyclerViewCart = view.findViewById(R.id.recycler_view_checkout_cart);
+        tvEmptyCart = view.findViewById(R.id.tv_empty_cart);
+        etAddressInput = view.findViewById(R.id.et_address);
+        etPhoneInput = view.findViewById(R.id.et_phone);
     }
 
     private void setupViews(View view) {
-        // Setup click listeners
-        btnCancel.setOnClickListener(v -> {
-            // Navigate back to previous screen
-            Navigation.findNavController(v).navigateUp();
-        });
-
+        btnCancel.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
         btnProceedPayment.setOnClickListener(v -> {
-            if (item != null) {
-                processPayment();
+            if (cartDisplayItems.isEmpty()) {
+                Toast.makeText(requireContext(), "Your cart is empty.", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(requireContext(), "Lỗi: Không tìm thấy thông tin sản phẩm", Toast.LENGTH_SHORT).show();
+                processPayment();
             }
         });
     }
 
-    private void fetchListingAndDisplay() {
-        if (item == null) {
-            Toast.makeText(requireContext(), "Lỗi: Không tìm thấy thông tin sản phẩm", Toast.LENGTH_SHORT).show();
+    private void processPayment() {
+        showLoading(true);
+        String address = ((TextView) requireView().findViewById(R.id.et_address)).getText().toString().trim();
+        String phone = ((TextView) requireView().findViewById(R.id.et_phone)).getText().toString().trim();
+        RadioGroup rgPayment = requireView().findViewById(R.id.rg_payment_method);
+        int selectedPaymentId = rgPayment.getCheckedRadioButtonId();
+        String paymentMethod = null;
+        if (selectedPaymentId != -1) {
+            paymentMethod = ((TextView) requireView().findViewById(selectedPaymentId)).getText().toString();
+        }
+        if (address.isEmpty() || phone.isEmpty() || paymentMethod == null) {
+            showLoading(false);
+            Toast.makeText(requireContext(), "Please fill all required fields.", Toast.LENGTH_SHORT).show();
             return;
         }
-        db.collection("listings").whereEqualTo("itemId", item.getId()).limit(1).get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-                if (!queryDocumentSnapshots.isEmpty()) {
-                    ListingModel loadedListing = queryDocumentSnapshots.getDocuments().get(0).toObject(ListingModel.class);
-                    if (loadedListing != null) {
-                        listing = loadedListing;
-                        displayItemDataWithListing();
-                        return;
-                    }
-                }
-                Toast.makeText(requireContext(), "Không tìm thấy thông tin giá sản phẩm.", Toast.LENGTH_SHORT).show();
-            })
-            .addOnFailureListener(e -> Toast.makeText(requireContext(), "Lỗi khi tải giá sản phẩm.", Toast.LENGTH_SHORT).show());
-    }
-
-    private void displayItemDataWithListing() {
-        if (item == null || listing == null) return;
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
-        tvItemTitle.setText(item.getTitle());
-        tvItemPrice.setText(currencyFormat.format(listing.getPrice()));
-        tvItemCondition.setText("Tình trạng: " + item.getCondition());
-        tvItemPriceSummary.setText(currencyFormat.format(listing.getPrice()));
-        tvServiceFee.setText(currencyFormat.format(SERVICE_FEE));
-        double totalAmount = listing.getPrice() + SERVICE_FEE;
-        tvTotalAmount.setText(currencyFormat.format(totalAmount));
-        String buttonText = isBuyNow ? "Mua ngay" : "Tiến hành thanh toán";
-        btnProceedPayment.setText(buttonText);
-        // TODO: Load item image using Glide when image URLs are available
-    }
-
-    private void processPayment() {
-        // Show loading
-        showLoading(true);
-
-        // Simulate payment processing
-        btnProceedPayment.postDelayed(() -> {
-            showLoading(false);
-
-            // TODO: Implement actual payment processing here
-            // This could include:
-            // - Payment gateway integration (Stripe, PayPal, etc.)
-            // - Order creation in Firestore
-            // - Notification to seller
-            // - Email confirmation to buyer
-
-            String successMessage = isBuyNow ?
-                "Mua hàng thành công! Đơn hàng của bạn đang được xử lý." :
-                "Thanh toán thành công! Đơn hàng của bạn đang được xử lý.";
-
-            Toast.makeText(requireContext(), successMessage, Toast.LENGTH_LONG).show();
-
-            // Navigate back to home or order confirmation screen
-            Navigation.findNavController(requireView()).navigate(R.id.nav_recommendations);
-
-        }, 2000); // Simulate 2 second processing time
+        double totalAmount = 0;
+        List<String> listingIds = new ArrayList<>();
+        for (CartDisplayItem cartItem : cartDisplayItems) {
+            totalAmount += cartItem.getListing().getPrice();
+            listingIds.add(cartItem.getListing().getId());
+        }
+        totalAmount += SERVICE_FEE;
+        final int[] completed = {0};
+        final boolean[] hasError = {false};
+        for (CartDisplayItem cartItem : cartDisplayItems) {
+            double price = cartItem.getListing().getPrice();
+            double transactionFee = SERVICE_FEE / cartDisplayItems.size();
+            double sellerEarnings = price - transactionFee;
+            java.util.Map<String, Object> order = new java.util.HashMap<>();
+            order.put("listingId", cartItem.getListing().getId());
+            order.put("sellerId", cartItem.getListing().getSellerId());
+            order.put("buyerId", userId);
+            order.put("amount", price);
+            order.put("status", "completed");
+            order.put("paymentMethod", paymentMethod);
+            order.put("shippingMethod", "pickup"); // default
+            order.put("createdAt", com.google.firebase.Timestamp.now());
+            order.put("completedAt", com.google.firebase.Timestamp.now());
+            order.put("offerId", null);
+            order.put("transactionFee", transactionFee);
+            order.put("sellerEarnings", sellerEarnings);
+            order.put("address", address);
+            order.put("phone", phone);
+            db.collection("transactions").add(order)
+                .addOnSuccessListener(documentReference -> {
+                    db.collection("listings").document(cartItem.getListing().getId())
+                        .update("transactionStatus", "sold")
+                        .addOnSuccessListener(aVoid -> {
+                            completed[0]++;
+                            if (completed[0] == cartDisplayItems.size() && !hasError[0]) {
+                                cartService.clearCart(userId, new CartService.SimpleCallback() {
+                                    @Override
+                                    public void onSuccess() {
+                                        showLoading(false);
+                                        Toast.makeText(requireContext(), "Order placed successfully!", Toast.LENGTH_LONG).show();
+                                        Navigation.findNavController(requireView()).navigate(R.id.nav_recommendations);
+                                    }
+                                    @Override
+                                    public void onError(String err) {
+                                        showLoading(false);
+                                        Toast.makeText(requireContext(), "Order placed, but failed to clear cart.", Toast.LENGTH_LONG).show();
+                                        Navigation.findNavController(requireView()).navigate(R.id.nav_recommendations);
+                                    }
+                                });
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            hasError[0] = true;
+                            showLoading(false);
+                            Toast.makeText(requireContext(), "Order placed, but failed to update product status.", Toast.LENGTH_LONG).show();
+                        });
+                })
+                .addOnFailureListener(e -> {
+                    hasError[0] = true;
+                    showLoading(false);
+                    Toast.makeText(requireContext(), "Failed to place order. Please try again.", Toast.LENGTH_LONG).show();
+                });
+        }
     }
 
     private void showLoading(boolean show) {
@@ -166,10 +226,147 @@ public class CheckoutFragment extends Fragment {
         btnCancel.setEnabled(!show);
     }
 
+    private void loadCartProducts() {
+        if (userId == null) return;
+        cartService.getCart(userId, new CartService.CartCallback() {
+            @Override
+            public void onSuccess(List<CartItem> items) {
+                List<String> listingIds = new ArrayList<>();
+                for (CartItem item : items) listingIds.add(item.getListingId());
+                if (listingIds.isEmpty()) {
+                    cartDisplayItems.clear();
+                    cartListAdapter.setCartItems(new ArrayList<>());
+                    tvEmptyCart.setVisibility(View.VISIBLE);
+                    recyclerViewCart.setVisibility(View.GONE);
+                    updateSummary();
+                    return;
+                }
+                List<ListingModel> allCartListings = new ArrayList<>();
+                List<String> allItemIds = new ArrayList<>();
+                List<List<String>> batches = new ArrayList<>();
+                for (int i = 0; i < listingIds.size(); i += 10) {
+                    batches.add(listingIds.subList(i, Math.min(i + 10, listingIds.size())));
+                }
+                final int[] batchesProcessed = {0};
+                for (List<String> batch : batches) {
+                    db.collection("listings")
+                        .whereIn("id", batch)
+                        .get()
+                        .addOnSuccessListener(queryDocumentSnapshots -> {
+                            for (com.google.firebase.firestore.DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                                ListingModel l = doc.toObject(ListingModel.class);
+                                if (l != null) {
+                                    allCartListings.add(l);
+                                    allItemIds.add(l.getItemId());
+                                }
+                            }
+                            batchesProcessed[0]++;
+                            if (batchesProcessed[0] == batches.size()) {
+                                if (allCartListings.isEmpty()) {
+                                    cartDisplayItems.clear();
+                                    cartListAdapter.setCartItems(new ArrayList<>());
+                                    tvEmptyCart.setVisibility(View.VISIBLE);
+                                    recyclerViewCart.setVisibility(View.GONE);
+                                    updateSummary();
+                                    return;
+                                }
+                                firebaseService.getItemsByIds(allItemIds, new FirebaseService.ItemsByIdsCallback() {
+                                    @Override
+                                    public void onSuccess(java.util.Map<String, ItemModel> itemMap) {
+                                        cartDisplayItems.clear();
+                                        for (ListingModel listing : allCartListings) {
+                                            ItemModel item = itemMap.get(listing.getItemId());
+                                            if (item != null) {
+                                                cartDisplayItems.add(new CartDisplayItem(listing, item));
+                                            }
+                                        }
+                                        cartListAdapter.setCartItems(cartDisplayItems);
+                                        tvEmptyCart.setVisibility(cartDisplayItems.isEmpty() ? View.VISIBLE : View.GONE);
+                                        recyclerViewCart.setVisibility(cartDisplayItems.isEmpty() ? View.GONE : View.VISIBLE);
+                                        updateSummary();
+                                    }
+                                    @Override
+                                    public void onError(String error) {
+                                        cartDisplayItems.clear();
+                                        cartListAdapter.setCartItems(new ArrayList<>());
+                                        tvEmptyCart.setVisibility(View.VISIBLE);
+                                        recyclerViewCart.setVisibility(View.GONE);
+                                        updateSummary();
+                                    }
+                                });
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            batchesProcessed[0]++;
+                            if (batchesProcessed[0] == batches.size()) {
+                                cartDisplayItems.clear();
+                                cartListAdapter.setCartItems(new ArrayList<>());
+                                tvEmptyCart.setVisibility(View.VISIBLE);
+                                recyclerViewCart.setVisibility(View.GONE);
+                                updateSummary();
+                            }
+                        });
+                }
+            }
+            @Override
+            public void onError(String error) {
+                cartDisplayItems.clear();
+                cartListAdapter.setCartItems(new ArrayList<>());
+                tvEmptyCart.setVisibility(View.VISIBLE);
+                recyclerViewCart.setVisibility(View.GONE);
+                updateSummary();
+            }
+        });
+    }
+
+    private void updateSummary() {
+        double total = 0;
+        for (CartDisplayItem item : cartDisplayItems) {
+            total += item.getListing().getPrice();
+        }
+        java.text.NumberFormat currencyFormat = java.text.NumberFormat.getInstance(new java.util.Locale("vi", "VN"));
+        String totalStr = String.format("%s đ", currencyFormat.format(total));
+        String feeStr = String.format("%s đ", currencyFormat.format(SERVICE_FEE));
+        String grandTotalStr = String.format("%s đ", currencyFormat.format(total + SERVICE_FEE));
+        tvItemPriceSummary.setText(totalStr);
+        tvServiceFee.setText(feeStr);
+        tvTotalAmount.setText(grandTotalStr);
+    }
+
+    private void autofillAddressFromLocation(com.google.firebase.firestore.GeoPoint geo) {
+        if (geo == null) {
+            etAddressInput.setText("");
+            return;
+        }
+        android.location.Geocoder geocoder = new android.location.Geocoder(requireContext(), java.util.Locale.getDefault());
+        new Thread(() -> {
+            try {
+                java.util.List<android.location.Address> addresses = geocoder.getFromLocation(geo.getLatitude(), geo.getLongitude(), 1);
+                String addressStr = null;
+                if (addresses != null && !addresses.isEmpty()) {
+                    android.location.Address address = addresses.get(0);
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
+                        sb.append(address.getAddressLine(i));
+                        if (i != address.getMaxAddressLineIndex()) sb.append(", ");
+                    }
+                    addressStr = sb.toString();
+                }
+                if (addressStr == null || addressStr.isEmpty()) {
+                    addressStr = String.format(java.util.Locale.US, "%.6f, %.6f", geo.getLatitude(), geo.getLongitude());
+                }
+                final String finalAddressStr = addressStr;
+                requireActivity().runOnUiThread(() -> etAddressInput.setText(finalAddressStr));
+            } catch (Exception e) {
+                String fallback = String.format(java.util.Locale.US, "%.6f, %.6f", geo.getLatitude(), geo.getLongitude());
+                requireActivity().runOnUiThread(() -> etAddressInput.setText(fallback));
+            }
+        }).start();
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // Remove any pending callbacks to prevent memory leaks
         if (btnProceedPayment != null) {
             btnProceedPayment.removeCallbacks(null);
         }

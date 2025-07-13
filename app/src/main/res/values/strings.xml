@@ -149,4 +149,9 @@
     <string name="saves">Saves</string>
     <string name="shares">Shares</string><string name="view_offers">View Offers</string>
     <string name="update_listing">Update Listing</string>
+
+    <!-- Purchase History Strings -->
+    <string name="purchased_on">Purchased on %1$s</string>
+    <string name="status_completed">Completed</string>
+    <string name="unknown_item">Unknown Item</string>
 </resources>

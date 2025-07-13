@@ -21,9 +21,11 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.bumptech.glide.Glide;
 import com.example.tradeupapp.R;
 import com.example.tradeupapp.core.services.FirebaseService;
+import com.example.tradeupapp.core.services.CartService;
 import com.example.tradeupapp.models.ItemModel;
 import com.example.tradeupapp.models.ListingModel;
 import com.example.tradeupapp.models.User;
+import com.example.tradeupapp.models.CartItem;
 import com.example.tradeupapp.shared.adapters.ImageSliderAdapter;
 import com.example.tradeupapp.shared.adapters.ListingAdapter;
 import com.google.android.material.button.MaterialButton;
@@ -46,6 +48,7 @@ public class ListingDetailFragment extends Fragment {
     private TabLayout imageIndicator;
     private MaterialButton btnBuyNow, btnMakeOffer, btnMessage, btnViewOffers, btnUpdateListing;
     private FirebaseService firebaseService;
+    private CartService cartService;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private View sellerContainer;
     private ImageView ivSellerAvatar, ivStar;
@@ -58,6 +61,7 @@ public class ListingDetailFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         firebaseService = FirebaseService.getInstance();
+        cartService = CartService.getInstance();
         // Get listingId from arguments
         if (getArguments() != null && getArguments().containsKey("listingId")) {
             String listingId = getArguments().getString("listingId");
@@ -387,8 +391,26 @@ public class ListingDetailFragment extends Fragment {
     private void setupButtonClickListeners() {
         if (btnBuyNow != null) {
             btnBuyNow.setOnClickListener(v -> {
-                Toast.makeText(requireContext(), "Buy Now clicked", Toast.LENGTH_SHORT).show();
-                // TODO: Implement actual buy logic here
+                if (listing == null) {
+                    Toast.makeText(requireContext(), "Listing not loaded", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                String userId = firebaseService.getCurrentUserId();
+                if (userId == null) {
+                    Toast.makeText(requireContext(), "You must be logged in to buy", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                CartItem cartItem = new CartItem(listing.getId());
+                cartService.addToCart(userId, cartItem, new CartService.SimpleCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Toast.makeText(requireContext(), "Added to cart!", Toast.LENGTH_SHORT).show();
+                    }
+                    @Override
+                    public void onError(String error) {
+                        Toast.makeText(requireContext(), "Failed to add to cart: " + error, Toast.LENGTH_SHORT).show();
+                    }
+                });
             });
         }
         if (sellerContainer != null && listing != null && listing.getSellerId() != null) {

@@ -24,6 +24,7 @@ import com.example.tradeupapp.models.ItemModel;
 import com.example.tradeupapp.models.ListingModel;
 import com.example.tradeupapp.shared.adapters.CategoryAdapter;
 import com.example.tradeupapp.shared.adapters.ListingAdapter;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -57,6 +58,8 @@ public class RecommendationsFragment extends Fragment {
     private ListingAdapter nearbyAdapter;
     private ListingAdapter recentAdapter;
 
+    private FloatingActionButton fabAddItem;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -75,6 +78,11 @@ public class RecommendationsFragment extends Fragment {
 
         // Initialize views
         initViews(view);
+
+        // FAB logic
+        fabAddItem = view.findViewById(R.id.fab_add_item);
+        updateFabForUserRole();
+        updateFabClickListener();
 
         // Set up click listeners
         setupClickListeners();
@@ -121,6 +129,21 @@ public class RecommendationsFragment extends Fragment {
         tvLocation = view.findViewById(R.id.tv_location);
 
         locationIndicator = view.findViewById(R.id.location_indicator);
+    }
+
+    private void updateFabForUserRole() {
+        if (fabAddItem != null) {
+            fabAddItem.setImageResource(R.drawable.ic_cart_24);
+            fabAddItem.setContentDescription(getString(R.string.cart));
+        }
+    }
+
+    private void updateFabClickListener() {
+        if (fabAddItem != null) {
+            fabAddItem.setOnClickListener(view -> {
+                navController.navigate(R.id.nav_cart);
+            });
+        }
     }
 
     private void setupClickListeners() {

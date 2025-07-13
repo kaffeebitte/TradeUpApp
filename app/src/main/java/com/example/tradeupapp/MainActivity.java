@@ -12,13 +12,11 @@ import androidx.navigation.ui.AppBarConfiguration;
 
 import com.example.tradeupapp.shared.auth.UserManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class MainActivity extends AppCompatActivity {
 
     private NavController navController;
     private BottomNavigationView bottomNavigationView;
-    private FloatingActionButton fabAddItem;
     private AppBarConfiguration appBarConfiguration;
     private UserManager userManager;
 
@@ -33,10 +31,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize views
         bottomNavigationView = findViewById(R.id.bottom_navigation);
-        fabAddItem = findViewById(R.id.fab_add_item);
-
-        // Configure FAB based on user role
-        updateFabForUserRole();
 
         // Handle window insets for edge-to-edge display
         View rootView = findViewById(android.R.id.content);
@@ -93,55 +87,11 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return false;
             });
-
-            // Set up role-based FAB behavior
-            updateFabClickListener();
-
-            // Configure destination changes to hide/show FAB
-            navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-                // Hide FAB on Add Item fragment and Cart fragment to avoid duplication
-                if (destination.getId() == R.id.nav_add || destination.getId() == R.id.nav_cart) {
-                    fabAddItem.hide();
-                } else {
-                    fabAddItem.show();
-                }
-            });
         });
     }
 
     @Override
     public boolean onSupportNavigateUp() {
         return navController != null && navController.navigateUp() || super.onSupportNavigateUp();
-    }
-
-    private void updateFabForUserRole() {
-        if (fabAddItem != null) {
-            if (userManager.isBuyer()) {
-                // For buyers, change FAB to cart icon
-                fabAddItem.setImageResource(R.drawable.ic_cart_24);
-                fabAddItem.setContentDescription(getString(R.string.cart));
-            } else {
-                // For sellers, keep add item icon
-                fabAddItem.setImageResource(R.drawable.ic_add_24);
-                fabAddItem.setContentDescription(getString(R.string.add_listing));
-            }
-        }
-    }
-
-    /**
-     * Updates the FAB click listener based on user role
-     */
-    private void updateFabClickListener() {
-        if (navController != null && fabAddItem != null) {
-            fabAddItem.setOnClickListener(view -> {
-                if (userManager.isBuyer()) {
-                    // Navigate to cart for buyers
-                    navController.navigate(R.id.nav_cart);
-                } else {
-                    // Navigate to add listing for sellers
-                    navController.navigate(R.id.nav_add);
-                }
-            });
-        }
     }
 }
