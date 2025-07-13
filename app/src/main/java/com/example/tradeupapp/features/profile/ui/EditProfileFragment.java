@@ -23,6 +23,7 @@ import com.example.tradeupapp.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.io.IOException;
 import java.util.List;
@@ -37,6 +38,7 @@ public class EditProfileFragment extends Fragment {
     private TextInputEditText contactEditText;
     private TextInputEditText locationEditText;
     private MaterialButton saveButton;
+    private TextInputLayout locationInputLayout;
 
     private ActivityResultLauncher<Intent> imagePickerLauncher;
     private Uri selectedImageUri;
@@ -116,6 +118,7 @@ public class EditProfileFragment extends Fragment {
         contactEditText = view.findViewById(R.id.et_contact);
         locationEditText = view.findViewById(R.id.et_location);
         saveButton = view.findViewById(R.id.btn_save);
+        locationInputLayout = view.findViewById(R.id.til_location);
     }
 
     private void loadUserData() {
@@ -164,10 +167,14 @@ public class EditProfileFragment extends Fragment {
         // Handle change avatar click
         changeAvatarText.setOnClickListener(v -> openImagePicker());
 
-        // Use Navigation to open map picker fragment
-        locationEditText.setOnClickListener(v -> {
-            Navigation.findNavController(requireView()).navigate(R.id.action_editProfileFragment_to_mapPickerFragment);
+        // Only open map picker when clicking the end icon
+        locationInputLayout.setEndIconOnClickListener(v -> {
+            Bundle args = new Bundle();
+            args.putBoolean("isFullAddress", true); // Always get full address for profile
+            Navigation.findNavController(requireView()).navigate(R.id.action_editProfileFragment_to_mapPickerFragment, args);
         });
+
+        // Do NOT open map picker when clicking the field itself, just allow keyboard input
 
         // Handle save button click
         saveButton.setOnClickListener(v -> saveUserProfile());
@@ -303,14 +310,26 @@ public class EditProfileFragment extends Fragment {
         });
     }
 
-    // Helper: set location field with address from lat/lng
+    // Helper: set location field with address from lat/lng or fallback to less detailed address
     private void setLocationFieldWithAddress(double latitude, double longitude) {
         Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
         try {
             List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
             if (addresses != null && !addresses.isEmpty()) {
-                String addressLine = addresses.get(0).getAddressLine(0);
-                locationEditText.setText(addressLine);
+                Address address = addresses.get(0);
+                String addressLine = address.getAddressLine(0);
+                if (addressLine != null && !addressLine.isEmpty()) {
+                    locationEditText.setText(addressLine);
+                } else if (address.getThoroughfare() != null && !address.getThoroughfare().isEmpty()) {
+                    // Fallback to street name if addressLine is not available
+                    locationEditText.setText(address.getThoroughfare());
+                } else if (address.getLocality() != null && !address.getLocality().isEmpty()) {
+                    // Fallback to district/city
+                    locationEditText.setText(address.getLocality());
+                } else {
+                    // Fallback to lat/lng
+                    locationEditText.setText(String.format(Locale.getDefault(), "%.5f, %.5f", latitude, longitude));
+                }
             } else {
                 locationEditText.setText(String.format(Locale.getDefault(), "%.5f, %.5f", latitude, longitude));
             }

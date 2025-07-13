@@ -167,7 +167,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:hint="Location"
-                        app:endIconDrawable="@drawable/ic_map_24"
+                        app:endIconDrawable="@drawable/ic_my_location_24"
                         app:endIconMode="custom"
                         app:startIconDrawable="@drawable/ic_location_24">
 
@@ -176,7 +176,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:clickable="true"
-                            android:focusable="false"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
                             android:inputType="text" />
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>

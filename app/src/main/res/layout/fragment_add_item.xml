@@ -277,7 +277,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPostalAddress"
-                    android:focusable="false"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:clickable="true"
                     android:textAppearance="?attr/textAppearanceBodyLarge" />
             </com.google.android.material.textfield.TextInputLayout>
 

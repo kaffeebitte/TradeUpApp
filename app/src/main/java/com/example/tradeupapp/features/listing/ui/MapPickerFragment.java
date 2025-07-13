@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,11 +29,12 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+
+import androidx.appcompat.widget.SearchView;
 
 public class MapPickerFragment extends Fragment implements OnMapReadyCallback {
 
@@ -42,6 +44,10 @@ public class MapPickerFragment extends Fragment implements OnMapReadyCallback {
     private TextView tvAddress;
     private TextView tvCoordinates;
     private LatLng selectedLocation;
+    private SearchView searchViewLocation;
+    private boolean isFullAddress = false;
+    private ProgressBar progressBarSearch;
+    private View mapDimOverlay;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -57,7 +63,9 @@ public class MapPickerFragment extends Fragment implements OnMapReadyCallback {
         tvAddress = view.findViewById(R.id.tvAddress);
         tvCoordinates = view.findViewById(R.id.tvCoordinates);
         MaterialButton btnSelectLocation = view.findViewById(R.id.btnSelectLocation);
-        FloatingActionButton fabMyLocation = view.findViewById(R.id.fabMyLocation);
+        searchViewLocation = view.findViewById(R.id.searchViewLocation);
+        progressBarSearch = view.findViewById(R.id.progressBarSearch);
+        mapDimOverlay = view.findViewById(R.id.mapDimOverlay);
 
         // Initialize location services
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
@@ -67,6 +75,11 @@ public class MapPickerFragment extends Fragment implements OnMapReadyCallback {
                 .findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
+        }
+
+        // Check arguments for isFullAddress
+        if (getArguments() != null) {
+            isFullAddress = getArguments().getBoolean("isFullAddress", false);
         }
 
         // Set up button click listeners
@@ -87,9 +100,29 @@ public class MapPickerFragment extends Fragment implements OnMapReadyCallback {
             }
         });
 
-        fabMyLocation.setOnClickListener(v -> {
-            if (mMap != null) {
-                moveToCurrentLocation();
+        // Set up search view listener
+        searchViewLocation.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                if (query != null && !query.isEmpty()) {
+                    geocodeAndMoveToLocation(query);
+                }
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+
+        // Trigger search when clicking anywhere on the SearchView (not just the icon)
+        searchViewLocation.setOnClickListener(v -> {
+            searchViewLocation.setIconified(false); // Expand the search view
+        });
+        searchViewLocation.setOnQueryTextFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                searchViewLocation.setIconified(false);
             }
         });
     }
@@ -143,40 +176,49 @@ public class MapPickerFragment extends Fragment implements OnMapReadyCallback {
                 "Lat: %.6f, Lng: %.6f", latLng.latitude, latLng.longitude);
         tvCoordinates.setText(coordinatesText);
 
-        // Get address from coordinates using Geocoder
-        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
-        try {
-            List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
-            if (addresses != null && !addresses.isEmpty()) {
-                Address address = addresses.get(0);
-                // Lấy phường/xã, quận/huyện, tỉnh/thành phố
-                String ward = address.getSubLocality(); // phường/xã
-                String district = address.getLocality(); // quận/huyện
-                if (district == null) district = address.getSubAdminArea(); // fallback
-                String city = address.getAdminArea(); // tỉnh/thành phố
-                StringBuilder addressText = new StringBuilder();
-                if (ward != null && !ward.isEmpty()) {
-                    addressText.append(ward);
-                }
-                if (district != null && !district.isEmpty()) {
-                    if (addressText.length() > 0) addressText.append(", ");
-                    addressText.append(district);
-                }
-                if (city != null && !city.isEmpty()) {
-                    if (addressText.length() > 0) addressText.append(", ");
-                    addressText.append(city);
-                }
-                if (addressText.length() > 0) {
-                    tvAddress.setText(addressText.toString());
-                } else {
-                    tvAddress.setText("Address not found");
-                }
-            } else {
-                tvAddress.setText("Address not found");
+        // Move Geocoder call to background thread
+        new Thread(() -> {
+            Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+            try {
+                List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+                requireActivity().runOnUiThread(() -> {
+                    if (addresses != null && !addresses.isEmpty()) {
+                        Address address = addresses.get(0);
+                        if (isFullAddress) {
+                            String fullAddress = address.getAddressLine(0);
+                            tvAddress.setText(fullAddress != null ? fullAddress : "Address not found");
+                        } else {
+                            // Lấy phường/xã, quận/huyện, tỉnh/thành phố
+                            String ward = address.getSubLocality(); // phường/xã
+                            String district = address.getLocality(); // quận/huyện
+                            if (district == null) district = address.getSubAdminArea(); // fallback
+                            String city = address.getAdminArea(); // tỉnh/thành phố
+                            StringBuilder addressText = new StringBuilder();
+                            if (ward != null && !ward.isEmpty()) {
+                                addressText.append(ward);
+                            }
+                            if (district != null && !district.isEmpty()) {
+                                if (addressText.length() > 0) addressText.append(", ");
+                                addressText.append(district);
+                            }
+                            if (city != null && !city.isEmpty()) {
+                                if (addressText.length() > 0) addressText.append(", ");
+                                addressText.append(city);
+                            }
+                            if (addressText.length() > 0) {
+                                tvAddress.setText(addressText.toString());
+                            } else {
+                                tvAddress.setText("Address not found");
+                            }
+                        }
+                    } else {
+                        tvAddress.setText("Address not found");
+                    }
+                });
+            } catch (IOException e) {
+                requireActivity().runOnUiThread(() -> tvAddress.setText("Unable to get address"));
             }
-        } catch (IOException e) {
-            tvAddress.setText("Unable to get address");
-        }
+        }).start();
     }
 
     private void enableMyLocation() {
@@ -206,5 +248,52 @@ public class MapPickerFragment extends Fragment implements OnMapReadyCallback {
                 Toast.makeText(requireContext(), "Location permission denied", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    private void geocodeAndMoveToLocation(String locationName) {
+        // Show spinner and dim map
+        requireActivity().runOnUiThread(() -> {
+            if (progressBarSearch != null) progressBarSearch.setVisibility(View.VISIBLE);
+            if (mapDimOverlay != null) mapDimOverlay.setVisibility(View.VISIBLE);
+        });
+        new Thread(() -> {
+            Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+            String query = locationName;
+            List<Address> addresses = null;
+            int tryCount = 0;
+            // Thử tối đa 3 lần với địa chỉ rút gọn dần
+            while (tryCount < 3) {
+                try {
+                    addresses = geocoder.getFromLocationName(query, 1);
+                } catch (IOException e) {
+                    addresses = null;
+                }
+                if (addresses != null && !addresses.isEmpty()) break;
+                // Nếu không tìm được, rút gọn địa chỉ
+                int commaIdx = query.indexOf(",");
+                if (commaIdx > 0) {
+                    query = query.substring(commaIdx + 1).trim();
+                } else {
+                    break;
+                }
+                tryCount++;
+            }
+            final List<Address> finalAddresses = addresses;
+            requireActivity().runOnUiThread(() -> {
+                // Hide spinner and undim map
+                if (progressBarSearch != null) progressBarSearch.setVisibility(View.GONE);
+                if (mapDimOverlay != null) mapDimOverlay.setVisibility(View.GONE);
+                if (finalAddresses != null && !finalAddresses.isEmpty()) {
+                    Address address = finalAddresses.get(0);
+                    LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+                    if (mMap != null) {
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f));
+                    }
+                    updateLocationInfo(latLng);
+                } else {
+                    Toast.makeText(requireContext(), "Location not found, please try a more general address.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }).start();
     }
 }

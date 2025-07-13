@@ -84,27 +84,25 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
         View view = inflater.inflate(R.layout.fragment_add_item, container, false);
         // Initialize views
         initViews(view);
-
         // Setup photo adapter
         setupPhotoAdapter();
-
         // Setup category and condition dropdowns
         setupDropdowns();
-
         // Setup click listeners for buttons
         setupClickListeners();
-
         // Set up observer for map picker result - moved from onCreate()
         setupMapPickerResultObserver();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
         // Tự động lấy location khi vào màn hình
-        requestLocationWithPermission();
-        etLocation.setOnClickListener(v -> {
-            // Chỉ mở map picker khi click vào field
-            NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
-            navController.navigate(R.id.action_nav_add_to_mapPickerFragment);
+        autofillLocation();
+        // etLocation cho nhập liệu tự do, chỉ mở map picker khi bấm icon định vị
+        tilLocation.setEndIconOnClickListener(v -> {
+            Bundle args = new Bundle();
+            args.putBoolean("isFullAddress", true);
+            Navigation.findNavController(requireActivity(), R.id.nav_host_fragment)
+                .navigate(R.id.action_nav_add_to_mapPickerFragment, args);
         });
-        tilLocation.setEndIconOnClickListener(v -> requestLocationWithPermission());
+        // Không mở map picker khi click vào etLocation, chỉ cho nhập liệu
         return view;
     }
 
@@ -507,6 +505,7 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
         }
     }
 
+    // Helper: set location field with address from lat/lng or fallback to less detailed address
     private void fillLocationField(Location location) {
         Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
         try {
@@ -514,7 +513,18 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
             if (addresses != null && !addresses.isEmpty()) {
                 Address address = addresses.get(0);
                 String addressLine = address.getAddressLine(0);
-                etLocation.setText(addressLine);
+                if (addressLine != null && !addressLine.isEmpty()) {
+                    etLocation.setText(addressLine);
+                } else if (address.getThoroughfare() != null && !address.getThoroughfare().isEmpty()) {
+                    // Fallback to street name if addressLine is not available
+                    etLocation.setText(address.getThoroughfare());
+                } else if (address.getLocality() != null && !address.getLocality().isEmpty()) {
+                    // Fallback to district/city
+                    etLocation.setText(address.getLocality());
+                } else {
+                    // Fallback to lat/lng
+                    etLocation.setText(location.getLatitude() + ", " + location.getLongitude());
+                }
             } else {
                 etLocation.setText(location.getLatitude() + ", " + location.getLongitude());
             }
