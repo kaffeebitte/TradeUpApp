@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/tv_offer_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Make an Offer"
+        android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+        android:layout_gravity="center_horizontal"
+        android:paddingBottom="16dp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Offer Amount (₫)"
+        android:paddingBottom="8dp"
+        app:endIconMode="custom">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_offer_amount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:maxLines="1" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enter your offer in VND"
+        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+        android:textColor="@color/md_theme_onSurfaceVariant"
+        android:paddingBottom="8dp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Message (optional)"
+        android:paddingBottom="12dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_offer_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:minLines="2"
+            android:maxLines="4" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <Button
+            android:id="@+id/btn_cancel_offer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel"
+            android:backgroundTint="@color/md_theme_surfaceVariant"
+            android:textColor="@color/md_theme_onSurfaceVariant"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btn_submit_offer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Send Offer"
+            style="@style/Widget.Material3.Button"
+            android:backgroundTint="@color/md_theme_primary"
+            android:textColor="@color/md_theme_onPrimary" />
+    </LinearLayout>
+
+</LinearLayout>

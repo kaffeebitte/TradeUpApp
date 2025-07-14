@@ -1465,4 +1465,88 @@ public class FirebaseService {
                     callback.onError(e.getMessage());
                 });
     }
+
+    // Callback for listing fetch
+    public interface ListingCallback {
+        void onSuccess(ListingModel listing);
+        void onError(String error);
+    }
+
+    // Get listing by ID
+    public void getListingById(String listingId, ListingCallback callback) {
+        db.collection("listings")
+                .document(listingId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        ListingModel listing = documentToListingModel(documentSnapshot);
+                        if (listing != null) {
+                            callback.onSuccess(listing);
+                        } else {
+                            callback.onError("Failed to parse listing data");
+                        }
+                    } else {
+                        callback.onError("Listing not found");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting listing by ID", e);
+                    callback.onError(e.getMessage());
+                });
+    }
+
+    // Lấy danh sách offer theo buyerId (dùng cho OfferHistory ở tab History)
+    public void getOffersByBuyerId(String buyerId, OffersCallback callback) {
+        db.collection("offers")
+                .whereEqualTo("buyerId", buyerId)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<OfferModel> offers = new ArrayList<>();
+                    for (var document : queryDocumentSnapshots.getDocuments()) {
+                        OfferModel offer = document.toObject(OfferModel.class);
+                        if (offer != null) {
+                            offer.setId(document.getId());
+                            offers.add(offer);
+                        }
+                    }
+                    callback.onSuccess(offers);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting offers by buyerId", e);
+                    callback.onError(e.getMessage());
+                });
+    }
+
+    // Create a new offer in Firestore
+    public void createOffer(OfferModel offer, SimpleCallback callback) {
+        if (offer == null) {
+            if (callback != null) callback.onError("Offer is null");
+            return;
+        }
+        db.collection("offers")
+            .add(offer)
+            .addOnSuccessListener(documentReference -> {
+                if (callback != null) callback.onSuccess();
+            })
+            .addOnFailureListener(e -> {
+                if (callback != null) callback.onError(e.getMessage());
+            });
+    }
+
+    // Update an existing offer in Firestore by its id
+    public void updateOffer(OfferModel offer, SimpleCallback callback) {
+        if (offer == null || offer.getId() == null) {
+            if (callback != null) callback.onError("Offer or Offer ID is null");
+            return;
+        }
+        db.collection("offers")
+            .document(offer.getId())
+            .set(offer)
+            .addOnSuccessListener(aVoid -> {
+                if (callback != null) callback.onSuccess();
+            })
+            .addOnFailureListener(e -> {
+                if (callback != null) callback.onError(e.getMessage());
+            });
+    }
 }

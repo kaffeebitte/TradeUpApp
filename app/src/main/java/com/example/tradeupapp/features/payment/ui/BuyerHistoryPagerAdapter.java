@@ -29,7 +29,7 @@ public class BuyerHistoryPagerAdapter extends FragmentStateAdapter {
             case SAVED_ITEMS_TAB:
                 return SavedItemsFragment.newInstance();
             case OFFER_HISTORY_TAB:
-                return OfferHistoryFragment.newInstance();
+                return OfferHistoryFragment.newInstance("buyer");
             case PURCHASE_HISTORY_TAB:
                 return PurchaseHistoryFragment.newInstance();
             default:

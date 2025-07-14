@@ -1,5 +1,6 @@
 package com.example.tradeupapp.features.listing.ui;
 
+import android.app.AlertDialog;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -7,6 +8,7 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,6 +18,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
@@ -26,8 +30,10 @@ import com.example.tradeupapp.models.ItemModel;
 import com.example.tradeupapp.models.ListingModel;
 import com.example.tradeupapp.models.User;
 import com.example.tradeupapp.models.CartItem;
+import com.example.tradeupapp.models.OfferModel;
 import com.example.tradeupapp.shared.adapters.ImageSliderAdapter;
 import com.example.tradeupapp.shared.adapters.ListingAdapter;
+import com.example.tradeupapp.shared.adapters.OfferAdapter;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -38,6 +44,8 @@ import java.util.ArrayList;
 import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.HashMap;
 
 public class ListingDetailFragment extends Fragment {
     private ListingModel listing;
@@ -56,6 +64,11 @@ public class ListingDetailFragment extends Fragment {
     private TextView tvViewCount, tvSaveCount, tvShareCount;
     private TextView tvItemStatus;
     private ChipGroup tagGroup;
+    private RecyclerView rvOffers;
+    private OfferAdapter offerAdapter;
+    private List<OfferModel> offerList = new ArrayList<>();
+    private Map<String, ListingModel> listingMap = new HashMap<>();
+    private Map<String, ItemModel> itemMap = new HashMap<>();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -74,7 +87,8 @@ public class ListingDetailFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_item_detail, container, false);
+        View view = inflater.inflate(R.layout.fragment_item_detail, container, false);
+        return view;
     }
 
     @Override
@@ -84,6 +98,23 @@ public class ListingDetailFragment extends Fragment {
         itemImagesViewPager.setAdapter(new ImageSliderAdapter(requireContext(), new ArrayList<>()));
         new TabLayoutMediator(imageIndicator, itemImagesViewPager, (tab, position) -> {}).attach();
         setupToolbar();
+        rvOffers.setLayoutManager(new LinearLayoutManager(getContext()));
+        offerAdapter = new OfferAdapter(getContext(), offerList, listingMap, itemMap, new OfferAdapter.OnOfferActionListener() {
+            @Override
+            public void onViewDetail(ListingModel listing) {
+                // Implement view detail logic
+            }
+            @Override
+            public void onAccept(OfferModel offer, ListingModel listing) {
+                // Implement accept logic
+            }
+            @Override
+            public void onReject(OfferModel offer, ListingModel listing) {
+                // Implement reject logic
+            }
+        });
+        rvOffers.setAdapter(offerAdapter);
+        loadOffersForListing();
     }
 
     private void loadListingAndItem(String listingId) {
@@ -261,20 +292,21 @@ public class ListingDetailFragment extends Fragment {
                 btnBuyNow.setVisibility(View.GONE);
             }
         }
-        // Hide Make Offer button if not allowed
+        // Hide Make Offer button if not allowed or user is seller
         if (btnMakeOffer != null) {
             boolean allowOffers = false;
             try {
                 java.lang.reflect.Method getAllowOffersMethod = listing.getClass().getMethod("getAllowOffers");
                 allowOffers = (boolean) getAllowOffersMethod.invoke(listing);
             } catch (Exception e) {
-                // fallback: check field directly if public
                 try {
                     java.lang.reflect.Field allowOffersField = listing.getClass().getField("allowOffers");
                     allowOffers = allowOffersField.getBoolean(listing);
                 } catch (Exception ignored) {}
             }
             if (!allowOffers) {
+                btnMakeOffer.setVisibility(View.GONE);
+            } else if (isCurrentUserSeller()) {
                 btnMakeOffer.setVisibility(View.GONE);
             } else {
                 btnMakeOffer.setVisibility(View.VISIBLE);
@@ -326,6 +358,11 @@ public class ListingDetailFragment extends Fragment {
         }
     }
 
+    private boolean isCurrentUserSeller() {
+        String currentUserId = firebaseService.getCurrentUserId();
+        return currentUserId != null && listing != null && currentUserId.equals(listing.getSellerId());
+    }
+
     private String formatPrice(double price) {
         return String.format(Locale.getDefault(), "%,.0f đ", price);
     }
@@ -359,6 +396,7 @@ public class ListingDetailFragment extends Fragment {
         tvShareCount = view.findViewById(R.id.tv_share_count);
         tvItemStatus = view.findViewById(R.id.tv_item_status);
         tagGroup = view.findViewById(R.id.tag_group);
+        rvOffers = view.findViewById(R.id.rv_offers); // Ensure you have this RecyclerView in your layout
     }
 
     private void setupToolbar() {
@@ -413,6 +451,9 @@ public class ListingDetailFragment extends Fragment {
                 });
             });
         }
+        if (btnMakeOffer != null) {
+            btnMakeOffer.setOnClickListener(v -> showMakeOfferDialog());
+        }
         if (sellerContainer != null && listing != null && listing.getSellerId() != null) {
             sellerContainer.setOnClickListener(v -> {
                 Bundle args = new Bundle();
@@ -424,7 +465,7 @@ public class ListingDetailFragment extends Fragment {
         if (btnViewOffers != null) {
             btnViewOffers.setOnClickListener(v -> {
                 Toast.makeText(requireContext(), "View Offers clicked", Toast.LENGTH_SHORT).show();
-                // TODO: Navigate to offers list for this listing
+                showOffersDialog();
             });
         }
         if (btnUpdateListing != null) {
@@ -433,5 +474,276 @@ public class ListingDetailFragment extends Fragment {
                 // TODO: Navigate to update listing screen
             });
         }
+    }
+
+    private void showMakeOfferDialog() {
+        if (listing == null || item == null) {
+            Toast.makeText(requireContext(), "Listing not loaded", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // Check if listing allows offers (giá thương lượng)
+        boolean allowOffers = false;
+        double price = 0;
+        try {
+            java.lang.reflect.Method getAllowOffersMethod = listing.getClass().getMethod("getAllowOffers");
+            allowOffers = (boolean) getAllowOffersMethod.invoke(listing);
+        } catch (Exception e) {
+            try {
+                java.lang.reflect.Field allowOffersField = listing.getClass().getField("allowOffers");
+                allowOffers = allowOffersField.getBoolean(listing);
+            } catch (Exception ignored) {}
+        }
+        try {
+            java.lang.reflect.Method getPriceMethod = listing.getClass().getMethod("getPrice");
+            price = (double) getPriceMethod.invoke(listing);
+        } catch (Exception e) {
+            try {
+                java.lang.reflect.Field priceField = listing.getClass().getField("price");
+                price = priceField.getDouble(listing);
+            } catch (Exception ignored) {}
+        }
+        if (!allowOffers || price <= 0) {
+            Toast.makeText(requireContext(), "This listing does not accept offers.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (isCurrentUserSeller()) {
+            Toast.makeText(requireContext(), "You cannot make an offer on your own listing", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String buyerId = firebaseService.getCurrentUserId();
+        if (buyerId == null) {
+            Toast.makeText(requireContext(), "You must be logged in to make an offer", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // Prevent duplicate pending offers
+        firebaseService.getOffersByBuyerId(buyerId, new FirebaseService.OffersCallback() {
+            @Override
+            public void onSuccess(List<OfferModel> offers) {
+                for (OfferModel offer : offers) {
+                    if (offer.getListingId().equals(listing.getId()) && "pending".equalsIgnoreCase(offer.getStatus())) {
+                        Toast.makeText(requireContext(), "You already have a pending offer for this listing", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+                // Show dialog if no pending offer
+                showMakeOfferDialogInternal();
+            }
+            @Override
+            public void onError(String error) {
+                showMakeOfferDialogInternal();
+            }
+        });
+    }
+
+    private void showMakeOfferDialogInternal() {
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+        View dialogView = inflater.inflate(R.layout.dialog_make_offer, null);
+        EditText etAmount = dialogView.findViewById(R.id.et_offer_amount);
+        EditText etMessage = dialogView.findViewById(R.id.et_offer_message);
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+        dialogView.findViewById(R.id.btn_cancel_offer).setOnClickListener(v -> dialog.dismiss());
+        dialogView.findViewById(R.id.btn_submit_offer).setOnClickListener(v -> {
+            String amountStr = etAmount.getText().toString().trim();
+            String message = etMessage.getText().toString().trim();
+            if (amountStr.isEmpty()) {
+                etAmount.setError("Enter offer amount");
+                return;
+            }
+            double offerAmount;
+            try {
+                offerAmount = Double.parseDouble(amountStr);
+            } catch (NumberFormatException e) {
+                etAmount.setError("Invalid amount");
+                return;
+            }
+            double minOffer = 0.5 * listing.getPrice();
+            double maxOffer = listing.getPrice();
+            if (offerAmount < minOffer) {
+                etAmount.setError("Offer must be at least 50% of the product price");
+                return;
+            }
+            if (offerAmount > maxOffer) {
+                etAmount.setError("Offer cannot exceed the product price");
+                return;
+            }
+            if (offerAmount <= 0) {
+                etAmount.setError("Amount must be positive");
+                return;
+            }
+            String buyerId = firebaseService.getCurrentUserId();
+            java.util.Date now = new java.util.Date();
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            cal.setTime(now);
+            cal.add(java.util.Calendar.DATE, 2); // expires in 2 days
+            java.util.Date expiresAt = cal.getTime();
+            OfferModel offer = new OfferModel();
+            offer.setListingId(listing.getId());
+            offer.setSellerId(listing.getSellerId());
+            offer.setBuyerId(buyerId);
+            offer.setOfferAmount(offerAmount);
+            offer.setMessage(message);
+            offer.setStatus(OfferModel.Status.PENDING.getValue());
+            offer.setCreatedAt(now);
+            offer.setExpiresAt(expiresAt);
+            offer.setRespondedAt(null);
+            offer.setCounterOffer(null);
+            firebaseService.createOffer(offer, new FirebaseService.SimpleCallback() {
+                @Override
+                public void onSuccess() {
+                    dialog.dismiss();
+                    Toast.makeText(requireContext(), "Offer sent!", Toast.LENGTH_SHORT).show();
+                }
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(requireContext(), "Failed to send offer: " + error, Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+        dialog.show();
+    }
+
+    private void showOffersDialog() {
+        if (listing == null) {
+            Toast.makeText(requireContext(), "Listing not loaded", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+        View dialogView = inflater.inflate(R.layout.dialog_offers_list, null);
+        RecyclerView rvOffers = dialogView.findViewById(R.id.rv_offers);
+        rvOffers.setLayoutManager(new LinearLayoutManager(requireContext()));
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+        dialogView.findViewById(R.id.btn_close_offers).setOnClickListener(v -> dialog.dismiss());
+        // Prepare maps like mystore
+        Map<String, ListingModel> offerListingMap = new HashMap<>();
+        Map<String, ItemModel> offerItemMap = new HashMap<>();
+        offerListingMap.put(listing.getId(), listing);
+        if (item != null) offerItemMap.put(item.getId(), item);
+        // Load offers for this listing
+        firebaseService.getOffersByListingIds(java.util.Collections.singletonList(listing.getId()), new FirebaseService.OffersCallback() {
+            @Override
+            public void onSuccess(List<OfferModel> offers) {
+                OfferAdapter adapter = new OfferAdapter(requireContext(), offers, offerListingMap, offerItemMap, new OfferAdapter.OnOfferActionListener() {
+                    @Override
+                    public void onViewDetail(ListingModel listing) {
+                        // Xem chi tiết sản phẩm (optional: navigate to detail)
+                    }
+                    @Override
+                    public void onAccept(OfferModel offer, ListingModel listing) {
+                        offer.setStatus(OfferModel.Status.ACCEPTED.getValue());
+                        offer.setRespondedAt(new java.util.Date());
+                        firebaseService.updateOffer(offer, new FirebaseService.SimpleCallback() {
+                            @Override
+                            public void onSuccess() {
+                                Toast.makeText(requireContext(), "Offer accepted!", Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                            }
+                            @Override
+                            public void onError(String error) {
+                                Toast.makeText(requireContext(), "Failed: " + error, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                    @Override
+                    public void onReject(OfferModel offer, ListingModel listing) {
+                        offer.setStatus(OfferModel.Status.DECLINED.getValue());
+                        offer.setRespondedAt(new java.util.Date());
+                        firebaseService.updateOffer(offer, new FirebaseService.SimpleCallback() {
+                            @Override
+                            public void onSuccess() {
+                                Toast.makeText(requireContext(), "Offer rejected!", Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                            }
+                            @Override
+                            public void onError(String error) {
+                                Toast.makeText(requireContext(), "Failed: " + error, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                });
+                rvOffers.setAdapter(adapter);
+            }
+            @Override
+            public void onError(String error) {
+                Toast.makeText(requireContext(), "Failed to load offers: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+        dialog.show();
+    }
+
+    private void showCounterOfferDialog(OfferModel offer, AlertDialog parentDialog) {
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+        View dialogView = inflater.inflate(R.layout.dialog_make_offer, null);
+        EditText etAmount = dialogView.findViewById(R.id.et_offer_amount);
+        EditText etMessage = dialogView.findViewById(R.id.et_offer_message);
+        etAmount.setText(offer.getOfferAmount() + "");
+        etMessage.setText(offer.getMessage() != null ? offer.getMessage() : "");
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+        dialogView.findViewById(R.id.btn_cancel_offer).setOnClickListener(v -> dialog.dismiss());
+        dialogView.findViewById(R.id.btn_submit_offer).setOnClickListener(v -> {
+            String amountStr = etAmount.getText().toString().trim();
+            String message = etMessage.getText().toString().trim();
+            double counterAmount;
+            try {
+                counterAmount = Double.parseDouble(amountStr);
+            } catch (NumberFormatException e) {
+                etAmount.setError("Invalid amount");
+                return;
+            }
+            if (counterAmount <= 0) {
+                etAmount.setError("Amount must be positive");
+                return;
+            }
+            offer.setStatus(OfferModel.Status.COUNTER_OFFERED.getValue());
+            offer.setCounterOffer(counterAmount);
+            offer.setRespondedAt(new java.util.Date());
+            offer.setMessage(message);
+            firebaseService.updateOffer(offer, new FirebaseService.SimpleCallback() {
+                @Override
+                public void onSuccess() {
+                    dialog.dismiss();
+                    parentDialog.dismiss();
+                    Toast.makeText(requireContext(), "Counter offer sent!", Toast.LENGTH_SHORT).show();
+                }
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(requireContext(), "Failed: " + error, Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+        dialog.show();
+    }
+
+    private void loadOffersForListing() {
+        if (listing == null) return;
+        // Clear old data
+        offerList.clear();
+        listingMap.clear();
+        itemMap.clear();
+        // Add current listing and item to map
+        listingMap.put(listing.getId(), listing);
+        if (item != null) itemMap.put(item.getId(), item);
+        // Load offers for this listing
+        firebaseService.getOffersByListingIds(java.util.Collections.singletonList(listing.getId()), new FirebaseService.OffersCallback() {
+            @Override
+            public void onSuccess(List<OfferModel> offers) {
+                offerList.clear();
+                offerList.addAll(offers);
+                offerAdapter.notifyDataSetChanged();
+            }
+            @Override
+            public void onError(String error) {
+                offerList.clear();
+                offerAdapter.notifyDataSetChanged();
+            }
+        });
     }
 }

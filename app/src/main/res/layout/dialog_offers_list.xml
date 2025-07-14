@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/tv_offers_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Offers for this Listing"
+        android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+        android:layout_gravity="center_horizontal"
+        android:paddingBottom="12dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_offers"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:scrollbars="vertical" />
+
+    <Button
+        android:id="@+id/btn_close_offers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Close"
+        android:layout_marginTop="12dp" />
+</LinearLayout>
+

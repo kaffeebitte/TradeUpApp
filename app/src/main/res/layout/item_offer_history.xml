@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/bg_card">
+
+    <!-- Product Name -->
+    <TextView
+        android:id="@+id/tv_offer_product_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Product Name"
+        android:textStyle="bold"
+        android:textSize="17sp"
+        android:textColor="@color/md_theme_primary"
+        android:paddingBottom="4dp" />
+
+    <!-- Product Price -->
+    <TextView
+        android:id="@+id/tv_offer_product_price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Original Price: 0 đ"
+        android:textColor="@color/md_theme_onSurfaceVariant"
+        android:textSize="14sp"
+        android:paddingBottom="6dp" />
+
+    <!-- Product Image -->
+    <ImageView
+        android:id="@+id/iv_offer_image"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="2dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_image_placeholder"
+        android:visibility="gone" />
+
+    <!-- Offer Price -->
+    <TextView
+        android:id="@+id/tv_offer_price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Offer Price: 0 đ"
+        android:textStyle="bold"
+        android:textColor="@color/md_theme_secondary"
+        android:textSize="16sp"
+        android:paddingBottom="6dp" />
+
+    <!-- Offer Message -->
+    <TextView
+        android:id="@+id/tv_offer_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Message"
+        android:textColor="@color/md_theme_onSurface"
+        android:textSize="14sp"
+        android:paddingBottom="6dp" />
+
+    <!-- Status -->
+    <TextView
+        android:id="@+id/tv_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Status: pending"
+        android:textColor="@color/md_theme_primary"
+        android:textSize="13sp"
+        android:paddingBottom="2dp" />
+
+    <!-- Created At -->
+    <TextView
+        android:id="@+id/tv_created_at"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Created: 2025-07-03 07:30"
+        android:textSize="12sp"
+        android:textColor="@color/md_theme_onSurfaceVariant"
+        android:paddingBottom="6dp" />
+
+    <!-- Counter Offer -->
+    <TextView
+        android:id="@+id/tv_counter_offer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Counter Offer: "
+        android:textColor="@color/md_theme_tertiary"
+        android:textSize="12sp"
+        android:visibility="gone"
+        android:paddingBottom="2dp" />
+
+    <!-- Responded At -->
+    <TextView
+        android:id="@+id/tv_responded_at"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Responded: 2025-07-03 09:00"
+        android:textSize="12sp"
+        android:textColor="@color/md_theme_onSurfaceVariant"
+        android:visibility="gone"
+        android:paddingBottom="2dp" />
+
+</LinearLayout>

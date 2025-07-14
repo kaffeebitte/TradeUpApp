@@ -3,8 +3,7 @@ package com.example.tradeupapp.features.history.ui;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
-import com.example.tradeupapp.features.history.ui.OfferHistoryFragment;
-import com.example.tradeupapp.features.history.ui.PurchaseHistoryFragment;
+import com.example.tradeupapp.features.payment.ui.OfferHistoryFragment;
 
 public class PurchaseOfferHistoryPagerAdapter extends FragmentStateAdapter {
     public PurchaseOfferHistoryPagerAdapter(@NonNull Fragment fragment) {
@@ -15,7 +14,7 @@ public class PurchaseOfferHistoryPagerAdapter extends FragmentStateAdapter {
     @Override
     public Fragment createFragment(int position) {
         if (position == 0) {
-            return new OfferHistoryFragment();
+            return OfferHistoryFragment.newInstance("buyer");
         } else {
             return new PurchaseHistoryFragment();
         }
@@ -26,4 +25,3 @@ public class PurchaseOfferHistoryPagerAdapter extends FragmentStateAdapter {
         return 2;
     }
 }
-

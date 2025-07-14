@@ -60,47 +60,52 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
             item = itemMap.get(listing.getItemId());
         }
         NumberFormat numberFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
-        if (item != null) {
-            holder.tvProductName.setText(item.getTitle() != null ? item.getTitle() : "Unknown");
-            holder.tvProductPrice.setText(listing != null && listing.getPrice() > 0 ? ("Original Price: " + numberFormat.format(listing.getPrice()) + "₫") : "Original Price: N/A");
-            // Load image if available
-            if (item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) {
-                holder.ivProductImage.setVisibility(View.VISIBLE);
-                Glide.with(context)
-                    .load(item.getPhotoUris().get(0))
-                    .placeholder(R.drawable.ic_image_placeholder)
-                    .into(holder.ivProductImage);
-            } else {
-                holder.ivProductImage.setVisibility(View.GONE);
-            }
+        // Product name
+        holder.tvProductName.setText(item != null && item.getTitle() != null ? item.getTitle() : "Unknown");
+        // Product price
+        holder.tvProductPrice.setText(listing != null && listing.getPrice() > 0 ? ("Original Price: " + numberFormat.format(listing.getPrice()) + "₫") : "Original Price: N/A");
+        // Product image
+        if (item != null && item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) {
+            holder.ivProductImage.setVisibility(View.VISIBLE);
+            Glide.with(context)
+                .load(item.getPhotoUris().get(0))
+                .placeholder(R.drawable.ic_image_placeholder)
+                .into(holder.ivProductImage);
         } else {
-            holder.tvProductName.setText("Unknown");
-            holder.tvProductPrice.setText("Original Price: N/A");
             holder.ivProductImage.setVisibility(View.GONE);
         }
+        // Offer price
         holder.tvOfferPrice.setText("Offer Price: " + numberFormat.format(offer.getOfferAmount()) + "₫");
+        // Message
         holder.tvOfferMessage.setText(offer.getMessage() != null ? offer.getMessage() : "");
-        // Handle withdrawn status
-        if (offer.isWithdrawn()) {
-            holder.tvOfferPrice.setText("Offer Withdrawn");
-            holder.tvOfferPrice.setTextColor(context.getResources().getColor(android.R.color.darker_gray));
-            holder.tvOfferMessage.setTextColor(context.getResources().getColor(android.R.color.darker_gray));
-            holder.btnAccept.setEnabled(false);
-            holder.btnReject.setEnabled(false);
-        } else {
-            holder.tvOfferPrice.setTextColor(context.getResources().getColor(R.color.md_theme_secondary));
-            holder.tvOfferMessage.setTextColor(context.getResources().getColor(R.color.md_theme_onSurfaceVariant));
-            holder.btnAccept.setEnabled(true);
-            holder.btnReject.setEnabled(true);
+        // Status chip
+        if (holder.chipOfferStatus != null) {
+            holder.chipOfferStatus.setText(offer.getStatus());
+            int chipColorRes = R.color.md_theme_secondaryContainer;
+            if ("pending".equalsIgnoreCase(offer.getStatus())) {
+                chipColorRes = R.color.md_theme_secondaryContainer;
+            } else if ("accepted".equalsIgnoreCase(offer.getStatus())) {
+                chipColorRes = R.color.md_theme_primaryContainer;
+            } else if ("declined".equalsIgnoreCase(offer.getStatus())) {
+                chipColorRes = R.color.md_theme_errorContainer;
+            } else if ("counter_offered".equalsIgnoreCase(offer.getStatus())) {
+                chipColorRes = R.color.md_theme_tertiaryContainer;
+            }
+            holder.chipOfferStatus.setChipBackgroundColorResource(chipColorRes);
         }
-        holder.btnViewDetail.setOnClickListener(v -> {
-            if (listing != null && actionListener != null) actionListener.onViewDetail(listing);
-        });
+        // Action buttons
+        boolean isPending = "pending".equalsIgnoreCase(offer.getStatus());
+        holder.btnAccept.setVisibility(isPending ? View.VISIBLE : View.GONE);
+        holder.btnReject.setVisibility(isPending ? View.VISIBLE : View.GONE);
+        holder.btnViewDetail.setVisibility(View.VISIBLE);
         holder.btnAccept.setOnClickListener(v -> {
-            if (listing != null && actionListener != null) actionListener.onAccept(offer, listing);
+            if (actionListener != null && listing != null) actionListener.onAccept(offer, listing);
         });
         holder.btnReject.setOnClickListener(v -> {
-            if (listing != null && actionListener != null) actionListener.onReject(offer, listing);
+            if (actionListener != null && listing != null) actionListener.onReject(offer, listing);
+        });
+        holder.btnViewDetail.setOnClickListener(v -> {
+            if (actionListener != null && listing != null) actionListener.onViewDetail(listing);
         });
     }
 
@@ -113,6 +118,7 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
         TextView tvProductName, tvProductPrice, tvOfferPrice, tvOfferMessage;
         Button btnViewDetail, btnAccept, btnReject;
         ImageView ivProductImage;
+        com.google.android.material.chip.Chip chipOfferStatus;
         public OfferViewHolder(@NonNull View itemView) {
             super(itemView);
             tvProductName = itemView.findViewById(R.id.tv_offer_product_name);
@@ -123,6 +129,7 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
             btnAccept = itemView.findViewById(R.id.btn_offer_accept);
             btnReject = itemView.findViewById(R.id.btn_offer_reject);
             ivProductImage = itemView.findViewById(R.id.iv_offer_image);
+            chipOfferStatus = itemView.findViewById(R.id.chip_offer_status);
         }
     }
 }

@@ -67,6 +67,16 @@
             android:textSize="12sp"
             tools:text="Purchased on 15 Dec 2024" />
 
+        <!-- Delivery Address -->
+        <TextView
+            android:id="@+id/tv_item_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/md_theme_onSurfaceVariant"
+            android:textSize="12sp"
+            tools:text="123 Main St, District 1, HCMC" />
+
         <!-- Status -->
         <TextView
             android:id="@+id/tv_status"
