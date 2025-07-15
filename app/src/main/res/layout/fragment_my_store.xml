@@ -19,25 +19,7 @@
             android:gravity="center_horizontal"
             android:background="@color/md_theme_background">
 
-            <!-- Store Banner -->
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="220dp">
-                <ImageView
-                    android:id="@+id/img_store_banner"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:src="@android:color/darker_gray"
-                    android:contentDescription="@string/store_banner_desc"
-                    android:background="?attr/colorPrimaryContainer" />
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_banner_gradient_overlay" />
-            </FrameLayout>
-
-            <!-- Store Avatar and Name -->
+            <!-- Store Header: Only icon and info, no banner -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -45,21 +27,20 @@
                 android:gravity="center_vertical"
                 android:paddingStart="24dp"
                 android:paddingEnd="24dp"
-                android:paddingTop="-44dp"
+                android:paddingTop="24dp"
                 android:paddingBottom="12dp">
 
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/img_store_avatar"
-                    android:layout_width="96dp"
-                    android:layout_height="96dp"
-                    android:src="@android:drawable/ic_menu_gallery"
-                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-                    android:background="?attr/colorSurfaceVariant"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:layout_marginEnd="16dp"
+                    android:background="@color/background"
                     android:contentDescription="@string/store_avatar_desc"
-                    app:strokeColor="@color/md_theme_primary"
-                    app:strokeWidth="2dp"
                     android:elevation="8dp"
-                    android:layout_marginEnd="16dp" />
+                    android:src="@drawable/ic_store"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                    app:strokeWidth="2dp" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -73,10 +54,10 @@
                         style="@style/TextAppearance.Material3.HeadlineMedium"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/store_name_placeholder"
-                        android:textColor="?attr/colorOnSurface"
+                        android:ellipsize="end"
                         android:maxLines="1"
-                        android:ellipsize="end" />
+                        android:text="Your Store"
+                        android:textColor="?attr/colorOnSurface" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/tv_store_rating"
@@ -88,7 +69,6 @@
                         android:layout_marginTop="4dp" />
                 </LinearLayout>
             </LinearLayout>
-
             <com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -126,13 +106,13 @@
                     android:orientation="vertical"
                     android:padding="16dp"
                     android:background="@android:color/white">
-                    <!-- Row 1: Available & Sold -->
+                    <!-- Row 1: Available & Sold & Offers -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center"
-                        android:weightSum="2"
+                        android:weightSum="3"
                         android:layout_marginBottom="8dp">
                         <com.google.android.material.card.MaterialCardView
                             android:layout_width="0dp"
@@ -142,7 +122,7 @@
                             app:strokeColor="@color/md_theme_outlineVariant"
                             app:cardCornerRadius="12dp"
                             app:cardElevation="0dp"
-                            android:layout_marginEnd="6dp"
+                            android:layout_marginEnd="4dp"
                             android:backgroundTint="@android:color/white">
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -175,7 +155,8 @@
                             app:strokeColor="@color/md_theme_outlineVariant"
                             app:cardCornerRadius="12dp"
                             app:cardElevation="0dp"
-                            android:layout_marginStart="6dp"
+                            android:layout_marginStart="2dp"
+                            android:layout_marginEnd="2dp"
                             android:backgroundTint="@android:color/white">
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -200,7 +181,42 @@
                                     android:layout_height="wrap_content" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            app:strokeWidth="1dp"
+                            app:strokeColor="@color/md_theme_outlineVariant"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp"
+                            android:layout_marginStart="4dp"
+                            android:backgroundTint="@android:color/white">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="10dp"
+                                android:gravity="center">
+
+                                <com.google.android.material.textview.MaterialTextView
+                                    style="@style/TextAppearance.Material3.BodySmall"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center"
+                                    android:text="Offers"
+                                    android:textColor="@color/md_theme_onSurface" />
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:id="@+id/tv_stat_offers"
+                                    android:text="0"
+                                    style="@style/TextAppearance.Material3.TitleMedium"
+                                    android:gravity="center"
+                                    android:textColor="@color/md_theme_onSurface"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
                     </LinearLayout>
+                    <!-- End Row 1: Available & Sold & Offers -->
                     <!-- Row 2: Views, Saves, Shares -->
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -316,14 +332,14 @@
             <!-- Offers Section -->
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tv_offers_title"
+                style="@style/TextAppearance.Material3.TitleMedium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Đề nghị giá từ khách hàng cho sản phẩm của bạn"
-                style="@style/TextAppearance.Material3.TitleMedium"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="4dp"
                 android:paddingStart="20dp"
                 android:paddingEnd="20dp"
+                android:text="Customers' Offer"
                 android:textColor="?attr/colorOnSurface" />
 
             <TextView

@@ -18,12 +18,14 @@ public class ReviewModel implements Serializable {
 
     @DocumentId
     private String id; // optional - Firestore auto ID
-    private String fromUserId; // required - user giving the review
-    private String toUserId; // required - user receiving the review
+    private String reviewerId; // user who gives the review
+    private String revieweeId; // user who receives the review
     private String transactionId; // required - related transaction
+    private String listingId; // listing being reviewed
     private float rating; // required - star rating (1-5)
     private String comment; // optional - text feedback
     private Timestamp createdAt; // required - when review was submitted
+    private int helpfulCount; // optional, default 0
 
     /**
      * Default constructor required for Firebase Firestore
@@ -32,32 +34,36 @@ public class ReviewModel implements Serializable {
         // Required empty constructor for Firestore
         this.rating = MIN_RATING;
         this.createdAt = Timestamp.now();
+        this.helpfulCount = 0;
     }
 
     /**
      * Constructor with essential review information
      */
-    public ReviewModel(String fromUserId, String toUserId, String transactionId, float rating, String comment) {
-        this.fromUserId = fromUserId;
-        this.toUserId = toUserId;
+    public ReviewModel(String transactionId, String reviewerId, String revieweeId, String listingId, float rating, String comment) {
         this.transactionId = transactionId;
+        this.reviewerId = reviewerId;
+        this.revieweeId = revieweeId;
+        this.listingId = listingId;
         setRating(rating); // Uses validation
         this.comment = comment;
         this.createdAt = Timestamp.now();
+        this.helpfulCount = 0;
     }
 
     /**
      * Full constructor with all review properties
      */
-    public ReviewModel(String id, String fromUserId, String toUserId, String transactionId,
-                      float rating, String comment, Timestamp createdAt) {
+    public ReviewModel(String id, String transactionId, String reviewerId, String revieweeId, String listingId, float rating, String comment, Timestamp createdAt, int helpfulCount) {
         this.id = id;
-        this.fromUserId = fromUserId;
-        this.toUserId = toUserId;
         this.transactionId = transactionId;
+        this.reviewerId = reviewerId;
+        this.revieweeId = revieweeId;
+        this.listingId = listingId;
         setRating(rating); // Uses validation
         this.comment = comment;
         this.createdAt = createdAt != null ? createdAt : Timestamp.now();
+        this.helpfulCount = helpfulCount;
     }
 
     // Getters and Setters
@@ -70,20 +76,20 @@ public class ReviewModel implements Serializable {
         this.id = id;
     }
 
-    public String getFromUserId() {
-        return fromUserId;
+    public String getReviewerId() {
+        return reviewerId;
     }
 
-    public void setFromUserId(String fromUserId) {
-        this.fromUserId = fromUserId;
+    public void setReviewerId(String reviewerId) {
+        this.reviewerId = reviewerId;
     }
 
-    public String getToUserId() {
-        return toUserId;
+    public String getRevieweeId() {
+        return revieweeId;
     }
 
-    public void setToUserId(String toUserId) {
-        this.toUserId = toUserId;
+    public void setRevieweeId(String revieweeId) {
+        this.revieweeId = revieweeId;
     }
 
     public String getTransactionId() {
@@ -92,6 +98,14 @@ public class ReviewModel implements Serializable {
 
     public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
+    }
+
+    public String getListingId() {
+        return listingId;
+    }
+
+    public void setListingId(String listingId) {
+        this.listingId = listingId;
     }
 
     public float getRating() {
@@ -123,6 +137,14 @@ public class ReviewModel implements Serializable {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt != null ? createdAt : Timestamp.now();
+    }
+
+    public int getHelpfulCount() {
+        return helpfulCount;
+    }
+
+    public void setHelpfulCount(int helpfulCount) {
+        this.helpfulCount = helpfulCount;
     }
 
     /**

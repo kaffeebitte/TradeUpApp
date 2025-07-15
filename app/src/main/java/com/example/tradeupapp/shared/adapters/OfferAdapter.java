@@ -30,6 +30,7 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
         void onViewDetail(ListingModel listing);
         void onAccept(OfferModel offer, ListingModel listing);
         void onReject(OfferModel offer, ListingModel listing);
+        void onCounter(OfferModel offer, ListingModel listing);
     }
 
     public OfferAdapter(Context context, List<OfferModel> offers, Map<String, ListingModel> listingMap, Map<String, ItemModel> itemMap, OnOfferActionListener actionListener) {
@@ -76,6 +77,10 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
         }
         // Offer price
         holder.tvOfferPrice.setText("Offer Price: " + numberFormat.format(offer.getOfferAmount()) + "₫");
+        // Counter-offer formatting (if status is counter_offered)
+        if ("counter_offered".equalsIgnoreCase(offer.getStatus())) {
+            holder.tvOfferPrice.setText("Counter Offer: " + numberFormat.format(offer.getOfferAmount()) + "₫");
+        }
         // Message
         holder.tvOfferMessage.setText(offer.getMessage() != null ? offer.getMessage() : "");
         // Status chip
@@ -98,6 +103,7 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
         holder.btnAccept.setVisibility(isPending ? View.VISIBLE : View.GONE);
         holder.btnReject.setVisibility(isPending ? View.VISIBLE : View.GONE);
         holder.btnViewDetail.setVisibility(View.VISIBLE);
+        holder.btnCounter.setVisibility(isPending ? View.VISIBLE : View.GONE);
         holder.btnAccept.setOnClickListener(v -> {
             if (actionListener != null && listing != null) actionListener.onAccept(offer, listing);
         });
@@ -107,6 +113,19 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
         holder.btnViewDetail.setOnClickListener(v -> {
             if (actionListener != null && listing != null) actionListener.onViewDetail(listing);
         });
+        holder.btnCounter.setOnClickListener(v -> {
+            if (actionListener != null && listing != null) actionListener.onCounter(offer, listing);
+        });
+        // Counter offer action
+        holder.itemView.setOnLongClickListener(v -> {
+            if (actionListener != null && listing != null) {
+                actionListener.onCounter(offer, listing);
+                return true;
+            }
+            return false;
+        });
+        // Offer actions container visibility
+        holder.offerActionsContainer.setVisibility(isPending ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -116,9 +135,10 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
 
     public static class OfferViewHolder extends RecyclerView.ViewHolder {
         TextView tvProductName, tvProductPrice, tvOfferPrice, tvOfferMessage;
-        Button btnViewDetail, btnAccept, btnReject;
+        Button btnViewDetail, btnAccept, btnReject, btnCounter;
         ImageView ivProductImage;
         com.google.android.material.chip.Chip chipOfferStatus;
+        View offerActionsContainer;
         public OfferViewHolder(@NonNull View itemView) {
             super(itemView);
             tvProductName = itemView.findViewById(R.id.tv_offer_product_name);
@@ -128,8 +148,10 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
             btnViewDetail = itemView.findViewById(R.id.btn_offer_view_detail);
             btnAccept = itemView.findViewById(R.id.btn_offer_accept);
             btnReject = itemView.findViewById(R.id.btn_offer_reject);
+            btnCounter = itemView.findViewById(R.id.btn_offer_counter);
             ivProductImage = itemView.findViewById(R.id.iv_offer_image);
             chipOfferStatus = itemView.findViewById(R.id.chip_offer_status);
+            offerActionsContainer = itemView.findViewById(R.id.offer_actions_container);
         }
     }
 }

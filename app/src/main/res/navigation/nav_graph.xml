@@ -427,6 +427,11 @@
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popUpTo="@id/nav_recommendations" />
+        <action
+            android:id="@+id/action_checkoutFragment_to_reviewProductsFragment"
+            app:destination="@id/reviewProductsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
     <fragment
@@ -595,4 +600,24 @@
         android:name="com.example.tradeupapp.features.history.ui.PurchaseOfferHistoryFragment"
         android:label="Purchase &amp; Offer History"
         tools:layout="@layout/fragment_purchase_offer_history" />
+
+    <fragment
+        android:id="@+id/reviewProductsFragment"
+        android:name="com.example.tradeupapp.features.review.ReviewProductsFragment"
+        android:label="Review Products"
+        tools:layout="@layout/fragment_review_products">
+        <argument
+            android:name="transactionIds"
+            app:argType="string[]" />
+        <argument
+            android:name="listingIds"
+            app:argType="string[]" />
+        <argument
+            android:name="sellerIds"
+            app:argType="string[]" />
+        <argument
+            android:name="revieweeRole"
+            app:argType="string"
+            android:defaultValue="seller" />
+    </fragment>
 </navigation>

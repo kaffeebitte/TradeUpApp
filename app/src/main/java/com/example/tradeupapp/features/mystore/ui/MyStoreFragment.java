@@ -127,21 +127,101 @@ public class MyStoreFragment extends Fragment {
             }
             @Override
             public void onAccept(OfferModel offer, ListingModel listing) {
-                // TODO: Xử lý đồng ý offer (ví dụ cập nhật trạng thái giao dịch, gửi thông báo, ...)
-                android.widget.Toast.makeText(getContext(), "Đã đồng ý đề nghị giá!", android.widget.Toast.LENGTH_SHORT).show();
+                firebaseService.acceptOffer(offer, new FirebaseService.SimpleCallback() {
+                    @Override
+                    public void onSuccess() {
+                        android.widget.Toast.makeText(getContext(), "Đã đồng ý đề nghị giá!", android.widget.Toast.LENGTH_SHORT).show();
+                        loadUserOffers();
+                    }
+                    @Override
+                    public void onError(String error) {
+                        android.widget.Toast.makeText(getContext(), "Lỗi: " + error, android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
             @Override
             public void onReject(OfferModel offer, ListingModel listing) {
-                // TODO: Xử lý từ chối offer (ví dụ cập nhật tr��ng thái offer, gửi thông báo, ...)
-                android.widget.Toast.makeText(getContext(), "Đã từ chối đề nghị giá!", android.widget.Toast.LENGTH_SHORT).show();
+                firebaseService.rejectOffer(offer, new FirebaseService.SimpleCallback() {
+                    @Override
+                    public void onSuccess() {
+                        android.widget.Toast.makeText(getContext(), "Đã từ chối đề nghị giá!", android.widget.Toast.LENGTH_SHORT).show();
+                        loadUserOffers();
+                    }
+                    @Override
+                    public void onError(String error) {
+                        android.widget.Toast.makeText(getContext(), "Lỗi: " + error, android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+            @Override
+            public void onCounter(OfferModel offer, ListingModel listing) {
+                android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
+                builder.setTitle("Counter Offer");
+                View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_counter_offer, null);
+                android.widget.EditText etAmount = dialogView.findViewById(R.id.et_counter_amount);
+                android.widget.EditText etMessage = dialogView.findViewById(R.id.et_counter_message);
+                etAmount.setText(String.format("%.0f", offer.getOfferAmount()));
+                builder.setView(dialogView);
+                builder.setPositiveButton("Send", (dialog, which) -> {
+                    String amountStr = etAmount.getText().toString();
+                    String message = etMessage.getText().toString();
+                    double counterAmount = 0;
+                    try { counterAmount = Double.parseDouble(amountStr); } catch (Exception ignored) {}
+                    if (counterAmount > 0) {
+                        firebaseService.counterOffer(offer, counterAmount, message, new FirebaseService.SimpleCallback() {
+                            @Override
+                            public void onSuccess() {
+                                android.widget.Toast.makeText(getContext(), "Counter-offer sent!", android.widget.Toast.LENGTH_SHORT).show();
+                                loadUserOffers();
+                            }
+                            @Override
+                            public void onError(String err) {
+                                android.widget.Toast.makeText(getContext(), "Failed to send counter-offer! " + err, android.widget.Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } else {
+                        android.widget.Toast.makeText(getContext(), "Invalid amount!", android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                });
+                builder.setNegativeButton("Cancel", null);
+                builder.show();
             }
         });
         rvStoreOffers.setAdapter(offerAdapter);
         tvOfferEmptyState = view.findViewById(R.id.tv_offer_empty_state);
+        TextView tvStoreRating = view.findViewById(R.id.tv_store_rating);
+
+        loadStoreRating(tvStoreRating);
 
         loadUserListings();
         return view;
     }
+
+    private void loadStoreRating(TextView tvStoreRating) {
+        String currentUserId = null;
+        if (UserSession.getInstance().getCurrentUser() != null) {
+            currentUserId = UserSession.getInstance().getCurrentUser().getUserIdOrUid();
+        }
+        if (currentUserId == null) {
+            tvStoreRating.setText("No rating yet ★");
+            return;
+        }
+        FirebaseService.getInstance().getUserById(currentUserId, new FirebaseService.UserCallback() {
+            @Override
+            public void onSuccess(com.example.tradeupapp.models.User user) {
+                if (user != null && user.getRating() > 0) {
+                    tvStoreRating.setText(String.format("%.1f ★", user.getRating()));
+                } else {
+                    tvStoreRating.setText("No rating yet ★");
+                }
+            }
+            @Override
+            public void onError(String error) {
+                tvStoreRating.setText("No rating yet ★");
+            }
+        });
+    }
+
     private void filterListingsByStatus() {
         List<ListingModel> filtered = new ArrayList<>();
         for (ListingModel listing : allUserListings) {
@@ -185,12 +265,13 @@ public class MyStoreFragment extends Fragment {
                     public void onSuccess(Map<String, ItemModel> itemMap) {
                         offerItemMap.clear();
                         offerItemMap.putAll(itemMap);
-                        // Sau khi đã có allUserListings và offerItemMap, load offer
                         loadUserOffers();
+                        updateStoreStats(); // Update stats after loading listings and items
                     }
                     @Override
                     public void onError(String error) {
                         loadUserOffers();
+                        updateStoreStats(); // Update stats even if item loading fails
                     }
                 });
             }
@@ -198,6 +279,7 @@ public class MyStoreFragment extends Fragment {
             public void onError(String error) {
                 showOfferEmptyState("Không thể tải danh sách sản phẩm: " + error);
                 loadUserOffers();
+                updateStoreStats(); // Update stats even if listing loading fails
             }
         });
     }
@@ -239,6 +321,7 @@ public class MyStoreFragment extends Fragment {
                 } else {
                     showOfferContent();
                 }
+                updateStoreStats(); // Update stats after offers are loaded
             }
             @Override
             public void onError(String error) {
@@ -246,6 +329,7 @@ public class MyStoreFragment extends Fragment {
                 offerListingMap.clear();
                 if (offerAdapter != null) offerAdapter.notifyDataSetChanged();
                 showOfferEmptyState("Không thể tải đề nghị giá: " + error);
+                updateStoreStats(); // Update stats even if offer loading fails
             }
         });
     }
@@ -267,6 +351,7 @@ public class MyStoreFragment extends Fragment {
         int soldCount = 0;
         int totalViews = 0;
         int totalSaves = 0;
+        int offerCount = userOffers != null ? userOffers.size() : 0;
         for (ListingModel listing : userListings) {
             String status = listing.getTransactionStatus();
             if (status != null && status.equalsIgnoreCase("available")) {
@@ -287,11 +372,13 @@ public class MyStoreFragment extends Fragment {
             TextView tvStatSold = view.findViewById(R.id.tv_stat_sold);
             TextView tvStatViews = view.findViewById(R.id.tv_stat_views);
             TextView tvStatSaves = view.findViewById(R.id.tv_stat_saves);
+            TextView tvStatOffers = view.findViewById(R.id.tv_stat_offers);
             // Removed tvStatShares, not in layout
             tvStatActive.setText(String.valueOf(activeCount));
             tvStatSold.setText(String.valueOf(soldCount));
             tvStatViews.setText(String.valueOf(totalViews));
             if (tvStatSaves != null) tvStatSaves.setText(String.valueOf(totalSaves));
+            if (tvStatOffers != null) tvStatOffers.setText(String.valueOf(offerCount));
         }
     }
 }

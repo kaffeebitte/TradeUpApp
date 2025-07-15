@@ -85,7 +85,7 @@
             android:id="@+id/tv_offer_message"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="8dp"
             android:textAppearance="@style/TextAppearance.Material3.BodySmall"
             android:textColor="@color/md_theme_onSurfaceVariant"
             android:textSize="13sp"
@@ -97,58 +97,102 @@
         <!-- Section 3: Actions -->
         <LinearLayout
             android:id="@+id/offer_actions_container"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/tv_offer_message"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+            app:layout_constraintTop_toBottomOf="@+id/chip_offer_status">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_offer_view_detail"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="View Details"
-                android:textColor="@color/md_theme_primary"
-                tools:text="View Details" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_offer_reject"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Reject"
-                android:textColor="@color/md_theme_error"
-                android:layout_marginStart="8dp"
-                tools:text="Reject" />
-
+            <!-- Primary action: Accept -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_offer_accept"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="12dp"
                 android:text="Accept"
-                android:textColor="@color/md_theme_primary"
-                android:layout_marginStart="8dp"
+                android:textColor="@color/md_theme_onPrimary"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                android:paddingLeft="0dp"
+                android:paddingRight="0dp"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
                 tools:text="Accept" />
+
+            <!-- Secondary actions: Counter, Reject -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_offer_counter"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:icon="@drawable/ic_edit"
+                    android:text="Counter"
+                    android:textColor="@color/md_theme_tertiary"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    android:paddingLeft="0dp"
+                    android:paddingRight="0dp"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="0dp"
+                    tools:text="Counter" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_offer_reject"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="Reject"
+                    android:textColor="@color/md_theme_error"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    android:paddingLeft="0dp"
+                    android:paddingRight="0dp"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="0dp"
+                    tools:text="Reject" />
+            </LinearLayout>
         </LinearLayout>
+
+        <!-- View Detail button luôn hiển thị -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_offer_view_detail"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="8dp"
+            android:text="View Detail"
+            app:iconGravity="textStart"
+            app:iconPadding="8dp"
+            app:layout_constraintTop_toBottomOf="@id/offer_actions_container"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip_offer_status"
             style="@style/Widget.Material3.Chip.Assist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:text="Pending"
             app:chipBackgroundColor="@color/md_theme_secondaryContainer"
             app:chipCornerRadius="8dp"
             app:chipMinHeight="24dp"
             app:chipStrokeColor="@color/md_theme_secondary"
             app:chipStrokeWidth="0.5dp"
-            app:layout_constraintStart_toStartOf="@+id/iv_offer_image"
-            app:layout_constraintTop_toBottomOf="@+id/iv_offer_image"
+            app:layout_constraintStart_toStartOf="@+id/tv_offer_message"
+            app:layout_constraintTop_toBottomOf="@+id/tv_offer_message"
             tools:text="Pending" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

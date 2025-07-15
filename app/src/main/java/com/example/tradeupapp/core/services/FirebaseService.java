@@ -1549,4 +1549,122 @@ public class FirebaseService {
                 if (callback != null) callback.onError(e.getMessage());
             });
     }
+
+    // Accept an offer (seller only)
+    public void acceptOffer(OfferModel offer, SimpleCallback callback) {
+        if (offer == null || offer.getId() == null) {
+            if (callback != null) callback.onError("Offer or Offer ID is null");
+            return;
+        }
+        String sellerId = getCurrentUserId();
+        if (sellerId == null || !sellerId.equals(offer.getSellerId())) {
+            if (callback != null) callback.onError("Permission denied");
+            return;
+        }
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("status", "accepted");
+        updates.put("respondedAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+        updates.put("counterOffer", null);
+        db.collection("offers").document(offer.getId())
+            .update(updates)
+            .addOnSuccessListener(aVoid -> { if (callback != null) callback.onSuccess(); })
+            .addOnFailureListener(e -> { if (callback != null) callback.onError(e.getMessage()); });
+    }
+
+    // Reject an offer (seller only)
+    public void rejectOffer(OfferModel offer, SimpleCallback callback) {
+        if (offer == null || offer.getId() == null) {
+            if (callback != null) callback.onError("Offer or Offer ID is null");
+            return;
+        }
+        String sellerId = getCurrentUserId();
+        if (sellerId == null || !sellerId.equals(offer.getSellerId())) {
+            if (callback != null) callback.onError("Permission denied");
+            return;
+        }
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("status", "declined");
+        updates.put("respondedAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+        updates.put("counterOffer", null);
+        db.collection("offers").document(offer.getId())
+            .update(updates)
+            .addOnSuccessListener(aVoid -> { if (callback != null) callback.onSuccess(); })
+            .addOnFailureListener(e -> { if (callback != null) callback.onError(e.getMessage()); });
+    }
+
+    // Counter an offer (seller only)
+    public void counterOffer(OfferModel offer, double counterAmount, String message, SimpleCallback callback) {
+        Log.d(TAG, "counterOffer called. offer=" + (offer != null ? offer.getId() : "null") + ", counterAmount=" + counterAmount + ", message=" + message);
+        if (offer == null || offer.getId() == null) {
+            Log.e(TAG, "counterOffer: Offer or Offer ID is null");
+            if (callback != null) callback.onError("Offer or Offer ID is null");
+            return;
+        }
+        String sellerId = getCurrentUserId();
+        Log.d(TAG, "counterOffer: sellerId=" + sellerId + ", offer.sellerId=" + (offer != null ? offer.getSellerId() : "null"));
+        if (sellerId == null || !sellerId.equals(offer.getSellerId())) {
+            Log.e(TAG, "counterOffer: Permission denied. sellerId=" + sellerId + ", offer.sellerId=" + (offer != null ? offer.getSellerId() : "null"));
+            if (callback != null) callback.onError("Permission denied");
+            return;
+        }
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("status", "counter_offered");
+        updates.put("respondedAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+        updates.put("counterOffer", counterAmount);
+        if (message != null) updates.put("message", message);
+        db.collection("offers").document(offer.getId())
+            .update(updates)
+            .addOnSuccessListener(aVoid -> {
+                Log.d(TAG, "counterOffer: update success for offerId=" + offer.getId());
+                if (callback != null) callback.onSuccess();
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "counterOffer: update failed for offerId=" + offer.getId() + ", error=" + e.getMessage());
+                if (callback != null) callback.onError(e.getMessage());
+            });
+    }
+
+    // Add a review to Firestore
+    public void addReview(com.example.tradeupapp.models.ReviewModel review, SimpleCallback callback) {
+        if (review == null) {
+            if (callback != null) callback.onError("Review is null");
+            return;
+        }
+        db.collection("reviews")
+            .add(review)
+            .addOnSuccessListener(documentReference -> {
+                if (callback != null) callback.onSuccess();
+            })
+            .addOnFailureListener(e -> {
+                if (callback != null) callback.onError(e.getMessage());
+            });
+    }
+
+    // Callback for fetching multiple users by IDs
+    public interface UsersByIdsCallback {
+        void onSuccess(java.util.Map<String, com.example.tradeupapp.models.User> userMap);
+        void onError(String error);
+    }
+
+    // Fetch multiple users by their IDs and return as a map (userId -> User)
+    public void getUsersByIds(java.util.List<String> userIds, UsersByIdsCallback callback) {
+        if (userIds == null || userIds.isEmpty()) {
+            callback.onSuccess(new java.util.HashMap<>());
+            return;
+        }
+        db.collection("users")
+            .whereIn("id", userIds)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                java.util.Map<String, com.example.tradeupapp.models.User> userMap = new java.util.HashMap<>();
+                for (com.google.firebase.firestore.DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                    com.example.tradeupapp.models.User user = document.toObject(com.example.tradeupapp.models.User.class);
+                    if (user != null && user.getId() != null) {
+                        userMap.put(user.getId(), user);
+                    }
+                }
+                callback.onSuccess(userMap);
+            })
+            .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
 }

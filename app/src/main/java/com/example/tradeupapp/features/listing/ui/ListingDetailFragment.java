@@ -112,6 +112,10 @@ public class ListingDetailFragment extends Fragment {
             public void onReject(OfferModel offer, ListingModel listing) {
                 // Implement reject logic
             }
+            @Override
+            public void onCounter(OfferModel offer, ListingModel listing) {
+                // No counter-offer logic for buyers in this screen. (Required by interface)
+            }
         });
         rvOffers.setAdapter(offerAdapter);
         loadOffersForListing();
@@ -304,9 +308,7 @@ public class ListingDetailFragment extends Fragment {
                     allowOffers = allowOffersField.getBoolean(listing);
                 } catch (Exception ignored) {}
             }
-            if (!allowOffers) {
-                btnMakeOffer.setVisibility(View.GONE);
-            } else if (isCurrentUserSeller()) {
+            if (!allowOffers || isCurrentUserSeller()) {
                 btnMakeOffer.setVisibility(View.GONE);
             } else {
                 btnMakeOffer.setVisibility(View.VISIBLE);
@@ -664,6 +666,10 @@ public class ListingDetailFragment extends Fragment {
                                 Toast.makeText(requireContext(), "Failed: " + error, Toast.LENGTH_SHORT).show();
                             }
                         });
+                    }
+                    @Override
+                    public void onCounter(OfferModel offer, ListingModel listing) {
+                        // No counter-offer logic for buyers in this screen. (Required by interface)
                     }
                 });
                 rvOffers.setAdapter(adapter);

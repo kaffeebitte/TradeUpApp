@@ -21,17 +21,21 @@ import com.example.tradeupapp.core.services.CartService;
 import com.example.tradeupapp.core.services.FirebaseService;
 import com.example.tradeupapp.features.cart.ui.CartDisplayItem;
 import com.example.tradeupapp.features.cart.ui.CartListAdapter;
+import com.example.tradeupapp.features.review.ReviewProductsFragment;
 import com.example.tradeupapp.models.CartItem;
 import com.example.tradeupapp.models.ItemModel;
 import com.example.tradeupapp.models.ListingModel;
+import com.example.tradeupapp.models.User;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class CheckoutFragment extends Fragment {
 
@@ -162,6 +166,10 @@ public class CheckoutFragment extends Fragment {
         totalAmount += SERVICE_FEE;
         final int[] completed = {0};
         final boolean[] hasError = {false};
+        // Lưu lại các transaction vừa tạo
+        List<String> createdTransactionIds = new ArrayList<>();
+        List<String> createdListingIds = new ArrayList<>();
+        List<String> createdSellerIds = new ArrayList<>();
         for (CartDisplayItem cartItem : cartDisplayItems) {
             double price = cartItem.getListing().getPrice();
             double transactionFee = SERVICE_FEE / cartDisplayItems.size();
@@ -183,6 +191,10 @@ public class CheckoutFragment extends Fragment {
             order.put("phone", phone);
             db.collection("transactions").add(order)
                 .addOnSuccessListener(documentReference -> {
+                    String txnId = documentReference.getId();
+                    createdTransactionIds.add(txnId);
+                    createdListingIds.add(cartItem.getListing().getId());
+                    createdSellerIds.add(cartItem.getListing().getSellerId());
                     db.collection("listings").document(cartItem.getListing().getId())
                         .update("transactionStatus", "sold")
                         .addOnSuccessListener(aVoid -> {
@@ -192,14 +204,13 @@ public class CheckoutFragment extends Fragment {
                                     @Override
                                     public void onSuccess() {
                                         showLoading(false);
-                                        Toast.makeText(requireContext(), "Order placed successfully!", Toast.LENGTH_LONG).show();
-                                        Navigation.findNavController(requireView()).navigate(R.id.nav_recommendations);
+                                        // Sau khi clear cart, lấy dữ liệu để show review
+                                        showReviewProductsFragment(createdTransactionIds, createdListingIds, createdSellerIds);
                                     }
                                     @Override
                                     public void onError(String err) {
                                         showLoading(false);
-                                        Toast.makeText(requireContext(), "Order placed, but failed to clear cart.", Toast.LENGTH_LONG).show();
-                                        Navigation.findNavController(requireView()).navigate(R.id.nav_recommendations);
+                                        showReviewProductsFragment(createdTransactionIds, createdListingIds, createdSellerIds);
                                     }
                                 });
                             }
@@ -216,6 +227,16 @@ public class CheckoutFragment extends Fragment {
                     Toast.makeText(requireContext(), "Failed to place order. Please try again.", Toast.LENGTH_LONG).show();
                 });
         }
+    }
+
+    // Hàm mới: lấy dữ liệu và show ReviewProductsFragment
+    private void showReviewProductsFragment(List<String> transactionIds, List<String> listingIds, List<String> sellerIds) {
+        Bundle bundle = new Bundle();
+        bundle.putStringArray("transactionIds", transactionIds.toArray(new String[0]));
+        bundle.putStringArray("listingIds", listingIds.toArray(new String[0]));
+        bundle.putStringArray("sellerIds", sellerIds.toArray(new String[0]));
+        bundle.putString("revieweeRole", "seller");
+        Navigation.findNavController(requireView()).navigate(R.id.action_checkoutFragment_to_reviewProductsFragment, bundle);
     }
 
     private void showLoading(boolean show) {
