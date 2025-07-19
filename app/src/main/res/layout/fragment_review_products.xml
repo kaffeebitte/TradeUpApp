@@ -28,5 +28,11 @@
         android:layout_height="wrap_content"
         android:text="Submit Reviews"
         android:layout_marginTop="8dp"/>
-</LinearLayout>
 
+    <Button
+        android:id="@+id/btn_exit_review"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Exit"
+        android:layout_marginTop="8dp"/>
+</LinearLayout>

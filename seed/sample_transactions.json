@@ -33,7 +33,7 @@
     {
       "id": "txn_003",
       "listingId": "listing_004",
-      "sellerId": "user_007",
+      "sellerId": "user_003",
       "buyerId": "user_005",
       "amount": 3200000,
       "status": "completed",
@@ -48,7 +48,7 @@
     {
       "id": "txn_004",
       "listingId": "listing_018",
-      "sellerId": "user_009",
+      "sellerId": "user_007",
       "buyerId": "user_004",
       "amount": 6200000,
       "status": "in_progress",
@@ -63,7 +63,7 @@
     {
       "id": "txn_005",
       "listingId": "listing_002",
-      "sellerId": "user_002",
+      "sellerId": "user_001",
       "buyerId": "user_009",
       "amount": 27500000,
       "status": "completed",
@@ -78,7 +78,7 @@
     {
       "id": "txn_006",
       "listingId": "listing_012",
-      "sellerId": "user_003",
+      "sellerId": "user_001",
       "buyerId": "user_007",
       "amount": 4100000,
       "status": "completed",
@@ -93,7 +93,7 @@
     {
       "id": "txn_007",
       "listingId": "listing_016",
-      "sellerId": "user_007",
+      "sellerId": "user_005",
       "buyerId": "user_001",
       "amount": 1700000,
       "status": "completed",
@@ -108,7 +108,7 @@
     {
       "id": "txn_008",
       "listingId": "listing_008",
-      "sellerId": "user_008",
+      "sellerId": "user_007",
       "buyerId": "user_003",
       "amount": 8200000,
       "status": "completed",
@@ -123,8 +123,8 @@
     {
       "id": "txn_009",
       "listingId": "listing_019",
-      "sellerId": "user_010",
-      "buyerId": "user_008",
+      "sellerId": "user_008",
+      "buyerId": "user_010",
       "amount": 16000000,
       "status": "pending",
       "paymentMethod": "bank_transfer",
@@ -138,7 +138,7 @@
     {
       "id": "txn_010",
       "listingId": "listing_025",
-      "sellerId": "user_006",
+      "sellerId": "user_003",
       "buyerId": "user_002",
       "amount": 3100000,
       "status": "completed",

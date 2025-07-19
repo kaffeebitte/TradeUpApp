@@ -14,9 +14,9 @@ public class PurchaseOfferHistoryPagerAdapter extends FragmentStateAdapter {
     @Override
     public Fragment createFragment(int position) {
         if (position == 0) {
-            return OfferHistoryFragment.newInstance("buyer");
-        } else {
             return new PurchaseHistoryFragment();
+        } else {
+            return OfferHistoryFragment.newInstance("buyer");
         }
     }
 

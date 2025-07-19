@@ -27,9 +27,9 @@ public class PurchaseOfferHistoryFragment extends Fragment {
         viewPager.setAdapter(adapter);
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
             if (position == 0) {
-                tab.setText("Offer History");
-            } else {
                 tab.setText("Purchase History");
+            } else {
+                tab.setText("Offer History");
             }
         }).attach();
         return view;

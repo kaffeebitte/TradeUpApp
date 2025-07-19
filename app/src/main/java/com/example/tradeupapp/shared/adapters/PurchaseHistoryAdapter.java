@@ -90,7 +90,7 @@ public class PurchaseHistoryAdapter extends RecyclerView.Adapter<PurchaseHistory
                 }
             } else {
                 // Fetch listing from Firestore
-                firebaseService.getListingById(listingId, new FirebaseService.ListingCallback() {
+                firebaseService.getListingById(listingId, new com.example.tradeupapp.core.services.ListingCallback() {
                     @Override
                     public void onSuccess(com.example.tradeupapp.models.ListingModel listing) {
                         if (listing != null && listing.getItemId() != null) {
@@ -121,8 +121,33 @@ public class PurchaseHistoryAdapter extends RecyclerView.Adapter<PurchaseHistory
         }
         // Set click listeners
         holder.itemView.setOnClickListener(v -> listener.onItemClick(transaction.getListingId()));
-        holder.btnReorder.setOnClickListener(v -> listener.onReorderClick(transaction.getListingId()));
+        holder.btnViewDetail.setOnClickListener(v -> listener.onItemClick(transaction.getListingId()));
         holder.btnReview.setOnClickListener(v -> listener.onReviewClick(transaction.getListingId()));
+        // Disable review button if review exists
+        firebaseService.getReviewsByListingId(listingId, new FirebaseService.ReviewsCallback() {
+            @Override
+            public void onSuccess(java.util.List<com.example.tradeupapp.models.ReviewModel> reviews) {
+                String currentUserId = firebaseService.getCurrentUserId();
+                boolean hasReview = false;
+                for (com.example.tradeupapp.models.ReviewModel review : reviews) {
+                    if (review.getReviewerId() != null && review.getReviewerId().equals(currentUserId)) {
+                        hasReview = true;
+                        break;
+                    }
+                }
+                holder.btnReview.setEnabled(!hasReview);
+                if (hasReview) {
+                    holder.btnReview.setText("Reviewed");
+                } else {
+                    holder.btnReview.setText("Write Review");
+                }
+            }
+            @Override
+            public void onError(String error) {
+                holder.btnReview.setEnabled(true);
+                holder.btnReview.setText("Write Review");
+            }
+        });
     }
 
     @Override
@@ -167,7 +192,7 @@ public class PurchaseHistoryAdapter extends RecyclerView.Adapter<PurchaseHistory
     static class ViewHolder extends RecyclerView.ViewHolder {
         ShapeableImageView image;
         TextView title, price, purchaseDate, status, location;
-        TextView btnReorder, btnReview;
+        TextView btnViewDetail, btnReview;
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.iv_item_image);
@@ -175,7 +200,7 @@ public class PurchaseHistoryAdapter extends RecyclerView.Adapter<PurchaseHistory
             price = itemView.findViewById(R.id.tv_item_price);
             purchaseDate = itemView.findViewById(R.id.tv_purchase_date);
             status = itemView.findViewById(R.id.tv_status);
-            btnReorder = itemView.findViewById(R.id.btn_reorder);
+            btnViewDetail = itemView.findViewById(R.id.btn_view_detail);
             btnReview = itemView.findViewById(R.id.btn_review);
             location = itemView.findViewById(R.id.tv_item_location);
         }

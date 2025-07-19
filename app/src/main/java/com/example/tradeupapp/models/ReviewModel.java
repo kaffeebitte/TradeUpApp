@@ -1,7 +1,6 @@
 package com.example.tradeupapp.models;
 
 import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.Exclude;
 
 import java.io.Serializable;
@@ -16,8 +15,7 @@ public class ReviewModel implements Serializable {
     public static final float MIN_RATING = 1.0f;
     public static final float MAX_RATING = 5.0f;
 
-    @DocumentId
-    private String id; // optional - Firestore auto ID
+    private String id; // Firestore auto ID
     private String reviewerId; // user who gives the review
     private String revieweeId; // user who receives the review
     private String transactionId; // required - related transaction
@@ -26,6 +24,7 @@ public class ReviewModel implements Serializable {
     private String comment; // optional - text feedback
     private Timestamp createdAt; // required - when review was submitted
     private int helpfulCount; // optional, default 0
+    private boolean isVerified; // moderation status
 
     /**
      * Default constructor required for Firebase Firestore
@@ -35,6 +34,7 @@ public class ReviewModel implements Serializable {
         this.rating = MIN_RATING;
         this.createdAt = Timestamp.now();
         this.helpfulCount = 0;
+        this.isVerified = true;
     }
 
     /**
@@ -49,12 +49,13 @@ public class ReviewModel implements Serializable {
         this.comment = comment;
         this.createdAt = Timestamp.now();
         this.helpfulCount = 0;
+        this.isVerified = true;
     }
 
     /**
      * Full constructor with all review properties
      */
-    public ReviewModel(String id, String transactionId, String reviewerId, String revieweeId, String listingId, float rating, String comment, Timestamp createdAt, int helpfulCount) {
+    public ReviewModel(String id, String transactionId, String reviewerId, String revieweeId, String listingId, float rating, String comment, Timestamp createdAt, int helpfulCount, boolean isVerified) {
         this.id = id;
         this.transactionId = transactionId;
         this.reviewerId = reviewerId;
@@ -64,6 +65,7 @@ public class ReviewModel implements Serializable {
         this.comment = comment;
         this.createdAt = createdAt != null ? createdAt : Timestamp.now();
         this.helpfulCount = helpfulCount;
+        this.isVerified = isVerified;
     }
 
     // Getters and Setters
@@ -145,6 +147,14 @@ public class ReviewModel implements Serializable {
 
     public void setHelpfulCount(int helpfulCount) {
         this.helpfulCount = helpfulCount;
+    }
+
+    public boolean isVerified() {
+        return isVerified;
+    }
+
+    public void setVerified(boolean verified) {
+        isVerified = verified;
     }
 
     /**

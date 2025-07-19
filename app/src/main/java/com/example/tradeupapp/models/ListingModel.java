@@ -57,6 +57,8 @@ public class ListingModel implements Serializable {
     private Interactions interactions; // new field for embedded interactions
     private Double latitude; // latitude of the listing location
     private Double longitude; // longitude of the listing location
+    // Location field (address, lat, lng)
+    private java.util.Map<String, Object> location;
 
     /**
      * Default constructor required for Firebase Firestore
@@ -293,6 +295,14 @@ public class ListingModel implements Serializable {
 
     public void setLongitude(Double longitude) {
         this.longitude = longitude;
+    }
+
+    public java.util.Map<String, Object> getLocation() {
+        return location;
+    }
+
+    public void setLocation(java.util.Map<String, Object> location) {
+        this.location = location;
     }
 
     // Helper methods for transaction status

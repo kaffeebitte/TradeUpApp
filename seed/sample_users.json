@@ -8,24 +8,17 @@
       "phoneNumber": "+84901234567",
       "location": "District 1, Ho Chi Minh City",
       "bio": "Tech enthusiast and gadget collector. Selling premium electronics with warranty.",
-      "rating": 4.8,
-      "totalReviews": 24,
-      "joinDate": "2024-01-15T10:30:00Z",
       "verificationStatus": "verified",
       "preferredCategories": ["Electronics", "Gaming"],
       "isActive": true,
-      "lastActiveDate": "2025-07-03T08:15:00Z",
-      "totalSales": 12,
-      "totalPurchases": 8,
-      "favoriteItems": ["item_005", "item_012", "item_018"],
-      "blockedUsers": [],
       "settings": {
         "notifications": true,
         "emailNotifications": true,
         "pushNotifications": true,
         "showPhoneNumber": true,
         "showLocation": true
-      }
+      },
+      "createdAt": "2025-07-18T00:00:00Z"
     },
     {
       "id": "user_002",
@@ -35,24 +28,17 @@
       "phoneNumber": "+84902345678",
       "location": "District 7, Ho Chi Minh City",
       "bio": "Apple certified technician. Specializing in MacBooks and professional equipment.",
-      "rating": 4.9,
-      "totalReviews": 18,
-      "joinDate": "2024-02-20T14:20:00Z",
       "verificationStatus": "verified",
       "preferredCategories": ["Electronics", "Laptops"],
       "isActive": true,
-      "lastActiveDate": "2025-07-02T16:45:00Z",
-      "totalSales": 9,
-      "totalPurchases": 15,
-      "favoriteItems": ["item_001", "item_003", "item_020"],
-      "blockedUsers": [],
       "settings": {
         "notifications": true,
         "emailNotifications": false,
         "pushNotifications": true,
         "showPhoneNumber": false,
         "showLocation": true
-      }
+      },
+      "createdAt": "2025-07-18T00:00:00Z"
     },
     {
       "id": "user_003",
@@ -62,24 +48,17 @@
       "phoneNumber": "+84903456789",
       "location": "Binh Thanh District, Ho Chi Minh City",
       "bio": "Motorcycle mechanic with 10 years experience. All vehicles checked before sale.",
-      "rating": 4.7,
-      "totalReviews": 31,
-      "joinDate": "2023-11-10T09:15:00Z",
       "verificationStatus": "verified",
       "preferredCategories": ["Vehicles", "Motorcycles"],
       "isActive": true,
-      "lastActiveDate": "2025-07-03T09:30:00Z",
-      "totalSales": 18,
-      "totalPurchases": 6,
-      "favoriteItems": ["item_008", "item_014"],
-      "blockedUsers": [],
       "settings": {
         "notifications": true,
         "emailNotifications": true,
         "pushNotifications": true,
         "showPhoneNumber": true,
         "showLocation": true
-      }
+      },
+      "createdAt": "2025-07-18T00:00:00Z"
     },
     {
       "id": "user_004",
@@ -89,24 +68,17 @@
       "phoneNumber": "+84904567890",
       "location": "District 3, Ho Chi Minh City",
       "bio": "Fashion designer and vintage collector. Authentic items only.",
-      "rating": 4.6,
-      "totalReviews": 22,
-      "joinDate": "2024-03-05T11:45:00Z",
       "verificationStatus": "verified",
       "preferredCategories": ["Clothing", "Fashion"],
       "isActive": true,
-      "lastActiveDate": "2025-07-02T20:15:00Z",
-      "totalSales": 14,
-      "totalPurchases": 11,
-      "favoriteItems": ["item_006", "item_009", "item_016"],
-      "blockedUsers": [],
       "settings": {
         "notifications": true,
         "emailNotifications": true,
         "pushNotifications": false,
         "showPhoneNumber": false,
         "showLocation": true
-      }
+      },
+      "createdAt": "2025-07-18T00:00:00Z"
     },
     {
       "id": "user_005",
@@ -116,24 +88,17 @@
       "phoneNumber": "+84905678901",
       "location": "Go Vap District, Ho Chi Minh City",
       "bio": "Home improvement enthusiast. Quality furniture and appliances.",
-      "rating": 4.4,
-      "totalReviews": 16,
-      "joinDate": "2024-04-12T13:20:00Z",
       "verificationStatus": "pending",
       "preferredCategories": ["Home & Garden", "Furniture"],
       "isActive": true,
-      "lastActiveDate": "2025-07-01T18:30:00Z",
-      "totalSales": 7,
-      "totalPurchases": 19,
-      "favoriteItems": ["item_002", "item_007", "item_013"],
-      "blockedUsers": ["user_015"],
       "settings": {
         "notifications": true,
         "emailNotifications": true,
         "pushNotifications": true,
         "showPhoneNumber": true,
         "showLocation": false
-      }
+      },
+      "createdAt": "2025-07-18T00:00:00Z"
     },
     {
       "id": "user_006",
@@ -143,24 +108,17 @@
       "phoneNumber": "+84906789012",
       "location": "Tan Binh District, Ho Chi Minh City",
       "bio": "Bookworm and teacher. Educational materials and rare books.",
-      "rating": 4.9,
-      "totalReviews": 13,
-      "joinDate": "2024-05-18T09:10:00Z",
       "verificationStatus": "verified",
       "preferredCategories": ["Books", "Education"],
       "isActive": true,
-      "lastActiveDate": "2025-07-03T07:45:00Z",
-      "totalSales": 5,
-      "totalPurchases": 23,
-      "favoriteItems": ["item_010", "item_015", "item_019"],
-      "blockedUsers": [],
       "settings": {
         "notifications": true,
         "emailNotifications": true,
         "pushNotifications": true,
         "showPhoneNumber": false,
         "showLocation": true
-      }
+      },
+      "createdAt": "2025-07-18T00:00:00Z"
     },
     {
       "id": "user_007",
@@ -170,24 +128,17 @@
       "phoneNumber": "+84907890123",
       "location": "Thu Duc City, Ho Chi Minh City",
       "bio": "Fitness trainer and sports enthusiast. Quality equipment guaranteed.",
-      "rating": 4.5,
-      "totalReviews": 19,
-      "joinDate": "2024-01-30T15:45:00Z",
       "verificationStatus": "verified",
       "preferredCategories": ["Sports & Outdoors", "Fitness"],
       "isActive": true,
-      "lastActiveDate": "2025-07-02T22:00:00Z",
-      "totalSales": 11,
-      "totalPurchases": 8,
-      "favoriteItems": ["item_004", "item_011"],
-      "blockedUsers": [],
       "settings": {
         "notifications": true,
         "emailNotifications": false,
         "pushNotifications": true,
         "showPhoneNumber": true,
         "showLocation": true
-      }
+      },
+      "createdAt": "2025-07-18T00:00:00Z"
     },
     {
       "id": "user_008",
@@ -197,24 +148,17 @@
       "phoneNumber": "+84908901234",
       "location": "District 2, Ho Chi Minh City",
       "bio": "Mother of two. Selling toys and children's items in great condition.",
-      "rating": 4.7,
-      "totalReviews": 25,
-      "joinDate": "2023-12-15T10:20:00Z",
       "verificationStatus": "verified",
       "preferredCategories": ["Toys & Games", "Children"],
       "isActive": true,
-      "lastActiveDate": "2025-07-03T06:30:00Z",
-      "totalSales": 16,
-      "totalPurchases": 12,
-      "favoriteItems": ["item_017", "item_021"],
-      "blockedUsers": [],
       "settings": {
         "notifications": true,
         "emailNotifications": true,
         "pushNotifications": true,
         "showPhoneNumber": false,
         "showLocation": true
-      }
+      },
+      "createdAt": "2025-07-18T00:00:00Z"
     },
     {
       "id": "user_009",
@@ -224,24 +168,17 @@
       "phoneNumber": "+84909012345",
       "location": "District 5, Ho Chi Minh City",
       "bio": "Photography enthusiast. Camera equipment and accessories.",
-      "rating": 4.8,
-      "totalReviews": 14,
-      "joinDate": "2024-06-20T12:30:00Z",
       "verificationStatus": "verified",
       "preferredCategories": ["Electronics", "Cameras"],
       "isActive": true,
-      "lastActiveDate": "2025-07-02T14:15:00Z",
-      "totalSales": 8,
-      "totalPurchases": 16,
-      "favoriteItems": ["item_022", "item_023"],
-      "blockedUsers": [],
       "settings": {
         "notifications": true,
         "emailNotifications": true,
         "pushNotifications": false,
         "showPhoneNumber": true,
         "showLocation": false
-      }
+      },
+      "createdAt": "2025-07-18T00:00:00Z"
     },
     {
       "id": "user_010",
@@ -251,24 +188,37 @@
       "phoneNumber": "+84910123456",
       "location": "District 9, Ho Chi Minh City",
       "bio": "College student selling textbooks and electronics.",
-      "rating": 4.3,
-      "totalReviews": 8,
-      "joinDate": "2024-09-01T08:00:00Z",
       "verificationStatus": "pending",
       "preferredCategories": ["Books", "Electronics"],
       "isActive": true,
-      "lastActiveDate": "2025-07-03T10:45:00Z",
-      "totalSales": 3,
-      "totalPurchases": 7,
-      "favoriteItems": ["item_024", "item_025"],
-      "blockedUsers": [],
       "settings": {
         "notifications": true,
         "emailNotifications": true,
         "pushNotifications": true,
         "showPhoneNumber": false,
         "showLocation": true
-      }
+      },
+      "createdAt": "2025-07-18T00:00:00Z"
+    },
+    {
+      "id": "le0t9XlNEDUxp5nf6MQ3rvdt4rz2",
+      "email": "luanh74055335@gmail.com",
+      "displayName": "Thuy Anh Luu",
+      "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocJMgyo5_BzbVzb6NMbLHMtJh7l57hLzcop2im2yDagXTD7am5gqxg=s96-c",
+      "phoneNumber": "+84912345678",
+      "location": "District 10, Ho Chi Minh City",
+      "bio": "Thầy Quý chấm 100% điểm đồ án!",
+      "verificationStatus": "verified",
+      "preferredCategories": ["All"],
+      "isActive": true,
+      "settings": {
+        "notifications": true,
+        "emailNotifications": true,
+        "pushNotifications": true,
+        "showPhoneNumber": true,
+        "showLocation": true
+      },
+      "createdAt": "2025-07-18T00:00:00Z"
     }
   ]
 }

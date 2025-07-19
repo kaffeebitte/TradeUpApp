@@ -3,7 +3,7 @@
     {
       "id": "offer_001",
       "listingId": "listing_001",
-      "sellerId": "user_001",
+      "sellerId": "le0t9XlNEDUxp5nf6MQ3rvdt4rz2",
       "buyerId": "user_002",
       "offerAmount": 23000000,
       "status": "pending",
@@ -29,7 +29,7 @@
     {
       "id": "offer_003",
       "listingId": "listing_003",
-      "sellerId": "user_003",
+      "sellerId": "user_002",
       "buyerId": "user_007",
       "offerAmount": 17000000,
       "status": "declined",
@@ -42,7 +42,7 @@
     {
       "id": "offer_004",
       "listingId": "listing_011",
-      "sellerId": "user_001",
+      "sellerId": "user_010",
       "buyerId": "user_008",
       "offerAmount": 13500000,
       "status": "pending",
@@ -55,7 +55,7 @@
     {
       "id": "offer_005",
       "listingId": "listing_009",
-      "sellerId": "user_009",
+      "sellerId": "user_008",
       "buyerId": "user_002",
       "offerAmount": 42000000,
       "status": "counter_offered",
@@ -81,7 +81,7 @@
     {
       "id": "offer_007",
       "listingId": "listing_022",
-      "sellerId": "user_003",
+      "sellerId": "le0t9XlNEDUxp5nf6MQ3rvdt4rz2",
       "buyerId": "user_001",
       "offerAmount": 46000000,
       "status": "pending",
@@ -94,7 +94,7 @@
     {
       "id": "offer_008",
       "listingId": "listing_015",
-      "sellerId": "user_006",
+      "sellerId": "user_004",
       "buyerId": "user_008",
       "offerAmount": 2500000,
       "status": "declined",
@@ -107,7 +107,7 @@
     {
       "id": "offer_009",
       "listingId": "listing_004",
-      "sellerId": "user_007",
+      "sellerId": "user_003",
       "buyerId": "user_005",
       "offerAmount": 3200000,
       "status": "accepted",
@@ -120,7 +120,7 @@
     {
       "id": "offer_010",
       "listingId": "listing_018",
-      "sellerId": "user_009",
+      "sellerId": "user_007",
       "buyerId": "user_004",
       "offerAmount": 6000000,
       "status": "counter_offered",
@@ -133,7 +133,7 @@
     {
       "id": "offer_011",
       "listingId": "listing_013",
-      "sellerId": "user_004",
+      "sellerId": "user_002",
       "buyerId": "user_001",
       "offerAmount": 8000000,
       "status": "pending",
@@ -146,7 +146,7 @@
     {
       "id": "offer_012",
       "listingId": "listing_020",
-      "sellerId": "user_001",
+      "sellerId": "user_009",
       "buyerId": "user_010",
       "offerAmount": 7300000,
       "status": "declined",

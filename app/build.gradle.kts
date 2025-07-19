@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("com.google.gms.google-services")
     alias(libs.plugins.kotlin.android)
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -49,6 +50,7 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(libs.play.services.maps)
     implementation(libs.glide)
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
 
     // Cloudinary for media storage
     implementation(libs.cloudinary.android)

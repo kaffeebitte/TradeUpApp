@@ -30,6 +30,7 @@ import java.util.Map;
 public class ReviewProductsFragment extends Fragment {
     private RecyclerView rvProducts;
     private Button btnSubmit;
+    private Button btnExit;
     private ReviewProductsAdapter adapter;
     private List<ListingModel> listings;
     private Map<String, ItemModel> itemMap;
@@ -44,9 +45,25 @@ public class ReviewProductsFragment extends Fragment {
     private Map<String, String> listingIdToTransactionId;
     private Map<String, String> listingIdToSellerId;
 
+    private List<String> bannedWords = new ArrayList<>();
+
+    private void fetchBannedWords() {
+        FirebaseService.getInstance().getBannedWords(new FirebaseService.BannedWordsCallback() {
+            @Override
+            public void onSuccess(List<String> words) {
+                bannedWords = words;
+            }
+            @Override
+            public void onError(String error) {
+                bannedWords = new ArrayList<>(); // fallback to empty
+            }
+        });
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        fetchBannedWords();
         if (getArguments() != null) {
             String[] txnArr = getArguments().getStringArray("transactionIds");
             String[] listingArr = getArguments().getStringArray("listingIds");
@@ -67,9 +84,11 @@ public class ReviewProductsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_review_products, container, false);
         rvProducts = view.findViewById(R.id.rv_review_products);
         btnSubmit = view.findViewById(R.id.btn_submit_reviews);
+        btnExit = view.findViewById(R.id.btn_exit_review);
         rvProducts.setLayoutManager(new LinearLayoutManager(getContext()));
         fetchDataAndSetupAdapter();
         btnSubmit.setOnClickListener(v -> submitReviews());
+        btnExit.setOnClickListener(v -> requireActivity().onBackPressed());
         return view;
     }
 
@@ -112,10 +131,18 @@ public class ReviewProductsFragment extends Fragment {
         });
     }
 
+    private boolean containsAbusiveContent(String comment) {
+        if (comment == null) return false;
+        String lower = comment.toLowerCase();
+        for (String word : bannedWords) {
+            if (lower.contains(word)) return true;
+        }
+        return false;
+    }
+
     private void submitReviews() {
         // Always get latest input from visible views
         Map<String, ReviewProductsAdapter.ReviewInput> inputs = adapter.getReviewInputs(rvProducts);
-        // Lấy user hiện tại từ UserSession
         String fromUserId = UserSession.getInstance().getId();
         List<ReviewModel> reviews = new ArrayList<>();
         for (ListingModel listing : listings) {
@@ -124,9 +151,12 @@ public class ReviewProductsFragment extends Fragment {
                 Toast.makeText(getContext(), "Please rate all products before submitting.", Toast.LENGTH_SHORT).show();
                 return;
             }
+            if (containsAbusiveContent(input.comment)) {
+                Toast.makeText(getContext(), "Your review contains inappropriate language. Please revise your comment.", Toast.LENGTH_LONG).show();
+                return;
+            }
             String revieweeId = null;
             String txnId = null;
-            // Nếu reviewee là seller thì lấy từ listing, còn reviewer luôn là user hiện tại
             if (listingIdToSellerId != null && listingIdToSellerId.containsKey(listing.getId())) {
                 revieweeId = listingIdToSellerId.get(listing.getId());
             } else if (toUserId != null) {
@@ -145,11 +175,12 @@ public class ReviewProductsFragment extends Fragment {
                     revieweeId,
                     listing.getId(),
                     input.rating,
-                    input.comment // Lưu comment từ EditText
+                    input.comment
             );
+            // Moderate abusive content
+            review.setVerified(true); // Only allow verified reviews to be submitted
             reviews.add(review);
         }
-        // Save all reviews to Firestore
         FirebaseService service = FirebaseService.getInstance();
         for (ReviewModel review : reviews) {
             service.addReview(review, new FirebaseService.SimpleCallback() {
@@ -164,7 +195,6 @@ public class ReviewProductsFragment extends Fragment {
             });
         }
         Toast.makeText(getContext(), "Thank you for your reviews!", Toast.LENGTH_SHORT).show();
-        // Optionally close fragment or navigate away
         requireActivity().onBackPressed();
     }
 }

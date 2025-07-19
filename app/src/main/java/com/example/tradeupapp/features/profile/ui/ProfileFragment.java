@@ -45,6 +45,7 @@ public class ProfileFragment extends Fragment {
     private TextView usernameTextView;
     private TextView userEmailTextView;
     private TextView userRatingTextView;
+    private TextView userTotalTransactionsTextView;
     private MaterialButton editProfileButton;
     private Button logoutButton;
 
@@ -63,6 +64,7 @@ public class ProfileFragment extends Fragment {
     private UserManager userManager;
 
     private User currentUser; // Add field to store the User object
+    private TextView reviewCountTextView;
 
     // Activity result launcher for handling return from EditProfileActivity
     private final ActivityResultLauncher<Intent> editProfileLauncher = registerForActivityResult(
@@ -120,8 +122,9 @@ public class ProfileFragment extends Fragment {
 
         // Stats section
         TextView itemsCountTextView = view.findViewById(R.id.tv_items_count);
-        TextView reviewsCountTextView = view.findViewById(R.id.tv_reviews_count);
         userRatingTextView = view.findViewById(R.id.tv_rating);
+        reviewCountTextView = view.findViewById(R.id.tv_review_count);
+        userTotalTransactionsTextView = view.findViewById(R.id.tv_total_transactions);
 
         // Bio and contact views
         userBioTextView = view.findViewById(R.id.tv_user_bio);
@@ -241,11 +244,8 @@ public class ProfileFragment extends Fragment {
 
                                 // Load role-specific data
                                 UserRole currentRole = userManager.getUserRole();
-                                if (currentRole == UserRole.BUYER) {
-                                    loadUserStats();
-                                } else {
-                                    loadUserStats();
-                                }
+                                loadUserStats(); // always load stats
+                                loadTotalTransactions(uid); // <-- Add this line
                             }
                         }
                     })
@@ -256,6 +256,22 @@ public class ProfileFragment extends Fragment {
             // Handle not logged in state
             navigateToLogin();
         }
+    }
+
+    // Add this method to load total transactions
+    private void loadTotalTransactions(String uid) {
+        View rootView = getView();
+        if (rootView == null) return;
+        TextView totalTransactionsTextView = rootView.findViewById(R.id.tv_total_transactions);
+        db.collection("transactions")
+            .whereEqualTo("buyerId", uid)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                int totalTransactions = querySnapshot.size();
+                if (totalTransactionsTextView != null) {
+                    totalTransactionsTextView.setText(String.valueOf(totalTransactions));
+                }
+            });
     }
 
     private boolean isGoogleUser(FirebaseUser user) {
@@ -282,35 +298,42 @@ public class ProfileFragment extends Fragment {
     private void loadUserStats() {
         if (currentUser != null && auth.getCurrentUser() != null) {
             String uid = auth.getCurrentUser().getUid();
-
             View rootView = getView();
             if (rootView == null) {
-                // View is not available, avoid NullPointerException
                 return;
             }
-
-            // Load basic stats to display in header
             TextView itemsCount = rootView.findViewById(R.id.tv_items_count);
-            TextView reviewsCount = rootView.findViewById(R.id.tv_reviews_count);
-
-            // Count user's active listings
-            db.collection("items")
+            TextView ratingView = rootView.findViewById(R.id.tv_rating);
+            TextView reviewCountView = rootView.findViewById(R.id.tv_review_count);
+            // Count user's total listings
+            db.collection("listings")
                 .whereEqualTo("sellerId", uid)
-                .whereEqualTo("status", "active")
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     if (itemsCount != null) {
                         itemsCount.setText(String.valueOf(querySnapshot.size()));
                     }
                 });
-
-            // Count reviews received
+            // Calculate average rating from reviews where revieweeId == uid
             db.collection("reviews")
-                .whereEqualTo("userId", uid)
+                .whereEqualTo("revieweeId", uid)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    if (reviewsCount != null) {
-                        reviewsCount.setText(String.valueOf(querySnapshot.size()));
+                    double totalRating = 0;
+                    int reviewCount = querySnapshot.size();
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        Number rating = doc.getDouble("rating");
+                        if (rating != null) {
+                            totalRating += rating.doubleValue();
+                        }
+                    }
+                    double avgRating = reviewCount > 0 ? totalRating / reviewCount : 0.0;
+                    // Only update the main stat views, not duplicate ones
+                    if (ratingView != null) {
+                        ratingView.setText(reviewCount > 0 ? String.format("%.1f", avgRating) : "No rating");
+                    }
+                    if (reviewCountView != null) {
+                        reviewCountView.setText(reviewCount > 0 ? String.format("%d", reviewCount) : "No reviews");
                     }
                 });
         }
@@ -355,9 +378,14 @@ public class ProfileFragment extends Fragment {
                 usernameTextView.setText(user.getDisplayName());
             }
 
-            // Update member since info (sử dụng email field tạm thời)
-            if (user.getEmail() != null) {
-                userEmailTextView.setText("Member since " + user.getEmail());
+            // Update member since info (sử dụng createdAt field)
+            if (user.getCreatedAt() != null) {
+                com.google.firebase.Timestamp createdTimestamp = user.getCreatedAt();
+                java.util.Date createdDate = createdTimestamp.toDate();
+                java.util.Calendar calendar = java.util.Calendar.getInstance();
+                calendar.setTime(createdDate);
+                int year = calendar.get(java.util.Calendar.YEAR);
+                userEmailTextView.setText("Member since " + year);
             }
 
             // Update rating display

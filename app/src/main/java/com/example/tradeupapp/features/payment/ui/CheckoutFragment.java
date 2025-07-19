@@ -236,7 +236,10 @@ public class CheckoutFragment extends Fragment {
         bundle.putStringArray("listingIds", listingIds.toArray(new String[0]));
         bundle.putStringArray("sellerIds", sellerIds.toArray(new String[0]));
         bundle.putString("revieweeRole", "seller");
-        Navigation.findNavController(requireView()).navigate(R.id.action_checkoutFragment_to_reviewProductsFragment, bundle);
+        androidx.navigation.NavOptions navOptions = new androidx.navigation.NavOptions.Builder()
+                .setPopUpTo(R.id.checkoutFragment, true)
+                .build();
+        Navigation.findNavController(requireView()).navigate(R.id.action_checkoutFragment_to_reviewProductsFragment, bundle, navOptions);
     }
 
     private void showLoading(boolean show) {

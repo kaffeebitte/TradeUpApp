@@ -17,7 +17,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
@@ -32,16 +31,10 @@ import com.example.tradeupapp.models.User;
 import com.example.tradeupapp.models.CartItem;
 import com.example.tradeupapp.models.OfferModel;
 import com.example.tradeupapp.shared.adapters.ImageSliderAdapter;
-import com.example.tradeupapp.shared.adapters.ListingAdapter;
 import com.example.tradeupapp.shared.adapters.OfferAdapter;
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
-import com.google.android.material.tabs.TabLayout;
-import com.google.android.material.tabs.TabLayoutMediator;
+import com.example.tradeupapp.shared.adapters.ReviewAdapter;
 
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -53,8 +46,8 @@ public class ListingDetailFragment extends Fragment {
     private Toolbar toolbar;
     private TextView tvItemTitle, tvItemPrice, tvDescription, tvCondition, tvItemLocation;
     private ViewPager2 itemImagesViewPager;
-    private TabLayout imageIndicator;
-    private MaterialButton btnBuyNow, btnMakeOffer, btnMessage, btnViewOffers, btnUpdateListing;
+    private com.google.android.material.tabs.TabLayout imageIndicator;
+    private com.google.android.material.button.MaterialButton btnBuyNow, btnMakeOffer, btnMessage, btnViewOffers, btnUpdateListing;
     private FirebaseService firebaseService;
     private CartService cartService;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -63,12 +56,16 @@ public class ListingDetailFragment extends Fragment {
     private TextView tvSellerName, tvSellerRating;
     private TextView tvViewCount, tvSaveCount, tvShareCount;
     private TextView tvItemStatus;
-    private ChipGroup tagGroup;
+    private com.google.android.material.chip.ChipGroup tagGroup;
     private RecyclerView rvOffers;
     private OfferAdapter offerAdapter;
     private List<OfferModel> offerList = new ArrayList<>();
     private Map<String, ListingModel> listingMap = new HashMap<>();
     private Map<String, ItemModel> itemMap = new HashMap<>();
+    private RecyclerView rvReviews;
+    private ReviewAdapter reviewAdapter;
+    private List<com.example.tradeupapp.models.ReviewModel> reviewList = new ArrayList<>();
+    private TextView tvNoReviews;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -96,7 +93,7 @@ public class ListingDetailFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         initViews(view);
         itemImagesViewPager.setAdapter(new ImageSliderAdapter(requireContext(), new ArrayList<>()));
-        new TabLayoutMediator(imageIndicator, itemImagesViewPager, (tab, position) -> {}).attach();
+        new com.google.android.material.tabs.TabLayoutMediator(imageIndicator, itemImagesViewPager, (tab, position) -> {}).attach();
         setupToolbar();
         rvOffers.setLayoutManager(new LinearLayoutManager(getContext()));
         offerAdapter = new OfferAdapter(getContext(), offerList, listingMap, itemMap, new OfferAdapter.OnOfferActionListener() {
@@ -119,6 +116,37 @@ public class ListingDetailFragment extends Fragment {
         });
         rvOffers.setAdapter(offerAdapter);
         loadOffersForListing();
+        // --- Review section setup ---
+        rvReviews = view.findViewById(R.id.rv_reviews); // Add this RecyclerView to your fragment_item_detail.xml
+        rvReviews.setLayoutManager(new LinearLayoutManager(getContext()));
+        reviewAdapter = new ReviewAdapter(getContext(), reviewList);
+        rvReviews.setAdapter(reviewAdapter);
+        // Load reviewer user info for displaying displayName in reviews
+        loadReviewerUsersForReviews();
+    }
+
+    private void loadReviewerUsersForReviews() {
+        // Collect all unique reviewerIds from reviewList
+        java.util.Set<String> reviewerIds = new java.util.HashSet<>();
+        for (com.example.tradeupapp.models.ReviewModel review : reviewList) {
+            if (review.getReviewerId() != null) {
+                reviewerIds.add(review.getReviewerId());
+            }
+        }
+        if (reviewerIds.isEmpty()) {
+            reviewAdapter.setUserMap(new java.util.HashMap<>());
+            return;
+        }
+        firebaseService.getUsersByIds(new java.util.ArrayList<>(reviewerIds), new FirebaseService.UsersByIdsCallback() {
+            @Override
+            public void onSuccess(java.util.Map<String, com.example.tradeupapp.models.User> userMap) {
+                reviewAdapter.setUserMap(userMap);
+            }
+            @Override
+            public void onError(String error) {
+                reviewAdapter.setUserMap(new java.util.HashMap<>());
+            }
+        });
     }
 
     private void loadListingAndItem(String listingId) {
@@ -197,7 +225,7 @@ public class ListingDetailFragment extends Fragment {
                 }
             };
             itemImagesViewPager.setAdapter(imageAdapter);
-            new TabLayoutMediator(imageIndicator, itemImagesViewPager, (tab, position) -> {}).attach();
+            new com.google.android.material.tabs.TabLayoutMediator(imageIndicator, itemImagesViewPager, (tab, position) -> {}).attach();
         } else {
             // Nếu không có ảnh, hiển thị ảnh mặc định
             List<Uri> defaultList = new ArrayList<>();
@@ -214,33 +242,45 @@ public class ListingDetailFragment extends Fragment {
                 }
             };
             itemImagesViewPager.setAdapter(imageAdapter);
-            new TabLayoutMediator(imageIndicator, itemImagesViewPager, (tab, position) -> {}).attach();
+            new com.google.android.material.tabs.TabLayoutMediator(imageIndicator, itemImagesViewPager, (tab, position) -> {}).attach();
         }
         // Seller info
         if (listing.getSellerId() != null) {
-            firebaseService.getUserById(listing.getSellerId(), new FirebaseService.UserCallback() {
+            firebaseService.getReviewsByUserId(listing.getSellerId(), new FirebaseService.ReviewsCallback() {
                 @Override
-                public void onSuccess(User user) {
-                    if (getActivity() == null || !isAdded()) return;
-                    tvSellerName.setText(user.getDisplayName());
-                    String ratingText = String.format("%.1f (%d reviews)", user.getRating(), user.getTotalReviews());
-                    tvSellerRating.setText(ratingText);
-                    if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
-                        Glide.with(requireContext())
-                            .load(user.getPhotoUrl())
-                            .placeholder(R.drawable.tradeuplogo)
-                            .error(R.drawable.tradeuplogo)
-                            .into(ivSellerAvatar);
-                    } else {
-                        ivSellerAvatar.setImageResource(R.drawable.tradeuplogo);
+                public void onSuccess(List<com.example.tradeupapp.models.ReviewModel> reviews) {
+                    double totalRating = 0;
+                    int reviewCount = reviews.size();
+                    for (com.example.tradeupapp.models.ReviewModel review : reviews) {
+                        totalRating += review.getRating();
                     }
+                    double avgRating = reviewCount > 0 ? totalRating / reviewCount : 0.0;
+                    firebaseService.getUserById(listing.getSellerId(), new FirebaseService.UserCallback() {
+                        @Override
+                        public void onSuccess(User user) {
+                            if (getActivity() == null || !isAdded()) return;
+                            tvSellerName.setText(user.getDisplayName());
+                            String ratingText = reviewCount > 0 ? String.format("%.1f (%d reviews)", avgRating, reviewCount) : "No rating";
+                            tvSellerRating.setText(ratingText);
+                            if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
+                                Glide.with(requireContext())
+                                    .load(user.getPhotoUrl())
+                                    .placeholder(R.drawable.tradeuplogo)
+                                    .error(R.drawable.tradeuplogo)
+                                    .into(ivSellerAvatar);
+                            } else {
+                                ivSellerAvatar.setImageResource(R.drawable.tradeuplogo);
+                            }
+                        }
+                        @Override
+                        public void onError(String error) {
+                            // Handle error if needed
+                        }
+                    });
                 }
                 @Override
                 public void onError(String error) {
-                    if (getActivity() == null || !isAdded()) return;
-                    tvSellerName.setText("Unknown Seller");
-                    tvSellerRating.setText("");
-                    ivSellerAvatar.setImageResource(R.drawable.tradeuplogo);
+                    // Handle error if needed
                 }
             });
         }
@@ -288,30 +328,45 @@ public class ListingDetailFragment extends Fragment {
                 tvItemStatus.setText("");
             }
         }
-        // Show/hide Buy Now button based on listing availability
+        // Show/hide Buy Now and Make Offer buttons based on listing availability and allowOffers
+        boolean isAvailable = isListingAvailableForPurchase(listing);
+        boolean allowOffers = false;
+        try {
+            java.lang.reflect.Method getAllowOffersMethod = listing.getClass().getMethod("getAllowOffers");
+            allowOffers = (boolean) getAllowOffersMethod.invoke(listing);
+        } catch (Exception e) {
+            try {
+                java.lang.reflect.Field allowOffersField = listing.getClass().getField("allowOffers");
+                allowOffers = allowOffersField.getBoolean(listing);
+            } catch (Exception ignored) {}
+        }
+        // Disable Buy Now button if not available
         if (btnBuyNow != null) {
-            if (isListingAvailableForPurchase(listing)) {
-                btnBuyNow.setVisibility(View.VISIBLE);
-            } else {
-                btnBuyNow.setVisibility(View.GONE);
-            }
+            btnBuyNow.setEnabled(isAvailable);
+        }
+        // Disable Make Offer button if not available or not allowed
+        if (btnMakeOffer != null) {
+            // Disable if not available or not allowed
+            btnMakeOffer.setEnabled(isAvailable && allowOffers);
+        }
+        // Always show chat button
+        if (btnMessage != null) {
+            btnMessage.setVisibility(View.VISIBLE);
         }
         // Hide Make Offer button if not allowed or user is seller
         if (btnMakeOffer != null) {
-            boolean allowOffers = false;
+            boolean allowOffersHide = false;
             try {
                 java.lang.reflect.Method getAllowOffersMethod = listing.getClass().getMethod("getAllowOffers");
-                allowOffers = (boolean) getAllowOffersMethod.invoke(listing);
+                allowOffersHide = (boolean) getAllowOffersMethod.invoke(listing);
             } catch (Exception e) {
                 try {
                     java.lang.reflect.Field allowOffersField = listing.getClass().getField("allowOffers");
-                    allowOffers = allowOffersField.getBoolean(listing);
+                    allowOffersHide = allowOffersField.getBoolean(listing);
                 } catch (Exception ignored) {}
             }
-            if (!allowOffers || isCurrentUserSeller()) {
+            if (!allowOffersHide || isCurrentUserSeller()) {
                 btnMakeOffer.setVisibility(View.GONE);
-            } else {
-                btnMakeOffer.setVisibility(View.VISIBLE);
             }
         }
         // Tags
@@ -323,7 +378,7 @@ public class ListingDetailFragment extends Fragment {
             }
             if (tags != null && !tags.isEmpty()) {
                 for (String tag : tags) {
-                    Chip chip = new Chip(requireContext());
+                    com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
                     chip.setText(tag);
                     chip.setChipBackgroundColorResource(R.color.md_theme_surfaceVariant);
                     chip.setTextColor(getResources().getColor(R.color.md_theme_onSurfaceVariant, null));
@@ -339,15 +394,12 @@ public class ListingDetailFragment extends Fragment {
         // Show owner or buyer buttons
         showOwnerOrBuyerButtons();
         setupButtonClickListeners();
+        // Load reviews for this listing after UI is updated
+        loadReviewsForListing();
     }
 
-    /**
-     * Determines if the listing is available for purchase.
-     * You can adjust the logic as needed (e.g., check for sold/reserved status).
-     */
+    // Utility methods below, outside of updateUI()
     private boolean isListingAvailableForPurchase(ListingModel listing) {
-        // Example: assuming ListingModel has isSold() and isReserved() methods
-        // If not, adjust this logic to fit your model
         try {
             java.lang.reflect.Method isSoldMethod = listing.getClass().getMethod("isSold");
             java.lang.reflect.Method isReservedMethod = listing.getClass().getMethod("isReserved");
@@ -355,25 +407,20 @@ public class ListingDetailFragment extends Fragment {
             boolean isReserved = (boolean) isReservedMethod.invoke(listing);
             return !isSold && !isReserved;
         } catch (Exception e) {
-            // If methods do not exist, default to always available
             return true;
         }
     }
-
     private boolean isCurrentUserSeller() {
         String currentUserId = firebaseService.getCurrentUserId();
         return currentUserId != null && listing != null && currentUserId.equals(listing.getSellerId());
     }
-
     private String formatPrice(double price) {
-        return String.format(Locale.getDefault(), "%,.0f đ", price);
+        return String.format(java.util.Locale.getDefault(), "%,.0f đ", price);
     }
-
     private void showError() {
-        Toast.makeText(getActivity(), "Error loading listing details", Toast.LENGTH_SHORT).show();
-        if (getView() != null) getView().setVisibility(View.GONE);
+        android.widget.Toast.makeText(getActivity(), "Error loading listing details", android.widget.Toast.LENGTH_SHORT).show();
+        if (getView() != null) getView().setVisibility(android.view.View.GONE);
     }
-
     private void initViews(View view) {
         toolbar = view.findViewById(R.id.toolbar);
         tvItemTitle = view.findViewById(R.id.tv_item_title);
@@ -398,15 +445,15 @@ public class ListingDetailFragment extends Fragment {
         tvShareCount = view.findViewById(R.id.tv_share_count);
         tvItemStatus = view.findViewById(R.id.tv_item_status);
         tagGroup = view.findViewById(R.id.tag_group);
-        rvOffers = view.findViewById(R.id.rv_offers); // Ensure you have this RecyclerView in your layout
+        rvOffers = view.findViewById(R.id.rv_offers);
+        rvReviews = view.findViewById(R.id.rv_reviews);
+        tvNoReviews = view.findViewById(R.id.tv_no_reviews);
     }
-
     private void setupToolbar() {
         if (toolbar != null) {
             toolbar.setNavigationOnClickListener(v -> requireActivity().onBackPressed());
         }
     }
-
     private void showOwnerOrBuyerButtons() {
         if (listing == null || firebaseService == null) return;
         String currentUserId = firebaseService.getCurrentUserId();
@@ -749,6 +796,41 @@ public class ListingDetailFragment extends Fragment {
             public void onError(String error) {
                 offerList.clear();
                 offerAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    private void loadReviewsForListing() {
+        if (listing == null || listing.getId() == null) return;
+        android.util.Log.d("ListingDetailFragment", "Fetching reviews for listingId: " + listing.getId());
+        firebaseService.getReviewsByListingId(listing.getId(), new FirebaseService.ReviewsCallback() {
+            @Override
+            public void onSuccess(List<com.example.tradeupapp.models.ReviewModel> reviews) {
+                android.util.Log.d("ListingDetailFragment", "Reviews fetched: " + reviews.size());
+                reviewList.clear();
+                // Only add verified reviews
+                for (com.example.tradeupapp.models.ReviewModel review : reviews) {
+                    if (review.isVerified()) {
+                        reviewList.add(review);
+                    }
+                }
+                mainHandler.post(() -> {
+                    reviewAdapter.notifyDataSetChanged();
+                    if (tvNoReviews != null) {
+                        tvNoReviews.setVisibility(reviewList.isEmpty() ? View.VISIBLE : View.GONE);
+                    }
+                    // After loading reviews, load user info for reviewer display names
+                    loadReviewerUsersForReviews();
+                });
+            }
+            @Override
+            public void onError(String error) {
+                android.util.Log.e("ListingDetailFragment", "Error fetching reviews: " + error);
+                mainHandler.post(() -> {
+                    if (tvNoReviews != null) {
+                        tvNoReviews.setVisibility(View.VISIBLE);
+                    }
+                });
             }
         });
     }

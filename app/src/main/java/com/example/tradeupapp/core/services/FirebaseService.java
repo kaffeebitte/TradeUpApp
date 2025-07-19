@@ -1336,6 +1336,7 @@ public class FirebaseService {
         db.collection("listings").get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
                 List<ListingModel> result = new ArrayList<>();
+                List<Object> timestamps = new ArrayList<>();
                 for (DocumentSnapshot doc : queryDocumentSnapshots) {
                     Map<String, Object> data = doc.getData();
                     if (data == null) continue;
@@ -1348,12 +1349,25 @@ public class FirebaseService {
                             ListingModel listing = doc.toObject(ListingModel.class);
                             if (listing != null) {
                                 listing.setId(doc.getId());
+                                // Attach timestamp for sorting
+                                listing.setUpdatedAt(entry.get(type));
                                 result.add(listing);
                             }
                             break;
                         }
                     }
                 }
+                // Sort by timestamp (type) descending
+                result.sort((a, b) -> {
+                    Object ta = a.getUpdatedAt();
+                    Object tb = b.getUpdatedAt();
+                    java.util.Date da = getDateFromField(ta);
+                    java.util.Date db = getDateFromField(tb);
+                    if (da == null && db == null) return 0;
+                    if (da == null) return 1;
+                    if (db == null) return -1;
+                    return db.compareTo(da);
+                });
                 callback.onSuccess(result);
             })
             .addOnFailureListener(e -> callback.onError(e.getMessage()));
@@ -1444,14 +1458,14 @@ public class FirebaseService {
     }
 
     // Get all transactions for a user (by buyerId)
-    public void getUserTransactions(String userId, TransactionsCallback callback) {
+    public void getTransactionsByUserId(String userId, TransactionsCallback callback) {
         db.collection("transactions")
                 .whereEqualTo("buyerId", userId)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<com.example.tradeupapp.models.TransactionModel> transactions = new ArrayList<>();
-                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                    for (com.google.firebase.firestore.DocumentSnapshot document : queryDocumentSnapshots) {
                         com.example.tradeupapp.models.TransactionModel transaction = document.toObject(com.example.tradeupapp.models.TransactionModel.class);
                         if (transaction != null) {
                             transaction.setId(document.getId());
@@ -1460,16 +1474,7 @@ public class FirebaseService {
                     }
                     callback.onSuccess(transactions);
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error getting purchase transactions", e);
-                    callback.onError(e.getMessage());
-                });
-    }
-
-    // Callback for listing fetch
-    public interface ListingCallback {
-        void onSuccess(ListingModel listing);
-        void onError(String error);
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
     // Get listing by ID
@@ -1652,18 +1657,143 @@ public class FirebaseService {
             callback.onSuccess(new java.util.HashMap<>());
             return;
         }
-        db.collection("users")
-            .whereIn("id", userIds)
+        // Firestore whereIn only supports up to 10 elements, so if >10, fetch individually
+        if (userIds.size() <= 10) {
+            db.collection("users")
+                .whereIn("id", userIds)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    java.util.Map<String, com.example.tradeupapp.models.User> userMap = new java.util.HashMap<>();
+                    for (com.google.firebase.firestore.DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                        com.example.tradeupapp.models.User user = document.toObject(com.example.tradeupapp.models.User.class);
+                        if (user != null) {
+                            if (user.getId() == null || user.getId().isEmpty()) {
+                                user.setId(document.getId());
+                            }
+                            userMap.put(document.getId(), user); // always use doc id as key
+                        }
+                    }
+                    callback.onSuccess(userMap);
+                })
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
+        } else {
+            // Fetch each user by document id
+            java.util.Map<String, com.example.tradeupapp.models.User> userMap = new java.util.HashMap<>();
+            java.util.List<com.google.android.gms.tasks.Task<com.google.firebase.firestore.DocumentSnapshot>> tasks = new java.util.ArrayList<>();
+            for (String userId : userIds) {
+                tasks.add(db.collection("users").document(userId).get());
+            }
+            com.google.android.gms.tasks.Tasks.whenAllSuccess(tasks)
+                .addOnSuccessListener(results -> {
+                    for (Object obj : results) {
+                        if (obj instanceof com.google.firebase.firestore.DocumentSnapshot) {
+                            com.google.firebase.firestore.DocumentSnapshot document = (com.google.firebase.firestore.DocumentSnapshot) obj;
+                            if (document.exists()) {
+                                com.example.tradeupapp.models.User user = document.toObject(com.example.tradeupapp.models.User.class);
+                                if (user != null) {
+                                    if (user.getId() == null || user.getId().isEmpty()) {
+                                        user.setId(document.getId());
+                                    }
+                                    userMap.put(document.getId(), user);
+                                }
+                            }
+                        }
+                    }
+                    callback.onSuccess(userMap);
+                })
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
+        }
+    }
+
+    // Callback for reviews
+    public interface ReviewsCallback {
+        void onSuccess(List<com.example.tradeupapp.models.ReviewModel> reviews);
+        void onError(String error);
+    }
+
+    // Get reviews by listingId
+    public void getReviewsByListingId(String listingId, ReviewsCallback callback) {
+        db.collection("reviews")
+            .whereEqualTo("listingId", listingId)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
-                java.util.Map<String, com.example.tradeupapp.models.User> userMap = new java.util.HashMap<>();
-                for (com.google.firebase.firestore.DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-                    com.example.tradeupapp.models.User user = document.toObject(com.example.tradeupapp.models.User.class);
-                    if (user != null && user.getId() != null) {
-                        userMap.put(user.getId(), user);
+                List<com.example.tradeupapp.models.ReviewModel> reviews = new ArrayList<>();
+                for (DocumentSnapshot document : queryDocumentSnapshots) {
+                    com.example.tradeupapp.models.ReviewModel review = document.toObject(com.example.tradeupapp.models.ReviewModel.class);
+                    if (review != null) {
+                        review.setId(document.getId());
+                        reviews.add(review);
                     }
                 }
-                callback.onSuccess(userMap);
+                callback.onSuccess(reviews);
+            })
+            .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
+    // Get reviews by sellerId (for seller rating)
+    public void getReviewsBySellerId(String sellerId, ReviewsCallback callback) {
+        db.collection("reviews")
+            .whereEqualTo("sellerId", sellerId)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                List<com.example.tradeupapp.models.ReviewModel> reviews = new ArrayList<>();
+                for (com.google.firebase.firestore.DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                    com.example.tradeupapp.models.ReviewModel review = document.toObject(com.example.tradeupapp.models.ReviewModel.class);
+                    if (review != null) {
+                        review.setId(document.getId());
+                        reviews.add(review);
+                    }
+                }
+                callback.onSuccess(reviews);
+            })
+            .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
+    // Get reviews by revieweeId (for user/seller rating)
+    public void getReviewsByUserId(String userId, ReviewsCallback callback) {
+        db.collection("reviews")
+            .whereEqualTo("revieweeId", userId)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                List<com.example.tradeupapp.models.ReviewModel> reviews = new ArrayList<>();
+                for (com.google.firebase.firestore.DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                    com.example.tradeupapp.models.ReviewModel review = document.toObject(com.example.tradeupapp.models.ReviewModel.class);
+                    if (review != null) {
+                        review.setId(document.getId());
+                        reviews.add(review);
+                    }
+                }
+                callback.onSuccess(reviews);
+            })
+            .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
+    // Increment interactions.aggregate.totalViews for a listing
+    public void incrementListingTotalViews(String listingId) {
+        if (listingId == null) return;
+        db.collection("listings").document(listingId)
+            .update("interactions.aggregate.totalViews", com.google.firebase.firestore.FieldValue.increment(1));
+    }
+
+    public interface BannedWordsCallback {
+        void onSuccess(List<String> words);
+        void onError(String error);
+    }
+
+    public void getBannedWords(BannedWordsCallback callback) {
+        db.collection("moderation").document("bannedWords").get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    List<String> words = (List<String>) documentSnapshot.get("words");
+                    if (words != null) {
+                        callback.onSuccess(words);
+                    } else {
+                        callback.onSuccess(new ArrayList<>());
+                    }
+                } else {
+                    callback.onSuccess(new ArrayList<>());
+                }
             })
             .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }

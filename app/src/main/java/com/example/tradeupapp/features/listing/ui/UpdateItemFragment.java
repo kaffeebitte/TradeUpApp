@@ -48,7 +48,7 @@ public class UpdateItemFragment extends Fragment implements PhotoUploadAdapter.O
     private RecyclerView recyclerTags;
     private PhotoUploadAdapter photoAdapter;
     private TagAdapter tagAdapter;
-    private MaterialButton btnContinue;
+    private MaterialButton btnContinue; // Use MaterialButton for update
     private MaterialSwitch switchAllowOffers;
     private MaterialSwitch switchAllowReturns;
     private MaterialSwitch switchFeatured;
@@ -92,7 +92,7 @@ public class UpdateItemFragment extends Fragment implements PhotoUploadAdapter.O
         recyclerTags = view.findViewById(R.id.recycler_tags);
         actvCategory = view.findViewById(R.id.actv_category);
         actvCondition = view.findViewById(R.id.actv_condition);
-        btnContinue = view.findViewById(R.id.btn_preview);
+        btnContinue = view.findViewById(R.id.btn_preview); // Use MaterialButton
         switchAllowOffers = view.findViewById(R.id.switch_allow_offers);
         switchAllowReturns = view.findViewById(R.id.switch_allow_returns);
         // chipGroupTags = view.findViewById(R.id.chip_group_tags); // REMOVED: No longer used, replaced by recyclerTags

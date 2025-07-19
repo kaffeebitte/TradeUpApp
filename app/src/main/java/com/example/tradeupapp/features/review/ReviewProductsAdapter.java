@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RatingBar;
@@ -106,6 +107,7 @@ public class ReviewProductsAdapter extends RecyclerView.Adapter<ReviewProductsAd
                 reviewInputs.put(listing.getId(), new ReviewInput(rating, comment));
             }
         });
+        holder.btnReportReview.setVisibility(View.GONE);
     }
 
     // Always get latest input from visible views
@@ -131,6 +133,7 @@ public class ReviewProductsAdapter extends RecyclerView.Adapter<ReviewProductsAd
         TextView tvRevieweeName;
         RatingBar ratingBar;
         EditText etReviewComment;
+        Button btnReportReview;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             ivProductImage = itemView.findViewById(R.id.iv_product_image);
@@ -138,6 +141,7 @@ public class ReviewProductsAdapter extends RecyclerView.Adapter<ReviewProductsAd
             tvRevieweeName = itemView.findViewById(R.id.tv_reviewee_name);
             ratingBar = itemView.findViewById(R.id.ratingBar);
             etReviewComment = itemView.findViewById(R.id.et_review_comment);
+            btnReportReview = itemView.findViewById(R.id.btn_report_review);
         }
     }
 }

@@ -47,7 +47,7 @@ public class PurchaseHistoryFragment extends Fragment implements PurchaseHistory
     private void loadPurchaseHistory() {
         String userId = FirebaseService.getInstance().getCurrentUserId();
         if (userId != null) {
-            FirebaseService.getInstance().getUserTransactions(userId, new FirebaseService.TransactionsCallback() {
+            FirebaseService.getInstance().getTransactionsByUserId(userId, new FirebaseService.TransactionsCallback() {
                 @Override
                 public void onSuccess(List<TransactionModel> transactions) {
                     // Filter for purchases: status is "completed"

@@ -1,6 +1,7 @@
 package com.example.tradeupapp.features.listing.ui;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -65,10 +66,12 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
     private RecyclerView recyclerPhotos;
     private PhotoUploadAdapter photoAdapter;
     private MaterialButton btnContinue;
+    private MaterialButton btnSave;
     private MaterialSwitch switchAllowOffers;
     private MaterialSwitch switchAllowReturns;
     private MaterialSwitch switchFeatured;
     private RecyclerView recyclerTags; // Use RecyclerView for tags
+    private View loadingOverlay;
 
     // Activity Result Launcher for picking images
     private ActivityResultLauncher<Intent> photoPickerLauncher;
@@ -77,6 +80,14 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
 
     private FusedLocationProviderClient fusedLocationClient;
     private static final int REQUEST_LOCATION_PERMISSION = 1001;
+    private Double selectedLatitude = null;
+    private Double selectedLongitude = null;
+    private java.util.ArrayList<String> photoUrisState = new java.util.ArrayList<>();
+
+    private ItemModel itemModel; // Item fields only
+    private double listingPrice; // Listing field
+    private boolean allowOffers = true; // Listing field
+    private boolean allowReturns = false; // Listing field
 
     @Nullable
     @Override
@@ -190,9 +201,11 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
         actvCategory = view.findViewById(R.id.actv_category);
         actvCondition = view.findViewById(R.id.actv_condition);
         btnContinue = view.findViewById(R.id.btn_preview);
+        btnSave = view.findViewById(R.id.btn_save);
         switchAllowOffers = view.findViewById(R.id.switch_allow_offers);
         switchAllowReturns = view.findViewById(R.id.switch_allow_returns);
-        recyclerTags = view.findViewById(R.id.recycler_tags); // Use RecyclerView for tags
+        recyclerTags = view.findViewById(R.id.recycler_tags);
+        loadingOverlay = view.findViewById(R.id.loading_overlay);
     }
 
     private void setupPhotoAdapter() {
@@ -233,6 +246,45 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
             }
         });
 
+        // Set up click listener for the save button
+        btnSave.setOnClickListener(v -> {
+            if (validateInput()) {
+                showLoadingOverlay();
+                ItemModel item = new ItemModel();
+                item.setTitle(etTitle != null && etTitle.getText() != null ? etTitle.getText().toString().trim() : "");
+                item.setDescription(etDescription != null && etDescription.getText() != null ? etDescription.getText().toString().trim() : "");
+                item.setCategory(actvCategory != null ? actvCategory.getText().toString() : "");
+                item.setCondition(actvCondition != null ? actvCondition.getText().toString() : "");
+                java.util.Map<String, Object> locationMap = new java.util.HashMap<>();
+                if (selectedLatitude != null && selectedLongitude != null) {
+                    locationMap.put("_latitude", selectedLatitude);
+                    locationMap.put("_longitude", selectedLongitude);
+                    locationMap.put("address", etLocation != null && etLocation.getText() != null ? etLocation.getText().toString().trim() : "");
+                } else {
+                    locationMap.put("address", etLocation != null && etLocation.getText() != null ? etLocation.getText().toString().trim() : "");
+                }
+                item.setLocation(locationMap);
+                // Tags
+                String tagsRaw = etTagInput != null && etTagInput.getText() != null ? etTagInput.getText().toString() : "";
+                java.util.List<String> tags = new java.util.ArrayList<>();
+                for (String tag : tagsRaw.split(",")) {
+                    String trimmed = tag.trim();
+                    if (!trimmed.isEmpty()) tags.add(trimmed);
+                }
+                item.setTags(tags);
+                // Photos
+                java.util.List<Uri> uriList = photoAdapter.getPhotoUris();
+                if (uriList.isEmpty()) {
+                    saveAndPublishItemWithListing(item, new java.util.ArrayList<>());
+                } else {
+                    uploadImagesToCloudinary(uriList, photoUrls -> {
+                        item.setPhotoUris(photoUrls);
+                        saveAndPublishItemWithListing(item, photoUrls);
+                    });
+                }
+            }
+        });
+
         // Set up click listener for the location end icon (current location)
         tilLocation.setEndIconOnClickListener(v -> {
             requestLocationPermission();
@@ -256,19 +308,15 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
                 ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationClient.getLastLocation()
                     .addOnSuccessListener(requireActivity(), location -> {
-                        if (location != null) {
-                            // Logic to handle location object
-                            Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
-                            try {
-                                List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-                                if (addresses != null && !addresses.isEmpty()) {
-                                    etLocation.setText(addresses.get(0).getAddressLine(0));
-                                }
-                            } catch (IOException e) {
-                                Toast.makeText(requireContext(), "Error getting address", Toast.LENGTH_SHORT).show();
+                        // Logic to handle location object
+                        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+                        try {
+                            List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                            if (addresses != null && !addresses.isEmpty()) {
+                                etLocation.setText(addresses.get(0).getAddressLine(0));
                             }
-                        } else {
-                            Toast.makeText(requireContext(), "Unable to get current location", Toast.LENGTH_SHORT).show();
+                        } catch (IOException e) {
+                            Toast.makeText(requireContext(), "Error getting address", Toast.LENGTH_SHORT).show();
                         }
                     });
         }
@@ -329,12 +377,39 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
 
     private void showItemPreview() {
         try {
-            // Create an ItemModel from the form data
             ItemModel item = new ItemModel();
             item.setTitle(etTitle.getText().toString().trim());
             item.setDescription(etDescription.getText().toString().trim());
-
-            // Parse price (handle possible exceptions)
+            item.setCategory(actvCategory.getText().toString());
+            item.setCondition(actvCondition.getText().toString());
+            java.util.Map<String, Object> locationMap = new java.util.HashMap<>();
+            if (selectedLatitude != null && selectedLongitude != null) {
+                locationMap.put("_latitude", selectedLatitude);
+                locationMap.put("_longitude", selectedLongitude);
+                locationMap.put("address", etLocation.getText().toString().trim());
+            } else {
+                locationMap.put("address", etLocation.getText().toString().trim());
+            }
+            item.setLocation(locationMap);
+            // Tags
+            String tagsRaw = etTagInput.getText() != null ? etTagInput.getText().toString() : "";
+            java.util.List<String> tags = new java.util.ArrayList<>();
+            for (String tag : tagsRaw.split(",")) {
+                String trimmed = tag.trim();
+                if (!trimmed.isEmpty()) tags.add(trimmed);
+            }
+            item.setTags(tags);
+            // Photos
+            if (photoAdapter != null) {
+                java.util.List<Uri> uriList = photoAdapter.getPhotoUris();
+                java.util.List<String> photoUrls = new java.util.ArrayList<>();
+                for (Uri uri : uriList) {
+                    photoUrls.add(uri.toString());
+                }
+                item.setPhotoUris(photoUrls);
+                photoUrisState = new java.util.ArrayList<>(photoUrls); // Save for restore
+            }
+            // Listing fields
             String priceStr = etPrice.getText().toString().trim();
             double price = 0.0;
             try {
@@ -343,79 +418,56 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
                 Toast.makeText(requireContext(), "Invalid price format", Toast.LENGTH_SHORT).show();
                 return;
             }
-
-            // Get selected category and condition
-            item.setCategory(actvCategory.getText().toString());
-            item.setCondition(actvCondition.getText().toString());
-
-            // Set location
-            String address = etLocation.getText().toString().trim();
-            java.util.Map<String, Object> locationMap = new java.util.HashMap<>();
-            locationMap.put("address", address);
-            // Nếu có lat/lng, thêm vào locationMap.put("_latitude", lat); locationMap.put("_longitude", lng);
-            item.setLocation(locationMap);
-
-            // Set photos (convert List<Uri> to List<String>)
-            if (photoAdapter != null) {
-                java.util.List<Uri> uriList = photoAdapter.getPhotoUris();
-                java.util.List<String> stringList = new java.util.ArrayList<>();
-                for (Uri uri : uriList) {
-                    if (uri != null) stringList.add(uri.toString());
-                }
-                item.setPhotoUris(stringList);
-            }
-
-            // Get tags from etTagInput
-            String tagsRaw = etTagInput.getText() != null ? etTagInput.getText().toString() : "";
-            java.util.List<String> tags = new java.util.ArrayList<>();
-            for (String tag : tagsRaw.split(",")) {
-                String trimmed = tag.trim();
-                if (!trimmed.isEmpty()) tags.add(trimmed);
-            }
-            item.setTags(tags); // Set tags to ItemModel
-
-            // Navigate to preview fragment
+            boolean allowOffersVal = switchAllowOffers != null ? switchAllowOffers.isChecked() : true;
+            boolean allowReturnsVal = switchAllowReturns != null ? switchAllowReturns.isChecked() : false;
             Bundle args = new Bundle();
             args.putParcelable("item", item);
-            args.putDouble("price", price); // Pass price separately
-
-            args.putStringArrayList("tags", new java.util.ArrayList<>(tags)); // Pass tags as ArrayList
-
-            // Get item behaviour from switches, always set default if null
-            boolean allowOffers = switchAllowOffers != null ? switchAllowOffers.isChecked() : true;
-            boolean allowReturns = switchAllowReturns != null ? switchAllowReturns.isChecked() : false;
-            args.putBoolean("allowOffers", allowOffers);
-            args.putBoolean("allowReturns", allowReturns);
-
+            args.putDouble("price", price);
+            args.putStringArrayList("tags", new java.util.ArrayList<>(tags));
+            args.putStringArrayList("photoUris", photoUrisState); // Pass photoUris to preview
+            args.putBoolean("allowOffers", allowOffersVal);
+            args.putBoolean("allowReturns", allowReturnsVal);
             NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
             navController.navigate(R.id.action_nav_add_to_itemPreviewFragment, args);
-
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Error creating preview: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
+    private void continueToPreview(ItemModel item, double price) {
+        // Get tags from etTagInput
+        String tagsRaw = etTagInput.getText() != null ? etTagInput.getText().toString() : "";
+        java.util.List<String> tags = new java.util.ArrayList<>();
+        for (String tag : tagsRaw.split(",")) {
+            String trimmed = tag.trim();
+            if (!trimmed.isEmpty()) tags.add(trimmed);
+        }
+        item.setTags(tags);
+        Bundle args = new Bundle();
+        args.putParcelable("item", item);
+        args.putDouble("price", price);
+        args.putStringArrayList("tags", new java.util.ArrayList<>(tags));
+        boolean allowOffers = switchAllowOffers != null ? switchAllowOffers.isChecked() : true;
+        boolean allowReturns = switchAllowReturns != null ? switchAllowReturns.isChecked() : false;
+        args.putBoolean("allowOffers", allowOffers);
+        args.putBoolean("allowReturns", allowReturns);
+        NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+        navController.navigate(R.id.action_nav_add_to_itemPreviewFragment, args);
+    }
+
     private void setupToolbar() {
         if (toolbar != null) {
-            // Check if the toolbar has the tag we added
             if ("add_item_toolbar".equals(toolbar.getTag())) {
-                // We can now use the tag to identify this specific toolbar
-
-                // Set up the toolbar with AppCompatActivity
                 ((AppCompatActivity) requireActivity()).setSupportActionBar(toolbar);
                 ((AppCompatActivity) requireActivity()).getSupportActionBar().setDisplayShowTitleEnabled(true);
-
-                // Handle navigation icon click (back button)
                 toolbar.setNavigationOnClickListener(v -> {
                     requireActivity().onBackPressed();
                 });
-
-                // Handle menu item clicks
-                toolbar.setOnMenuItemClickListener(item -> {
-                    int itemId = item.getItemId();
+                toolbar.setOnMenuItemClickListener(itemMenu -> {
+                    int itemId = itemMenu.getItemId();
                     if (itemId == R.id.action_save) {
                         if (validateInput()) {
-                            showItemPreview();
+                            saveAndPublishItemWithListing();
                         }
                         return true;
                     }
@@ -425,27 +477,197 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
         }
     }
 
+    private void showLoadingOverlay() {
+        if (loadingOverlay != null) loadingOverlay.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLoadingOverlay() {
+        if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
+    }
+
+    private void saveAndPublishItemWithListing() {
+        ItemModel item = new ItemModel();
+        item.setTitle(etTitle.getText().toString().trim());
+        item.setDescription(etDescription.getText().toString().trim());
+        item.setCategory(actvCategory.getText().toString());
+        item.setCondition(actvCondition.getText().toString());
+        java.util.Map<String, Object> locationMap = new java.util.HashMap<>();
+        if (selectedLatitude != null && selectedLongitude != null) {
+            locationMap.put("_latitude", selectedLatitude);
+            locationMap.put("_longitude", selectedLongitude);
+            locationMap.put("address", etLocation.getText().toString().trim());
+        } else {
+            locationMap.put("address", etLocation.getText().toString().trim());
+        }
+        item.setLocation(locationMap);
+        // Tags
+        String tagsRaw = etTagInput.getText() != null ? etTagInput.getText().toString() : "";
+        java.util.List<String> tags = new java.util.ArrayList<>();
+        for (String tag : tagsRaw.split(",")) {
+            String trimmed = tag.trim();
+            if (!trimmed.isEmpty()) tags.add(trimmed);
+        }
+        item.setTags(tags);
+        // Photos
+        if (photoAdapter != null) {
+            java.util.List<Uri> uriList = photoAdapter.getPhotoUris();
+            if (uriList.isEmpty()) {
+                saveItemToFirestore(item, new java.util.ArrayList<>());
+                return;
+            }
+            uploadImagesToCloudinary(uriList, (photoUrls) -> {
+                item.setPhotoUris(photoUrls);
+                saveItemToFirestore(item, photoUrls);
+            });
+        } else {
+            saveItemToFirestore(item, new java.util.ArrayList<>());
+        }
+    }
+
+    private void uploadImagesToCloudinary(java.util.List<Uri> uriList, java.util.function.Consumer<java.util.List<String>> callback) {
+        java.util.List<String> photoUrls = new java.util.ArrayList<>();
+        if (uriList.isEmpty()) {
+            callback.accept(photoUrls);
+            return;
+        }
+
+        Context context = requireContext().getApplicationContext();
+        final int total = uriList.size();
+        final int[] completed = {0};
+        for (Uri uri : uriList) {
+            com.example.tradeupapp.utils.CloudinaryManager.uploadImage(context, uri, "trade_items", new com.example.tradeupapp.utils.CloudinaryManager.CloudinaryUploadCallback() {
+                @Override
+                public void onStart() {}
+                @Override
+                public void onProgress(double progress) {}
+                @Override
+                public void onSuccess(String url) {
+                    photoUrls.add(url);
+                    completed[0]++;
+                    if (completed[0] == total) {
+                        callback.accept(photoUrls);
+                    }
+                }
+                @Override
+                public void onError(String errorMessage) {
+                    completed[0]++;
+                    if (completed[0] == total) {
+                        callback.accept(photoUrls);
+                    }
+                }
+            });
+        }
+    }
+
+    private void saveItemToFirestore(ItemModel item, java.util.List<String> photoUrls) {
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+        db.collection("items")
+            .add(item)
+            .addOnSuccessListener(documentReference -> {
+                String itemId = documentReference.getId();
+                db.collection("items").document(itemId).update("id", itemId, "photoUris", photoUrls)
+                    .addOnSuccessListener(aVoid -> {
+                        // Create and initialize ListingModel here
+                        double price = 0.0;
+                        try {
+                            price = Double.parseDouble(etPrice != null && etPrice.getText() != null ? etPrice.getText().toString().trim() : "0");
+                        } catch (NumberFormatException e) {
+                            Toast.makeText(requireContext(), "Invalid price format", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        boolean allowOffersVal = switchAllowOffers == null || switchAllowOffers.isChecked();
+                        boolean allowReturnsVal = switchAllowReturns != null && switchAllowReturns.isChecked();
+                        String sellerId = com.example.tradeupapp.core.services.FirebaseService.getInstance().getCurrentUserId();
+                        com.example.tradeupapp.models.ListingModel listing = new com.example.tradeupapp.models.ListingModel();
+                        listing.setItemId(itemId);
+                        listing.setId(null);
+                        listing.setPrice(price);
+                        listing.setSellerId(sellerId);
+                        listing.setActive(true);
+                        listing.setCreatedAt(com.google.firebase.Timestamp.now());
+                        listing.setUpdatedAt(com.google.firebase.Timestamp.now());
+                        listing.setTransactionStatus("available");
+                        listing.setViewCount(0);
+                        listing.setTags(item.getTags());
+                        listing.setDistanceRadius(10);
+                        listing.setAllowOffers(allowOffersVal);
+                        listing.setAllowReturns(allowReturnsVal);
+                        db.collection("listings")
+                            .add(listing)
+                            .addOnSuccessListener(listingRef -> {
+                                String listingId = listingRef.getId();
+                                listing.setId(listingId);
+                                db.collection("listings").document(listingId)
+                                    .update("id", listingId)
+                                    .addOnSuccessListener(aVoid2 -> {
+                                        Toast.makeText(requireContext(), "Listing saved successfully!", Toast.LENGTH_SHORT).show();
+                                        NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+                                        navController.navigate(R.id.nav_my_store); // Quay về trang MyStore
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        hideLoadingOverlay();
+                                        Toast.makeText(requireContext(), "Failed to update listing id: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    });
+                            })
+                            .addOnFailureListener(e -> {
+                                hideLoadingOverlay();
+                                Toast.makeText(requireContext(), "Failed to save listing: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                    })
+                    .addOnFailureListener(e -> {
+                        hideLoadingOverlay();
+                        Toast.makeText(requireContext(), "Failed to update item: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+            })
+            .addOnFailureListener(e -> {
+                hideLoadingOverlay();
+                Toast.makeText(requireContext(), "Failed to save item: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+
+    private void setLocationFieldWithAddress(double latitude, double longitude) {
+        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                Address address = addresses.get(0);
+                String addressLine = address.getAddressLine(0);
+                if (addressLine != null && !addressLine.isEmpty()) {
+                    etLocation.setText(addressLine);
+                } else if (address.getThoroughfare() != null && !address.getThoroughfare().isEmpty()) {
+                    etLocation.setText(address.getThoroughfare());
+                } else if (address.getLocality() != null && !address.getLocality().isEmpty()) {
+                    etLocation.setText(address.getLocality());
+                } else {
+                    etLocation.setText(String.format(Locale.getDefault(), "%.5f, %.5f", latitude, longitude));
+                }
+            } else {
+                etLocation.setText(String.format(Locale.getDefault(), "%.5f, %.5f", latitude, longitude));
+            }
+        } catch (IOException e) {
+            etLocation.setText(String.format(Locale.getDefault(), "%.5f, %.5f", latitude, longitude));
+        }
+    }
+
     private void setupMapPickerResultObserver() {
-        // Using the correct method to get NavController
         NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
         navController.getCurrentBackStackEntry().getSavedStateHandle().getLiveData("location_data").observe(
-                getViewLifecycleOwner(), result -> {
-                    if (result != null && result instanceof Bundle) {
-                        Bundle locationData = (Bundle) result;
-                        double latitude = locationData.getDouble("latitude");
-                        double longitude = locationData.getDouble("longitude");
-                        String address = locationData.getString("address");
-
-                        // Update the location field with the selected address
+            getViewLifecycleOwner(), result -> {
+                if (result != null && result instanceof Bundle) {
+                    Bundle locationData = (Bundle) result;
+                    double latitude = locationData.getDouble("latitude");
+                    double longitude = locationData.getDouble("longitude");
+                    String address = locationData.getString("address");
+                    selectedLatitude = latitude;
+                    selectedLongitude = longitude;
+                    if (address != null && !address.isEmpty()) {
                         etLocation.setText(address);
-
-                        // Store the coordinates for later use when creating the item
-                        etLocation.setTag(new double[]{latitude, longitude});
-
-                        // Clear the result to avoid reprocessing on navigation
-                        navController.getCurrentBackStackEntry().getSavedStateHandle().set("location_data", null);
+                    } else {
+                        setLocationFieldWithAddress(latitude, longitude);
                     }
-                });
+                    navController.getCurrentBackStackEntry().getSavedStateHandle().set("location_data", null);
+                }
+            });
     }
 
     @Override
@@ -463,27 +685,6 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
         photoAdapter.removePhoto(position);
     }
 
-    private void requestLocationWithPermission() {
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION_PERMISSION);
-        } else {
-            autofillLocation();
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_LOCATION_PERMISSION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                autofillLocation();
-            } else {
-                Snackbar.make(requireView(), "Location permission denied", Snackbar.LENGTH_SHORT).show();
-            }
-        }
-    }
-
     private void autofillLocation() {
         try {
             if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
@@ -491,15 +692,16 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
                 Snackbar.make(requireView(), "Location permission not granted", Snackbar.LENGTH_SHORT).show();
                 return;
             }
-            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
-                if (location != null) {
+            // Chỉ gán location nếu selectedLatitude và selectedLongitude đều null (mới khởi tạo)
+            if (selectedLatitude == null && selectedLongitude == null) {
+                fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
                     fillLocationField(location);
-                } else {
-                    Snackbar.make(requireView(), "Unable to get current location", Snackbar.LENGTH_SHORT).show();
-                }
-            }).addOnFailureListener(e -> {
-                Snackbar.make(requireView(), "Failed to get location", Snackbar.LENGTH_SHORT).show();
-            });
+                    selectedLatitude = location.getLatitude();
+                    selectedLongitude = location.getLongitude();
+                }).addOnFailureListener(e -> {
+                    Snackbar.make(requireView(), "Failed to get location", Snackbar.LENGTH_SHORT).show();
+                });
+            }
         } catch (SecurityException e) {
             Snackbar.make(requireView(), "Location permission denied (SecurityException)", Snackbar.LENGTH_SHORT).show();
         }
@@ -536,11 +738,80 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // Prefill tags if editing (for update or draft)
-        if (getArguments() != null && getArguments().containsKey("item")) {
-            ItemModel item = getArguments().getParcelable("item");
-            if (item != null && item.getTags() != null && !item.getTags().isEmpty()) {
-                etTagInput.setText(android.text.TextUtils.join(", ", item.getTags()));
+        // Restore photoUris and all fields if returning from preview
+        if (getArguments() != null) {
+            // Restore photoUris
+            if (getArguments().containsKey("photoUris")) {
+                java.util.ArrayList<String> photoUris = getArguments().getStringArrayList("photoUris");
+                if (photoUris != null && photoAdapter != null) {
+                    java.util.List<Uri> currentUris = new java.util.ArrayList<>(photoAdapter.getPhotoUris());
+                    for (int i = currentUris.size() - 1; i >= 0; i--) {
+                        photoAdapter.removePhoto(i);
+                    }
+                    for (String uriStr : photoUris) {
+                        if (uriStr != null && !uriStr.isEmpty()) {
+                            photoAdapter.addPhoto(Uri.parse(uriStr));
+                        }
+                    }
+                }
+            }
+            // Restore item fields
+            if (getArguments().containsKey("item")) {
+                itemModel = getArguments().getParcelable("item");
+                if (itemModel != null) {
+                    etTitle.setText(itemModel.getTitle());
+                    etDescription.setText(itemModel.getDescription());
+                    actvCategory.setText(itemModel.getCategory(), false);
+                    actvCondition.setText(itemModel.getCondition(), false);
+                    if (itemModel.getLocation() != null) {
+                        Object addressObj = itemModel.getLocation().get("address");
+                        Object latObj = itemModel.getLocation().get("_latitude");
+                        Object lngObj = itemModel.getLocation().get("_longitude");
+                        // Always restore all three if present
+                        if (addressObj != null) {
+                            etLocation.setText(addressObj.toString());
+                        }
+                        if (latObj instanceof Double) {
+                            selectedLatitude = (Double) latObj;
+                        } else {
+                            selectedLatitude = null;
+                        }
+                        if (lngObj instanceof Double) {
+                            selectedLongitude = (Double) lngObj;
+                        } else {
+                            selectedLongitude = null;
+                        }
+                    }
+                    if (itemModel.getTags() != null && !itemModel.getTags().isEmpty()) {
+                        etTagInput.setText(android.text.TextUtils.join(", ", itemModel.getTags()));
+                    }
+                }
+            }
+            // Restore listing fields
+            if (getArguments().containsKey("price")) {
+                listingPrice = getArguments().getDouble("price", 0.0);
+                if (listingPrice > 0) {
+                    etPrice.setText(String.format(java.util.Locale.US, "%.0f", listingPrice));
+                }
+            }
+            if (getArguments().containsKey("allowOffers")) {
+                allowOffers = getArguments().getBoolean("allowOffers", true);
+                switchAllowOffers.setChecked(allowOffers);
+            }
+            if (getArguments().containsKey("allowReturns")) {
+                allowReturns = getArguments().getBoolean("allowReturns", false);
+                switchAllowReturns.setChecked(allowReturns);
+            }
+            // Disable autofill for location field when returning from preview
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                etLocation.setImportantForAutofill(android.view.View.IMPORTANT_FOR_AUTOFILL_NO);
+            }
+        } else {
+            // Only autofill location if not returning from preview
+            autofillLocation();
+            // Enable autofill for location field
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                etLocation.setImportantForAutofill(android.view.View.IMPORTANT_FOR_AUTOFILL_YES);
             }
         }
         // Listen for tag input changes to update chips
@@ -559,5 +830,192 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
                 }
             }
         });
+    }
+
+    private void saveItemAndListing() {
+        ItemModel item = new ItemModel();
+        item.setTitle(etTitle.getText().toString().trim());
+        item.setDescription(etDescription.getText().toString().trim());
+        item.setCategory(actvCategory.getText().toString());
+        item.setCondition(actvCondition.getText().toString());
+        java.util.Map<String, Object> locationMap = new java.util.HashMap<>();
+        if (selectedLatitude != null && selectedLongitude != null) {
+            locationMap.put("_latitude", selectedLatitude);
+            locationMap.put("_longitude", selectedLongitude);
+            locationMap.put("address", etLocation.getText().toString().trim());
+        } else {
+            locationMap.put("address", etLocation.getText().toString().trim());
+        }
+        item.setLocation(locationMap);
+        // Tags
+        String tagsRaw = etTagInput.getText() != null ? etTagInput.getText().toString() : "";
+        java.util.List<String> tags = new java.util.ArrayList<>();
+        for (String tag : tagsRaw.split(",")) {
+            String trimmed = tag.trim();
+            if (!trimmed.isEmpty()) tags.add(trimmed);
+        }
+        item.setTags(tags);
+        // Photos
+        java.util.List<Uri> uriList = photoAdapter.getPhotoUris();
+        if (uriList.isEmpty()) {
+            saveItemToFirestoreAndListing(item, new java.util.ArrayList<>());
+        } else {
+            uploadImagesToCloudinary(uriList, photoUrls -> {
+                item.setPhotoUris(photoUrls);
+                saveItemToFirestoreAndListing(item, photoUrls);
+            });
+        }
+    }
+
+    private void saveItemToFirestoreAndListing(ItemModel item, java.util.List<String> photoUrls) {
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+        db.collection("items")
+            .add(item)
+            .addOnSuccessListener(documentReference -> {
+                String itemId = documentReference.getId();
+                item.setId(itemId);
+                db.collection("items").document(itemId).update("id", itemId, "photoUris", photoUrls)
+                    .addOnSuccessListener(aVoid -> {
+                        String priceStr = etPrice != null && etPrice.getText() != null ? etPrice.getText().toString().trim() : "0";
+                        double price;
+                        try {
+                            price = Double.parseDouble(priceStr);
+                        } catch (NumberFormatException e) {
+                            Toast.makeText(requireContext(), "Invalid price format", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        boolean allowOffersVal = switchAllowOffers == null || switchAllowOffers.isChecked();
+                        boolean allowReturnsVal = switchAllowReturns != null && switchAllowReturns.isChecked();
+                        String sellerId = com.example.tradeupapp.core.services.FirebaseService.getInstance().getCurrentUserId();
+                        com.example.tradeupapp.models.ListingModel listing = new com.example.tradeupapp.models.ListingModel();
+                        listing.setItemId(itemId);
+                        listing.setId(null);
+                        listing.setPrice(price);
+                        listing.setSellerId(sellerId);
+                        listing.setActive(true);
+                        listing.setCreatedAt(com.google.firebase.Timestamp.now());
+                        listing.setUpdatedAt(com.google.firebase.Timestamp.now());
+                        listing.setTransactionStatus("available");
+                        listing.setViewCount(0);
+                        listing.setTags(item.getTags());
+                        listing.setDistanceRadius(10);
+                        listing.setAllowOffers(allowOffersVal);
+                        listing.setAllowReturns(allowReturnsVal);
+                        db.collection("listings")
+                            .add(listing)
+                            .addOnSuccessListener(listingRef -> {
+                                String listingId = listingRef.getId();
+                                listing.setId(listingId);
+                                db.collection("listings").document(listingId)
+                                    .update("id", listingId)
+                                    .addOnSuccessListener(aVoid2 -> {
+                                        Toast.makeText(requireContext(), "Listing saved successfully!", Toast.LENGTH_SHORT).show();
+                                        NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+                                        navController.navigate(R.id.nav_my_store); // Quay về trang MyStore
+                                    })
+                                    .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed to update listing id: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                            })
+                            .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed to save listing: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    })
+                    .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed to update item: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            })
+            .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed to save item: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    private void saveAndPublishItemWithListing(ItemModel item, java.util.List<String> photoUrls) {
+        if (item == null) item = new ItemModel();
+        // Null-safe getText usage
+        String title = etTitle != null && etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
+        String description = etDescription != null && etDescription.getText() != null ? etDescription.getText().toString().trim() : "";
+        String category = actvCategory != null && actvCategory.getText() != null ? actvCategory.getText().toString() : "";
+        String condition = actvCondition != null && actvCondition.getText() != null ? actvCondition.getText().toString() : "";
+        item.setTitle(title);
+        item.setDescription(description);
+        item.setCategory(category);
+        item.setCondition(condition);
+        java.util.Map<String, Object> locationMap = new java.util.HashMap<>();
+        if (selectedLatitude != null && selectedLongitude != null) {
+            locationMap.put("_latitude", selectedLatitude);
+            locationMap.put("_longitude", selectedLongitude);
+            locationMap.put("address", etLocation != null && etLocation.getText() != null ? etLocation.getText().toString().trim() : "");
+        } else {
+            locationMap.put("address", etLocation != null && etLocation.getText() != null ? etLocation.getText().toString().trim() : "");
+        }
+        item.setLocation(locationMap);
+        // Tags
+        String tagsRaw = etTagInput != null && etTagInput.getText() != null ? etTagInput.getText().toString() : "";
+        java.util.List<String> tags = new java.util.ArrayList<>();
+        for (String tag : tagsRaw.split(",")) {
+            String trimmed = tag.trim();
+            if (!trimmed.isEmpty()) tags.add(trimmed);
+        }
+        item.setTags(tags);
+        item.setPhotoUris(photoUrls);
+        // Listing fields
+        String priceStr = etPrice != null && etPrice.getText() != null ? etPrice.getText().toString().trim() : "0";
+        double price;
+        try {
+            price = Double.parseDouble(priceStr);
+        } catch (NumberFormatException e) {
+            Toast.makeText(requireContext(), "Invalid price format", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        boolean allowOffersVal = switchAllowOffers == null || switchAllowOffers.isChecked();
+        boolean allowReturnsVal = switchAllowReturns != null && switchAllowReturns.isChecked();
+        String sellerId = com.example.tradeupapp.core.services.FirebaseService.getInstance().getCurrentUserId();
+        com.example.tradeupapp.models.ListingModel listing = new com.example.tradeupapp.models.ListingModel();
+        listing.setItemId(item.getId());
+        listing.setId(null);
+        listing.setPrice(price);
+        listing.setSellerId(sellerId);
+        listing.setActive(true);
+        listing.setCreatedAt(com.google.firebase.Timestamp.now());
+        listing.setUpdatedAt(com.google.firebase.Timestamp.now());
+        listing.setTransactionStatus("available");
+        listing.setViewCount(0);
+        listing.setTags(item.getTags());
+        listing.setDistanceRadius(10);
+        listing.setAllowOffers(allowOffersVal);
+        listing.setAllowReturns(allowReturnsVal);
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+        db.collection("items")
+            .add(item)
+            .addOnSuccessListener(documentReference -> {
+                String itemId = documentReference.getId();
+                db.collection("items").document(itemId).update("id", itemId, "photoUris", photoUrls)
+                    .addOnSuccessListener(aVoid -> {
+                        listing.setItemId(itemId);
+                        db.collection("listings")
+                            .add(listing)
+                            .addOnSuccessListener(listingRef -> {
+                                String listingId = listingRef.getId();
+                                listing.setId(listingId);
+                                db.collection("listings").document(listingId)
+                                    .update("id", listingId)
+                                    .addOnSuccessListener(aVoid2 -> {
+                                        hideLoadingOverlay();
+                                        Toast.makeText(requireContext(), "Listing saved successfully!", Toast.LENGTH_SHORT).show();
+                                        NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+                                        navController.navigate(R.id.nav_my_store); // Quay về trang MyStore
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        hideLoadingOverlay();
+                                        Toast.makeText(requireContext(), "Failed to update listing id: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    });
+                            })
+                            .addOnFailureListener(e -> {
+                                hideLoadingOverlay();
+                                Toast.makeText(requireContext(), "Failed to save listing: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                    })
+                    .addOnFailureListener(e -> {
+                        hideLoadingOverlay();
+                        Toast.makeText(requireContext(), "Failed to update item: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+            })
+            .addOnFailureListener(e -> {
+                hideLoadingOverlay();
+                Toast.makeText(requireContext(), "Failed to save item: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
     }
 }

@@ -30,17 +30,15 @@
                 android:paddingTop="24dp"
                 android:paddingBottom="12dp">
 
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/img_store_avatar"
+                <!-- Store Logo -->
+                <ImageView
+                    android:id="@+id/img_store_logo"
                     android:layout_width="72dp"
                     android:layout_height="72dp"
                     android:layout_marginEnd="16dp"
-                    android:background="@color/background"
                     android:contentDescription="@string/store_avatar_desc"
-                    android:elevation="8dp"
-                    android:src="@drawable/ic_store"
-                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-                    app:strokeWidth="2dp" />
+                    android:src="@drawable/ic_store_logo"
+                    android:elevation="8dp" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -64,9 +62,9 @@
                         style="@style/TextAppearance.Material3.BodyLarge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
                         android:text="@string/store_rating_placeholder"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:layout_marginTop="4dp" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
             </LinearLayout>
             <com.google.android.material.divider.MaterialDivider

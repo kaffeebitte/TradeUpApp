@@ -10,10 +10,13 @@
     "clear": "node seed_items.js clear"
   },
   "dependencies": {
-    "firebase-admin": "^12.0.0"
+    "firebase-admin": "^12.7.0"
   },
-  "keywords": ["firebase", "seeding", "data"],
+  "keywords": [
+    "firebase",
+    "seeding",
+    "data"
+  ],
   "author": "",
   "license": "ISC"
 }
-

@@ -65,7 +65,7 @@ public class PurchaseHistoryFragment extends Fragment implements PurchaseHistory
             showPurchaseTransactions(new ArrayList<>());
             return;
         }
-        firebaseService.getUserTransactions(currentUserId, new FirebaseService.TransactionsCallback() {
+        firebaseService.getTransactionsByUserId(currentUserId, new FirebaseService.TransactionsCallback() {
             @Override
             public void onSuccess(List<TransactionModel> transactions) {
                 transactionList.clear();

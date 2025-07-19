@@ -44,7 +44,6 @@ public class SearchFragment extends Fragment {
     private TextView resultsCountTextView;
     private MaterialButton filterButton;
     private MaterialButton sortButton;
-    private ChipGroup chipGroupFilters;
     private ConstraintLayout emptySearchState;
 
     private ListingAdapter searchAdapter;
@@ -115,7 +114,6 @@ public class SearchFragment extends Fragment {
         firebaseService = FirebaseService.getInstance();
         initViews(view);
         setupSearchUI();
-        setupFilterChips();
         loadAllListingsAndItems();
         getParentFragmentManager().setFragmentResultListener("filters_applied", this, (requestKey, bundle) -> {
             currentCategory = bundle.getString("category", "All Categories");
@@ -164,8 +162,7 @@ public class SearchFragment extends Fragment {
         sortButton = view.findViewById(R.id.btn_sort);
         sortButton.setOnClickListener(v -> showSortMenu());
 
-        // Always find chipGroupFilters from the root view
-        chipGroupFilters = view.findViewById(R.id.chip_group_filters);
+        // Remove chipGroupFilters reference since scroll_chips and chip_group_filters are removed from layout
         emptySearchState = view.findViewById(R.id.empty_search_state);
         resultsCountTextView = view.findViewById(R.id.tv_results_count);
     }
@@ -242,16 +239,6 @@ public class SearchFragment extends Fragment {
             @Override
             public void onFailure(Exception e) {
                 onLoaded.run();
-            }
-        });
-    }
-
-    private void setupFilterChips() {
-        chipGroupFilters.setOnCheckedStateChangeListener((group, checkedIds) -> {
-            if (!checkedIds.isEmpty()) {
-                Chip selectedChip = requireView().findViewById(checkedIds.get(0));
-                selectedFilter = selectedChip.getText().toString();
-                performSearch(); // Apply search with new filter
             }
         });
     }

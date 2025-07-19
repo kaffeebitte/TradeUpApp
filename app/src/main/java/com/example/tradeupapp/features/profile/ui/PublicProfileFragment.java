@@ -26,14 +26,15 @@ import java.util.Map;
 
 public class PublicProfileFragment extends Fragment {
     private String userId;
-    private TextView tvName, tvLocation, tvRating, tvReviewsCount, tvBio;
-    private TextView tvEmail, tvPhone, tvListingsCount;
+    private TextView tvName, tvLocation, tvRating, tvBio, tvMemberSince;
+    private TextView tvEmail, tvPhone, tvListingsCount, tvTotalTransactions;
     private ImageView ivAvatar;
     private FirebaseService firebaseService;
     private RecyclerView rvUserListings;
     private UserListingsAdapter listingsAdapter;
     private List<ListingModel> userListings = new ArrayList<>();
     private Map<String, ItemModel> itemMap = new HashMap<>();
+    private TextView reviewCountTextView;
 
     @Nullable
     @Override
@@ -42,16 +43,28 @@ public class PublicProfileFragment extends Fragment {
         tvName = view.findViewById(R.id.tv_name);
         tvLocation = view.findViewById(R.id.tv_location);
         tvRating = view.findViewById(R.id.tv_rating);
-        tvReviewsCount = view.findViewById(R.id.tv_reviews_count);
+        reviewCountTextView = view.findViewById(R.id.tv_review_count);
         tvBio = view.findViewById(R.id.tv_bio);
         tvEmail = view.findViewById(R.id.tv_email);
         tvPhone = view.findViewById(R.id.tv_phone);
         tvListingsCount = view.findViewById(R.id.tv_listings_count);
+        tvTotalTransactions = view.findViewById(R.id.tv_total_transactions);
         ivAvatar = view.findViewById(R.id.iv_avatar);
+        tvMemberSince = view.findViewById(R.id.tv_member_since);
         rvUserListings = view.findViewById(R.id.rv_user_listings);
         firebaseService = FirebaseService.getInstance();
         listingsAdapter = new UserListingsAdapter(userListings);
-        rvUserListings.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        listingsAdapter.setOnItemClickListener(new UserListingsAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(ListingModel listing) {
+                androidx.navigation.NavController navController = androidx.navigation.Navigation.findNavController(requireView());
+                Bundle args = new Bundle();
+                args.putString("listingId", listing.getId());
+                args.putString("itemId", listing.getItemId());
+                navController.navigate(R.id.itemDetailFragment, args);
+            }
+        });
+        rvUserListings.setLayoutManager(new androidx.recyclerview.widget.GridLayoutManager(getContext(), 2));
         rvUserListings.setAdapter(listingsAdapter);
         if (getArguments() != null && getArguments().containsKey("userId")) {
             userId = getArguments().getString("userId");
@@ -67,6 +80,17 @@ public class PublicProfileFragment extends Fragment {
                 if (getActivity() == null || !isAdded()) return;
                 tvName.setText(user.getDisplayName());
                 tvBio.setText(user.getBio() != null ? user.getBio() : "");
+                // Member since
+                if (user.getCreatedAt() != null) {
+                    java.util.Date createdDate = user.getCreatedAt().toDate();
+                    java.util.Calendar calendar = java.util.Calendar.getInstance();
+                    calendar.setTime(createdDate);
+                    int year = calendar.get(java.util.Calendar.YEAR);
+                    tvMemberSince.setText("Member since " + year);
+                    tvMemberSince.setVisibility(View.VISIBLE);
+                } else {
+                    tvMemberSince.setVisibility(View.GONE);
+                }
                 // Convert GeoPoint to string for display
                 GeoPoint geoPoint = null;
                 try {
@@ -80,8 +104,8 @@ public class PublicProfileFragment extends Fragment {
                 } else {
                     tvLocation.setText("");
                 }
-                tvRating.setText(String.format("%.1f", user.getRating()));
-                tvReviewsCount.setText(String.format("(%d)", user.getTotalReviews()));
+                // Show average rating and review count
+                loadAverageRatingAndReviewCount(userId);
                 tvEmail.setText(user.getEmail() != null ? user.getEmail() : "-");
                 tvPhone.setText(user.getPhoneNumber() != null ? user.getPhoneNumber() : "-");
                 if (isValidUrl(user.getPhotoUrl())) {
@@ -94,6 +118,7 @@ public class PublicProfileFragment extends Fragment {
                     ivAvatar.setImageResource(R.drawable.ic_user_24);
                 }
                 loadUserListings(userId);
+                loadTotalTransactions(userId);
             }
             @Override
             public void onError(String error) {
@@ -102,12 +127,50 @@ public class PublicProfileFragment extends Fragment {
                 tvBio.setText("");
                 tvLocation.setText("");
                 tvRating.setText("");
-                tvReviewsCount.setText("");
                 tvEmail.setText("-");
                 tvPhone.setText("-");
                 ivAvatar.setImageResource(R.drawable.ic_user_24);
             }
         });
+    }
+
+    // Only count transactions where user is the buyer
+    private void loadTotalTransactions(String userId) {
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+        db.collection("transactions")
+            .whereEqualTo("buyerId", userId)
+            .get()
+            .addOnSuccessListener(buyerSnapshot -> {
+                int totalTransactions = buyerSnapshot.size();
+                if (tvTotalTransactions != null) {
+                    tvTotalTransactions.setText(String.valueOf(totalTransactions));
+                }
+            });
+    }
+
+    // Add this method to load average rating and review count for public profile
+    private void loadAverageRatingAndReviewCount(String userId) {
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+        db.collection("reviews")
+            .whereEqualTo("revieweeId", userId)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                double totalRating = 0;
+                int reviewCount = querySnapshot.size();
+                for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    Number rating = doc.getDouble("rating");
+                    if (rating != null) {
+                        totalRating += rating.doubleValue();
+                    }
+                }
+                double avgRating = reviewCount > 0 ? totalRating / reviewCount : 0.0;
+                if (tvRating != null) {
+                    tvRating.setText(reviewCount > 0 ? String.format("%.1f", avgRating) : "No rating");
+                }
+                if (reviewCountTextView != null) {
+                    reviewCountTextView.setText(reviewCount > 0 ? String.format("%d", reviewCount) : "No reviews");
+                }
+            });
     }
 
     private void loadUserListings(String sellerId) {

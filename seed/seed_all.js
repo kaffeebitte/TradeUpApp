@@ -7,7 +7,7 @@ const serviceAccount = require('./serviceAccountKey.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://your-project-id.firebaseio.com"
+  databaseURL: "https://tradeup-app-46648.firebaseio.com"
 });
 
 const db = admin.firestore();
@@ -19,6 +19,30 @@ function loadJsonData(filename) {
   return JSON.parse(rawData);
 }
 
+// Helper: Recursively convert date string fields to Firestore Timestamp
+function convertDates(obj) {
+  if (Array.isArray(obj)) {
+    return obj.map(convertDates);
+  } else if (obj && typeof obj === 'object') {
+    for (const key of Object.keys(obj)) {
+      if (
+        [
+          'createdAt', 'updatedAt', 'timestamp', 'respondedAt', 'completedAt', 'resolvedAt', 'expiresAt', 'lastMessageTime', 'viewedAt', 'savedAt', 'sharedAt'
+        ].includes(key)
+      ) {
+        if (typeof obj[key] === 'string' && obj[key].match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)) {
+          obj[key] = admin.firestore.Timestamp.fromDate(new Date(obj[key]));
+        }
+      }
+      // Recursively handle nested objects/arrays
+      if (typeof obj[key] === 'object' && obj[key] !== null) {
+        obj[key] = convertDates(obj[key]);
+      }
+    }
+  }
+  return obj;
+}
+
 // Function to seed a collection
 async function seedCollection(collectionName, data, idField = 'id') {
   console.log(`🌱 Seeding ${collectionName}...`);
@@ -28,7 +52,7 @@ async function seedCollection(collectionName, data, idField = 'id') {
 
   for (const item of data) {
     const docRef = collection.doc(item[idField]);
-    batch.set(docRef, item);
+    batch.set(docRef, convertDates(item)); // Convert date fields before seeding
   }
 
   await batch.commit();
@@ -64,7 +88,6 @@ async function seedAll() {
     // Collections to seed in order (dependencies matter)
     const collections = [
       { name: 'categories', file: 'sample_categories.json', dataKey: 'categories' },
-      { name: 'users', file: 'sample_users.json', dataKey: 'users' },
       { name: 'items', file: 'sample_items.json', dataKey: 'items' },
       { name: 'listings', file: 'sample_listings.json', dataKey: 'listings' },
       { name: 'offers', file: 'sample_offers.json', dataKey: 'offers' },
@@ -74,7 +97,8 @@ async function seedAll() {
       { name: 'reviews', file: 'sample_reviews.json', dataKey: 'reviews' },
       { name: 'notifications', file: 'sample_notifications.json', dataKey: 'notifications' },
       { name: 'reports', file: 'sample_reports.json', dataKey: 'reports' },
-      { name: 'admin_logs', file: 'sample_admin_logs.json', dataKey: 'adminLogs' }
+      { name: 'admin_logs', file: 'sample_admin_logs.json', dataKey: 'adminLogs' },
+      { name: 'moderation', file: 'moderation_bannedWords.json', dataKey: 'words', isSingleDoc: true }
     ];
 
     // Clear all collections first (optional)
@@ -88,15 +112,26 @@ async function seedAll() {
     // Seed all collections
     for (const collection of collections) {
       const data = loadJsonData(collection.file);
-      await seedCollection(collection.name, data[collection.dataKey]);
-      console.log(''); // Add spacing between collections
+      if (collection.isSingleDoc) {
+        // moderation/bannedWords is a single document
+        await clearCollection(collection.name); // Clear moderation collection first
+        await db.collection('moderation').doc('bannedWords').set({ words: data.words });
+        console.log('✅ Successfully seeded moderation/bannedWords');
+      } else {
+        await seedCollection(collection.name, data[collection.dataKey]);
+        console.log(''); // Add spacing between collections
+      }
     }
+
+    // Seed users collection
+    const usersData = loadJsonData('sample_users.json').users;
+    await seedCollection('users', usersData);
 
     // Summary
     console.log('🎉 Database seeding completed successfully!');
     console.log('\n📊 Summary:');
     console.log('- Categories: 7 items');
-    console.log('- Users: 10 users');
+    console.log('- Users: 11 users');
     console.log('- Items: 25 products');
     console.log('- Listings: 25 listings');
     console.log('- Offers: 12 offers');
@@ -165,11 +200,15 @@ if (args.length === 0) {
     process.exit(0);
   });
 } else if (args[0] === '--collection' && args[1]) {
-  // Seed specific collection
-  seedSpecific(args[1]).then(() => {
-    console.log('\n👋 Seeding complete. Goodbye!');
-    process.exit(0);
-  });
+  if (args[1] === 'moderation') {
+    seedModerationBannedWords().then(() => {
+      console.log('\n👋 Seeding complete. Goodbye!');
+    });
+  } else {
+    seedSpecific(args[1]).then(() => {
+      console.log('\n👋 Seeding complete. Goodbye!');
+    });
+  }
 } else {
   console.log('📖 Usage:');
   console.log('  node seed_all.js                    # Seed all collections');

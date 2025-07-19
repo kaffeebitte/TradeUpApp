@@ -71,18 +71,21 @@
 
                 <!-- Stats Row -->
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:orientation="horizontal">
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:weightSum="4">
 
                     <!-- Items Listed -->
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:paddingHorizontal="16dp">
+                        android:paddingHorizontal="8dp">
 
                         <TextView
                             android:id="@+id/tv_items_count"
@@ -101,22 +104,53 @@
                             android:textColor="?attr/colorOnSurfaceVariant" />
                     </LinearLayout>
 
-                    <!-- Reviews -->
+                    <!-- Rating -->
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:paddingHorizontal="16dp">
+                        android:paddingHorizontal="8dp">
 
                         <TextView
-                            android:id="@+id/tv_reviews_count"
+                            android:id="@+id/tv_rating"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textColor="?attr/colorPrimary"
                             android:textStyle="bold"
-                            tools:text="24" />
+                            android:singleLine="true"
+                            android:maxLines="1"
+                            tools:text="4.8" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/rating"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+                    </LinearLayout>
+
+                    <!-- Reviews -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="8dp">
+
+                        <TextView
+                            android:id="@+id/tv_review_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textColor="?attr/colorPrimary"
+                            android:textStyle="bold"
+                            android:singleLine="true"
+                            android:maxLines="1"
+                            tools:text="12" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -126,42 +160,28 @@
                             android:textColor="?attr/colorOnSurfaceVariant" />
                     </LinearLayout>
 
-                    <!-- Rating -->
+                    <!-- Total Transactions -->
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:paddingHorizontal="16dp">
+                        android:paddingHorizontal="8dp">
 
-                        <LinearLayout
+                        <TextView
+                            android:id="@+id/tv_total_transactions"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:id="@+id/tv_rating"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textAppearance="?attr/textAppearanceTitleMedium"
-                                android:textColor="?attr/colorPrimary"
-                                android:textStyle="bold"
-                                tools:text="4.8" />
-
-                            <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:layout_marginStart="4dp"
-                                android:contentDescription="@string/star_rating"
-                                android:src="@drawable/ic_star_24"
-                                app:tint="@color/gold" />
-                        </LinearLayout>
+                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textColor="?attr/colorPrimary"
+                            android:textStyle="bold"
+                            tools:text="10" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/rating"
+                            android:text="Transactions"
                             android:textAppearance="?attr/textAppearanceBodySmall"
                             android:textColor="?attr/colorOnSurfaceVariant" />
                     </LinearLayout>
@@ -545,7 +565,7 @@
                             android:layout_marginStart="16dp"
                             android:layout_weight="1"
                             android:text="@string/edit_profile"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textAppearance="@android:style/TextAppearance.Material.Body1"
                             android:textColor="?attr/colorOnSurface" />
 
                         <ImageView
@@ -589,7 +609,7 @@
                             android:layout_marginStart="16dp"
                             android:layout_weight="1"
                             android:text="@string/payment_methods"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textAppearance="@android:style/TextAppearance.Material.Body1"
                             android:textColor="?attr/colorOnSurface" />
 
                         <ImageView
@@ -633,7 +653,7 @@
                             android:layout_marginStart="16dp"
                             android:layout_weight="1"
                             android:text="@string/shipping_addresses"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textAppearance="@android:style/TextAppearance.Material.Body1"
                             android:textColor="?attr/colorOnSurface" />
 
                         <ImageView
@@ -687,7 +707,7 @@
                             android:layout_marginStart="16dp"
                             android:layout_weight="1"
                             android:text="@string/notifications"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textAppearance="@android:style/TextAppearance.Material.Body1"
                             android:textColor="?attr/colorOnSurface" />
 
                         <ImageView
@@ -731,7 +751,7 @@
                             android:layout_marginStart="16dp"
                             android:layout_weight="1"
                             android:text="@string/privacy_security"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textAppearance="@android:style/TextAppearance.Material.Body1"
                             android:textColor="?attr/colorOnSurface" />
 
                         <ImageView
@@ -775,7 +795,7 @@
                             android:layout_marginStart="16dp"
                             android:layout_weight="1"
                             android:text="@string/help_support"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textAppearance="@android:style/TextAppearance.Material.Body1"
                             android:textColor="?attr/colorOnSurface" />
 
                         <ImageView

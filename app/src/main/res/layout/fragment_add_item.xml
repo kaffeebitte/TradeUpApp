@@ -209,6 +209,8 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Tag Chips -->
+
+            <!-- Optional Fields: Item Behavior -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recycler_tags"
                 android:layout_width="match_parent"
@@ -218,7 +220,6 @@
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:listitem="@layout/item_tag_chip" />
 
-            <!-- Optional Fields: Item Behavior -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -276,10 +277,10 @@
                     android:id="@+id/et_location"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPostalAddress"
+                    android:clickable="true"
                     android:focusable="true"
                     android:focusableInTouchMode="true"
-                    android:clickable="true"
+                    android:inputType="textPostalAddress"
                     android:textAppearance="?attr/textAppearanceBodyLarge" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -317,29 +318,49 @@
                 android:id="@+id/btn_preview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Preview Listing"
-                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:layout_gravity="bottom|start"
                 android:layout_marginTop="32dp"
-                app:icon="@drawable/ic_eye_24"
-                app:iconGravity="textStart"
+                android:layout_marginBottom="8dp"
                 android:paddingVertical="16dp"
-                app:cornerRadius="16dp" />
+                android:text="Preview"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                app:cornerRadius="16dp"
+                app:icon="@drawable/ic_eye_24"
+                app:iconGravity="textStart" />
 
+            <!-- Save Button (styled like Preview, not FAB) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_save"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:paddingVertical="16dp"
+                android:text="Save Listing"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="?attr/colorOnPrimaryContainer"
+                app:backgroundTint="?attr/colorPrimaryContainer"
+                app:cornerRadius="16dp"
+                app:icon="@drawable/ic_check_24"
+                app:iconGravity="textStart"
+                app:iconTint="?attr/colorOnPrimaryContainer" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Save FAB -->
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/fab_save"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="24dp"
-        android:text="Save Listing"
-        android:textAppearance="?attr/textAppearanceLabelLarge"
-        android:textColor="?attr/colorOnPrimaryContainer"
-        app:icon="@drawable/ic_check_24"
-        app:iconTint="?attr/colorOnPrimaryContainer"
-        app:backgroundTint="?attr/colorPrimaryContainer" />
-
+    <!-- Loading Overlay -->
+    <FrameLayout
+        android:id="@+id/loading_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+        <ProgressBar
+            android:id="@+id/progress_spinner"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center"
+            style="@style/Widget.AppCompat.ProgressBar"
+            android:indeterminate="true" />
+    </FrameLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

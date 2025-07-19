@@ -56,15 +56,29 @@ public class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.ViewHold
         // Show interaction counts from new structure
         if (listing.getInteractions() != null && listing.getInteractions().getAggregate() != null) {
             holder.viewCount.setText(String.valueOf(listing.getInteractions().getAggregate().getTotalViews()));
-            // If you have UI for saves/shares, set them here, e.g.:
-            // holder.saveCount.setText(String.valueOf(listing.getInteractions().getAggregate().getTotalSaves()));
-            // holder.shareCount.setText(String.valueOf(listing.getInteractions().getAggregate().getTotalShares()));
         } else {
             holder.viewCount.setText("0");
-            // holder.saveCount.setText("0");
-            // holder.shareCount.setText("0");
         }
-        holder.time.setText("Recently");
+        // Calculate days since createdAt for tv_time
+        java.util.Date createdDate = null;
+        if (listing.getCreatedAt() instanceof com.google.firebase.Timestamp) {
+            createdDate = ((com.google.firebase.Timestamp) listing.getCreatedAt()).toDate();
+        } else if (listing.getCreatedAt() instanceof java.util.Date) {
+            createdDate = (java.util.Date) listing.getCreatedAt();
+        } else if (listing.getCreatedAt() instanceof String) {
+            try {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US);
+                sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                createdDate = sdf.parse((String) listing.getCreatedAt());
+            } catch (Exception ignored) {}
+        }
+        if (createdDate != null) {
+            long diffMillis = System.currentTimeMillis() - createdDate.getTime();
+            long days = diffMillis / (1000 * 60 * 60 * 24);
+            holder.time.setText(days == 0 ? "Today" : days + " days ago");
+        } else {
+            holder.time.setText("Recently");
+        }
         // Fetch ItemModel for details (title, image, etc.)
         firebaseService.getItemById(listing.getItemId(), new FirebaseService.ItemCallback() {
             @Override
@@ -108,6 +122,11 @@ public class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.ViewHold
         holder.itemView.setOnClickListener(v -> {
             String userId = firebaseService.getCurrentUserId();
             if (userId != null) {
+                // Only increment totalViews if user is not the seller
+                if (!userId.equals(listing.getSellerId())) {
+                    // Increment totalViews in Firestore
+                    firebaseService.incrementListingTotalViews(listing.getId());
+                }
                 firebaseService.logListingViewedInteraction(listing.getId(), userId);
             }
             listener.onItemClick(listing);

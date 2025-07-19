@@ -53,9 +53,9 @@ public class MyStoreFragment extends Fragment {
         });
         // Setup TabLayout for listing status
         tabLayoutListingStatus = view.findViewById(R.id.tab_layout_listing_status);
-        tabLayoutListingStatus.addTab(tabLayoutListingStatus.newTab().setText("Available"));
-        tabLayoutListingStatus.addTab(tabLayoutListingStatus.newTab().setText("Pending"));
-        tabLayoutListingStatus.addTab(tabLayoutListingStatus.newTab().setText("Sold"));
+        tabLayoutListingStatus.addTab(tabLayoutListingStatus.newTab().setText("Active"));
+        tabLayoutListingStatus.addTab(tabLayoutListingStatus.newTab().setText("In Progress"));
+        tabLayoutListingStatus.addTab(tabLayoutListingStatus.newTab().setText("Sales History"));
         tabLayoutListingStatus.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -198,19 +198,27 @@ public class MyStoreFragment extends Fragment {
     }
 
     private void loadStoreRating(TextView tvStoreRating) {
-        String currentUserId = null;
+        // Get current userId
+        String userId = null;
         if (UserSession.getInstance().getCurrentUser() != null) {
-            currentUserId = UserSession.getInstance().getCurrentUser().getUserIdOrUid();
+            userId = UserSession.getInstance().getCurrentUser().getUserIdOrUid();
         }
-        if (currentUserId == null) {
+        if (userId == null) {
             tvStoreRating.setText("No rating yet ★");
             return;
         }
-        FirebaseService.getInstance().getUserById(currentUserId, new FirebaseService.UserCallback() {
+        // Fetch all reviews for this user (store owner)
+        FirebaseService.getInstance().getReviewsByUserId(userId, new FirebaseService.ReviewsCallback() {
             @Override
-            public void onSuccess(com.example.tradeupapp.models.User user) {
-                if (user != null && user.getRating() > 0) {
-                    tvStoreRating.setText(String.format("%.1f ★", user.getRating()));
+            public void onSuccess(java.util.List<com.example.tradeupapp.models.ReviewModel> reviews) {
+                double totalRating = 0;
+                int reviewCount = reviews.size();
+                for (com.example.tradeupapp.models.ReviewModel review : reviews) {
+                    totalRating += review.getRating();
+                }
+                double avgRating = reviewCount > 0 ? totalRating / reviewCount : 0.0;
+                if (reviewCount > 0) {
+                    tvStoreRating.setText(String.format("%.1f ★", avgRating));
                 } else {
                     tvStoreRating.setText("No rating yet ★");
                 }
@@ -351,8 +359,10 @@ public class MyStoreFragment extends Fragment {
         int soldCount = 0;
         int totalViews = 0;
         int totalSaves = 0;
+        int totalShares = 0;
         int offerCount = userOffers != null ? userOffers.size() : 0;
-        for (ListingModel listing : userListings) {
+        // Always use allUserListings for stats
+        for (ListingModel listing : allUserListings) {
             String status = listing.getTransactionStatus();
             if (status != null && status.equalsIgnoreCase("available")) {
                 activeCount++;
@@ -362,6 +372,7 @@ public class MyStoreFragment extends Fragment {
             if (listing.getInteractions() != null && listing.getInteractions().getAggregate() != null) {
                 totalViews += listing.getInteractions().getAggregate().getTotalViews();
                 totalSaves += listing.getInteractions().getAggregate().getTotalSaves();
+                totalShares += listing.getInteractions().getAggregate().getTotalShares();
             } else {
                 totalViews += listing.getViewCount();
             }
@@ -373,12 +384,13 @@ public class MyStoreFragment extends Fragment {
             TextView tvStatViews = view.findViewById(R.id.tv_stat_views);
             TextView tvStatSaves = view.findViewById(R.id.tv_stat_saves);
             TextView tvStatOffers = view.findViewById(R.id.tv_stat_offers);
-            // Removed tvStatShares, not in layout
+            TextView tvStatShares = view.findViewById(R.id.tv_stat_shares);
             tvStatActive.setText(String.valueOf(activeCount));
             tvStatSold.setText(String.valueOf(soldCount));
             tvStatViews.setText(String.valueOf(totalViews));
             if (tvStatSaves != null) tvStatSaves.setText(String.valueOf(totalSaves));
             if (tvStatOffers != null) tvStatOffers.setText(String.valueOf(offerCount));
+            if (tvStatShares != null) tvStatShares.setText(String.valueOf(totalShares));
         }
     }
 }
