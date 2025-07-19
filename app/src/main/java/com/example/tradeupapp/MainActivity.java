@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Initialize the AppBarConfiguration with your top-level destinations
             appBarConfiguration = new AppBarConfiguration.Builder(
-                    R.id.nav_recommendations, R.id.nav_search, R.id.nav_chat, R.id.nav_my_store, R.id.nav_profile)
+                    R.id.nav_recommendations, R.id.nav_search, R.id.chatListFragment, R.id.nav_my_store, R.id.nav_profile)
                     .build();
 
             // Store the last selected item ID to track navigation state
@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // Always clear backstack to main destinations when clicking bottom nav
                 if (itemId == R.id.nav_recommendations || itemId == R.id.nav_search ||
-                        itemId == R.id.nav_chat || itemId == R.id.nav_my_store || itemId == R.id.nav_profile) {
+                        itemId == R.id.chatListFragment || itemId == R.id.nav_my_store || itemId == R.id.nav_profile) {
 
                     // Navigate to the start destination of the graph to clear everything
                     navController.popBackStack(R.id.nav_recommendations, false);
@@ -86,6 +86,17 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 }
                 return false;
+            });
+            // Hide bottom nav when in chat fragment, show otherwise
+            navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+                // Hide bottom nav for chat, add listing, and edit profile screens
+                if (destination.getId() == R.id.chatDetailFragment ||
+                    destination.getId() == R.id.editProfileFragment ||
+                    destination.getId() == R.id.nav_add) { // Use correct ID for AddItemFragment
+                    bottomNavigationView.setVisibility(View.GONE);
+                } else {
+                    bottomNavigationView.setVisibility(View.VISIBLE);
+                }
             });
         });
     }

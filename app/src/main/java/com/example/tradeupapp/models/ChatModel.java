@@ -6,7 +6,9 @@ import com.google.firebase.firestore.Exclude;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Model representing a chat room in the TradeUpApp.
@@ -14,145 +16,121 @@ import java.util.List;
  */
 public class ChatModel implements Serializable {
     @DocumentId
-    private String id; // required - Firestore auto ID
-    private String listingId; // required - reference to the listing
-    private List<String> userIds; // required - participants in the chat (buyer and seller)
-    private String lastMessage; // required - most recent message text
-    private Timestamp lastUpdated; // required - when the most recent activity occurred
+    private String id;
+    private List<String> participants; // user IDs
+    private String relatedItemId; // item being discussed
+    private String lastMessage;
+    private Timestamp lastMessageTime;
+    private String lastMessageSenderId;
+    private Map<String, Integer> unreadCount; // userId -> count
+    private Timestamp createdAt;
+    private boolean isActive;
 
     /**
      * Default constructor required for Firebase Firestore
      */
     public ChatModel() {
-        // Required empty constructor for Firestore
-        this.userIds = new ArrayList<>();
-        this.lastMessage = "";
-        this.lastUpdated = Timestamp.now();
+        this.participants = new ArrayList<>();
+        this.unreadCount = new HashMap<>();
+        this.createdAt = Timestamp.now();
+        this.isActive = true;
     }
 
     /**
      * Constructor with essential chat information
      */
-    public ChatModel(String listingId, List<String> userIds) {
-        this.listingId = listingId;
-        this.userIds = userIds != null ? userIds : new ArrayList<>();
-        this.lastMessage = "";
-        this.lastUpdated = Timestamp.now();
+    public ChatModel(List<String> participants, String relatedItemId) {
+        this.participants = participants != null ? participants : new ArrayList<>();
+        this.relatedItemId = relatedItemId;
+        this.unreadCount = new HashMap<>();
+        this.createdAt = Timestamp.now();
+        this.isActive = true;
     }
 
     /**
-     * Full constructor with all chat properties
+     * Returns the other participant's userId in a 2-person chat.
+     * If currentUserId is not in participants, returns null.
      */
-    public ChatModel(String id, String listingId, List<String> userIds,
-                    String lastMessage, Timestamp lastUpdated) {
-        this.id = id;
-        this.listingId = listingId;
-        this.userIds = userIds != null ? userIds : new ArrayList<>();
-        this.lastMessage = lastMessage != null ? lastMessage : "";
-        this.lastUpdated = lastUpdated != null ? lastUpdated : Timestamp.now();
-    }
-
-    // Getters and Setters
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getListingId() {
-        return listingId;
-    }
-
-    public void setListingId(String listingId) {
-        this.listingId = listingId;
-    }
-
-    public List<String> getUserIds() {
-        if (userIds == null) {
-            userIds = new ArrayList<>();
-        }
-        return userIds;
-    }
-
-    public void setUserIds(List<String> userIds) {
-        this.userIds = userIds != null ? userIds : new ArrayList<>();
-    }
-
-    public void addUserId(String userId) {
-        if (this.userIds == null) {
-            this.userIds = new ArrayList<>();
-        }
-        if (!this.userIds.contains(userId)) {
-            this.userIds.add(userId);
-        }
-    }
-
-    public String getLastMessage() {
-        return lastMessage;
-    }
-
-    public void setLastMessage(String lastMessage) {
-        this.lastMessage = lastMessage != null ? lastMessage : "";
-    }
-
-    public Timestamp getLastUpdated() {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated(Timestamp lastUpdated) {
-        this.lastUpdated = lastUpdated != null ? lastUpdated : Timestamp.now();
-    }
-
-    /**
-     * Update last message and timestamp when a new message is sent
-     * @param messageText the text of the new message
-     */
-    public void updateLastMessage(String messageText) {
-        this.lastMessage = messageText != null ? messageText : "";
-        this.lastUpdated = Timestamp.now();
-    }
-
-    /**
-     * Check if user is a participant in this chat
-     * @param userId the ID of the user to check
-     * @return true if the user is a participant, false otherwise
-     */
-    @Exclude // Not stored in Firestore, computed
-    public boolean hasUser(String userId) {
-        return userIds != null && userIds.contains(userId);
-    }
-
-    /**
-     * Get the other user's ID in a two-person chat
-     * @param currentUserId the ID of the current user
-     * @return the ID of the other user, or null if not found
-     */
-    @Exclude // Not stored in Firestore, computed
+    @Exclude
     public String getOtherUserId(String currentUserId) {
-        if (userIds != null && userIds.size() == 2) {
-            return userIds.get(0).equals(currentUserId) ? userIds.get(1) : userIds.get(0);
+        if (participants == null || participants.size() != 2 || currentUserId == null) return null;
+        for (String id : participants) {
+            if (!id.equals(currentUserId)) return id;
         }
         return null;
     }
 
     /**
-     * Get message preview for display in chat list
-     * Limits the length of the last message for display purposes
-     * @return formatted preview of the last message
+     * Returns the last message preview for the chat.
+     * If lastMessage is null, returns an empty string.
      */
-    @Exclude // Not stored in Firestore, computed
+    @Exclude
     public String getMessagePreview() {
-        if (lastMessage == null || lastMessage.isEmpty()) {
-            return "No messages yet";
-        }
+        return lastMessage != null ? lastMessage : "";
+    }
 
-        // Limit message preview to 50 characters
-        if (lastMessage.length() <= 50) {
-            return lastMessage;
-        }
-        return lastMessage.substring(0, 47) + "...";
+    /**
+     * Returns the last updated time for the chat (lastMessageTime).
+     * If lastMessageTime is null, returns createdAt.
+     */
+    @Exclude
+    public Timestamp getLastUpdated() {
+        return lastMessageTime != null ? lastMessageTime : createdAt;
+    }
+
+    // Getters and setters
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+    public List<String> getParticipants() {
+        return participants;
+    }
+    public void setParticipants(List<String> participants) {
+        this.participants = participants;
+    }
+    public String getRelatedItemId() {
+        return relatedItemId;
+    }
+    public void setRelatedItemId(String relatedItemId) {
+        this.relatedItemId = relatedItemId;
+    }
+    public String getLastMessage() {
+        return lastMessage;
+    }
+    public void setLastMessage(String lastMessage) {
+        this.lastMessage = lastMessage;
+    }
+    public Timestamp getLastMessageTime() {
+        return lastMessageTime;
+    }
+    public void setLastMessageTime(Timestamp lastMessageTime) {
+        this.lastMessageTime = lastMessageTime;
+    }
+    public String getLastMessageSenderId() {
+        return lastMessageSenderId;
+    }
+    public void setLastMessageSenderId(String lastMessageSenderId) {
+        this.lastMessageSenderId = lastMessageSenderId;
+    }
+    public Map<String, Integer> getUnreadCount() {
+        return unreadCount;
+    }
+    public void setUnreadCount(Map<String, Integer> unreadCount) {
+        this.unreadCount = unreadCount;
+    }
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+    public boolean isActive() {
+        return isActive;
+    }
+    public void setActive(boolean active) {
+        isActive = active;
     }
 }

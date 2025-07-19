@@ -12,7 +12,39 @@
         "user_002": 0
       },
       "createdAt": "2025-07-03T07:30:00Z",
-      "isActive": true
+      "isActive": true,
+      "messages": [
+        {
+          "id": "msg_001a",
+          "chatId": "chat_001",
+          "senderId": "user_001",
+          "message": "Hi, is the item still available?",
+          "messageType": "text",
+          "attachments": [],
+          "timestamp": "2025-07-03T08:00:00Z",
+          "isRead": true
+        },
+        {
+          "id": "msg_001b",
+          "chatId": "chat_001",
+          "senderId": "user_002",
+          "message": "Yes, it is!",
+          "messageType": "text",
+          "attachments": [],
+          "timestamp": "2025-07-03T08:05:00Z",
+          "isRead": true
+        },
+        {
+          "id": "msg_001c",
+          "chatId": "chat_001",
+          "senderId": "user_002",
+          "message": "Great! I'll pick it up tomorrow at 2pm",
+          "messageType": "text",
+          "attachments": [],
+          "timestamp": "2025-07-03T16:30:00Z",
+          "isRead": true
+        }
+      ]
     },
     {
       "id": "chat_002",
@@ -26,7 +58,39 @@
         "user_006": 0
       },
       "createdAt": "2025-07-02T14:20:00Z",
-      "isActive": true
+      "isActive": true,
+      "messages": [
+        {
+          "id": "msg_002a",
+          "chatId": "chat_002",
+          "senderId": "user_004",
+          "message": "Can you ship to Hanoi?",
+          "messageType": "text",
+          "attachments": [],
+          "timestamp": "2025-07-02T15:00:00Z",
+          "isRead": true
+        },
+        {
+          "id": "msg_002b",
+          "chatId": "chat_002",
+          "senderId": "user_006",
+          "message": "Yes, shipping is available.",
+          "messageType": "text",
+          "attachments": [],
+          "timestamp": "2025-07-02T15:05:00Z",
+          "isRead": true
+        },
+        {
+          "id": "msg_002c",
+          "chatId": "chat_002",
+          "senderId": "user_006",
+          "message": "Perfect! Payment sent. Thank you so much!",
+          "messageType": "text",
+          "attachments": [],
+          "timestamp": "2025-07-02T17:15:00Z",
+          "isRead": true
+        }
+      ]
     },
     {
       "id": "chat_003",

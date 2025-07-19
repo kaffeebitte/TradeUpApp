@@ -33,6 +33,7 @@ import com.example.tradeupapp.models.OfferModel;
 import com.example.tradeupapp.shared.adapters.ImageSliderAdapter;
 import com.example.tradeupapp.shared.adapters.OfferAdapter;
 import com.example.tradeupapp.shared.adapters.ReviewAdapter;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -521,6 +522,43 @@ public class ListingDetailFragment extends Fragment {
             btnUpdateListing.setOnClickListener(v -> {
                 Toast.makeText(requireContext(), "Update Listing clicked", Toast.LENGTH_SHORT).show();
                 // TODO: Navigate to update listing screen
+            });
+        }
+        if (btnMessage != null && listing != null) {
+            btnMessage.setOnClickListener(v -> {
+                String currentUserId = firebaseService.getCurrentUserId();
+                String sellerId = listing.getSellerId();
+                String itemId = listing.getItemId();
+                // Add debug logging for parameters
+                android.util.Log.d("ListingDetailFragment", "btnMessage clicked: currentUserId=" + currentUserId + ", sellerId=" + sellerId + ", itemId=" + itemId);
+                if (currentUserId == null || currentUserId.isEmpty() || sellerId == null || sellerId.isEmpty() || itemId == null || itemId.isEmpty()) {
+                    Toast.makeText(requireContext(), "Missing user or item info", Toast.LENGTH_SHORT).show();
+                    android.util.Log.e("ListingDetailFragment", "Missing user or item info: currentUserId=" + currentUserId + ", sellerId=" + sellerId + ", itemId=" + itemId);
+                    return;
+                }
+                // Use FirebaseService helper to get or create chat
+                firebaseService.getOrCreateChat(currentUserId, sellerId, itemId, new FirebaseService.ChatIdCallback() {
+                    @Override
+                    public void onSuccess(String chatId) {
+                        Bundle args = new Bundle();
+                        args.putString("chatId", chatId);
+                        args.putString("otherUserId", sellerId);
+                        args.putString("listingId", listing.getId());
+                        args.putString("itemId", itemId);
+                        args.putString("itemName", item != null ? item.getTitle() : "");
+                        args.putString("itemImageUrl", (item != null && item.getPhotoUris() != null && !item.getPhotoUris().isEmpty()) ? item.getPhotoUris().get(0) : null);
+                        args.putString("itemPrice", listing.getPrice() > 0 ? formatPrice(listing.getPrice()) : null);
+                        // Optionally pass seller display name if available
+                        // You may want to fetch seller name here if needed
+                        androidx.navigation.NavController navController = androidx.navigation.Navigation.findNavController(requireView());
+                        navController.navigate(R.id.action_itemDetailFragment_to_chatFragment, args);
+                    }
+                    @Override
+                    public void onError(String error) {
+                        Toast.makeText(requireContext(), "Failed to get or create chat: " + error, Toast.LENGTH_SHORT).show();
+                        android.util.Log.e("ListingDetailFragment", "Failed to get or create chat: " + error + " | Params: currentUserId=" + currentUserId + ", sellerId=" + sellerId + ", itemId=" + itemId);
+                    }
+                });
             });
         }
     }

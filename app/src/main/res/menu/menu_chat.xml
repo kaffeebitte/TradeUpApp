@@ -4,7 +4,12 @@
 
     <item
         android:id="@+id/action_block_user"
-        android:title="Block User"
+        android:title="Block"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_unblock_user"
+        android:title="Unblock"
         app:showAsAction="never" />
 
     <item

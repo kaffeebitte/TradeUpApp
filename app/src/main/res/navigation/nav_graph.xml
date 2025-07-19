@@ -197,12 +197,36 @@
             android:name="chatId"
             app:argType="string" />
         <argument
-            android:name="recipientId"
+            android:name="otherUserId"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="listingId"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="itemId"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="itemName"
             app:argType="string"
             app:nullable="true" />
         <action
             android:id="@+id/action_chatDetailFragment_to_itemDetailFragment"
             app:destination="@id/itemDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/chatListFragment"
+        android:name="com.example.tradeupapp.features.chat.ui.ChatListFragment"
+        android:label="Chat List"
+        tools:layout="@layout/fragment_chat_list">
+        <action
+            android:id="@+id/action_chatListFragment_to_chatDetailFragment"
+            app:destination="@id/chatDetailFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>

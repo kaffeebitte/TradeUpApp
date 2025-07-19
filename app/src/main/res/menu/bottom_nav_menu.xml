@@ -9,9 +9,9 @@
         android:icon="@drawable/ic_search_24"
         android:title="Search" />
     <item
-        android:id="@+id/nav_chat"
+        android:id="@+id/chatListFragment"
         android:icon="@drawable/ic_chat_24"
-        android:title="Chat" />
+        android:title="Chats" />
     <item
         android:id="@+id/nav_my_store"
         android:icon="@drawable/ic_store_24"

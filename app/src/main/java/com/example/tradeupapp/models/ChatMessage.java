@@ -14,86 +14,40 @@ import java.util.List;
  */
 public class ChatMessage implements Serializable {
     @DocumentId
-    private String id; // optional - Firestore auto ID
-    private String senderId; // required - UID of message sender
-    private String receiverId; // required - UID of message receiver
-    private String text; // required - message content
-    private String imageUrl; // optional - Cloudinary URL if message contains an image
-    private Timestamp createdAt; // required - when message was sent
-    private List<String> readBy; // required - list of user IDs who read the message
-    private int messageType; // to differentiate between sent and received messages in the UI
+    private String id;
+    private String chatId;
+    private String senderId;
+    private String message; // text content
+    private String messageType; // "text" or "image"
+    private List<String> attachments; // image URLs
+    private Timestamp timestamp;
+    private boolean isRead;
 
-    // Constants for message types
-    public static final int TYPE_SENT = 1;
-    public static final int TYPE_RECEIVED = 2;
+    // Message type constants for UI rendering
+    public static final String TYPE_SENT = "sent";
+    public static final String TYPE_RECEIVED = "received";
 
     /**
      * Default constructor required for Firebase Firestore
      */
     public ChatMessage() {
         // Required empty constructor for Firestore
-        this.readBy = new ArrayList<>();
-        this.createdAt = Timestamp.now();
+        this.attachments = new ArrayList<>();
+        this.timestamp = Timestamp.now();
+        this.isRead = false;
     }
 
     /**
-     * Constructor for text-only message
+     * Constructor for text and image message
      */
-    public ChatMessage(String senderId, String text) {
+    public ChatMessage(String chatId, String senderId, String message, String messageType, List<String> attachments) {
+        this.chatId = chatId;
         this.senderId = senderId;
-        this.text = text != null ? text : "";
-        this.imageUrl = null;
-        this.createdAt = Timestamp.now();
-        this.readBy = new ArrayList<>();
-        if (senderId != null) {
-            this.readBy.add(senderId); // sender has already read their own message
-        }
-        this.messageType = TYPE_SENT; // default to sent message
-    }
-
-    /**
-     * Constructor for image message
-     */
-    public ChatMessage(String senderId, String text, String imageUrl) {
-        this.senderId = senderId;
-        this.text = text != null ? text : "";
-        this.imageUrl = imageUrl;
-        this.createdAt = Timestamp.now();
-        this.readBy = new ArrayList<>();
-        if (senderId != null) {
-            this.readBy.add(senderId); // sender has already read their own message
-        }
-        this.messageType = TYPE_SENT; // default to sent message
-    }
-
-    /**
-     * Full constructor with all message properties
-     */
-    public ChatMessage(String id, String senderId, String text, String imageUrl,
-                       Timestamp createdAt, List<String> readBy, int messageType) {
-        this.id = id;
-        this.senderId = senderId;
-        this.text = text != null ? text : "";
-        this.imageUrl = imageUrl;
-        this.createdAt = createdAt != null ? createdAt : Timestamp.now();
-        this.readBy = readBy != null ? readBy : new ArrayList<>();
+        this.message = message;
         this.messageType = messageType;
-    }
-
-    /**
-     * Constructor for chat UI with sender, receiver, text, image, and message type
-     */
-    public ChatMessage(String senderId, String receiverId, String text, String imageUrl, int messageType) {
-        this.senderId = senderId;
-        this.receiverId = receiverId;
-        this.text = text != null ? text : "";
-        this.imageUrl = imageUrl;
-        this.messageType = messageType;
-        this.createdAt = Timestamp.now();
-        this.readBy = new ArrayList<>();
-        if (senderId != null) {
-            this.readBy.add(senderId); // sender has already read their own message
-        }
+        this.attachments = attachments != null ? attachments : new ArrayList<>();
+        this.timestamp = Timestamp.now();
+        this.isRead = false;
     }
 
     // Getters and Setters
@@ -106,6 +60,14 @@ public class ChatMessage implements Serializable {
         this.id = id;
     }
 
+    public String getChatId() {
+        return chatId;
+    }
+
+    public void setChatId(String chatId) {
+        this.chatId = chatId;
+    }
+
     public String getSenderId() {
         return senderId;
     }
@@ -114,108 +76,43 @@ public class ChatMessage implements Serializable {
         this.senderId = senderId;
     }
 
-    public String getReceiverId() {
-        return receiverId;
+    public String getMessage() {
+        return message;
     }
 
-    public void setReceiverId(String receiverId) {
-        this.receiverId = receiverId;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text != null ? text : "";
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt != null ? createdAt : Timestamp.now();
-    }
-
-    public List<String> getReadBy() {
-        if (readBy == null) {
-            readBy = new ArrayList<>();
-        }
-        return readBy;
-    }
-
-    public void setReadBy(List<String> readBy) {
-        this.readBy = readBy != null ? readBy : new ArrayList<>();
-    }
-
-    public int getMessageType() {
+    public String getMessageType() {
         return messageType;
     }
 
-    public void setMessageType(int messageType) {
+    public void setMessageType(String messageType) {
         this.messageType = messageType;
     }
 
-    /**
-     * Mark message as read by a user
-     * @param userId the ID of the user who read the message
-     */
-    public void markAsReadBy(String userId) {
-        if (userId == null) {
-            return;
-        }
-
-        if (this.readBy == null) {
-            this.readBy = new ArrayList<>();
-        }
-        if (!this.readBy.contains(userId)) {
-            this.readBy.add(userId);
-        }
+    public List<String> getAttachments() {
+        return attachments;
     }
 
-    /**
-     * Check if message has been read by a specific user
-     * @param userId the ID of the user to check
-     * @return true if the user has read the message, false otherwise
-     */
-    @Exclude // Not stored in Firestore, computed
-    public boolean isReadBy(String userId) {
-        return userId != null && readBy != null && readBy.contains(userId);
+    public void setAttachments(List<String> attachments) {
+        this.attachments = attachments;
     }
 
-    /**
-     * Check if message has an image
-     * @return true if the message has an image, false otherwise
-     */
-    @Exclude // Not stored in Firestore, computed
-    public boolean hasImage() {
-        return imageUrl != null && !imageUrl.isEmpty();
+    public Timestamp getTimestamp() {
+        return timestamp;
     }
 
-    /**
-     * Get the number of readers
-     * @return the count of users who have read this message
-     */
-    @Exclude // Not stored in Firestore, computed
-    public int getReadCount() {
-        return readBy != null ? readBy.size() : 0;
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
     }
 
-    /**
-     * Check if this is a system message (no sender)
-     * @return true if this is a system message, false otherwise
-     */
-    @Exclude // Not stored in Firestore, computed
-    public boolean isSystemMessage() {
-        return senderId == null || senderId.isEmpty();
+    public boolean isRead() {
+        return isRead;
+    }
+
+    public void setRead(boolean read) {
+        isRead = read;
     }
 }

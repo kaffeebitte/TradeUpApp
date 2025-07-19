@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select a reason"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:textColor="@color/md_theme_onSurface"
+        android:layout_marginBottom="8dp" />
+
+    <RadioGroup
+        android:id="@+id/rg_report_reason"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RadioButton
+            android:id="@+id/rb_spam"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Spam" />
+        <RadioButton
+            android:id="@+id/rb_harassment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Harassment" />
+        <RadioButton
+            android:id="@+id/rb_scam"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Scam" />
+        <RadioButton
+            android:id="@+id/rb_inappropriate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Inappropriate Content" />
+        <RadioButton
+            android:id="@+id/rb_other"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Other" />
+    </RadioGroup>
+
+    <EditText
+        android:id="@+id/et_report_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Description (optional)"
+        android:inputType="textMultiLine"
+        android:minLines="2"
+        android:background="@drawable/bg_message_input"
+        android:padding="12dp"
+        android:textColor="@color/md_theme_onSurface"
+        android:textColorHint="@color/md_theme_onSurfaceVariant"
+        android:layout_marginTop="12dp"
+        android:visibility="visible" />
+
+</LinearLayout>
