@@ -55,9 +55,36 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
     @Override
     public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
         ChatModel chat = chatList.get(position);
-        String otherUserId = chat.getOtherUserId(currentUserId);
+        // Get the other user's ID from participants (not current user)
+        String otherUserId = null;
+        if (chat.getParticipants() != null) {
+            for (String id : chat.getParticipants()) {
+                if (!id.equals(currentUserId)) {
+                    otherUserId = id;
+                    break;
+                }
+            }
+        }
         String displayName = userNameMap.get(otherUserId);
-        holder.username.setText(displayName != null ? displayName : otherUserId);
+        if (displayName != null && !displayName.isEmpty()) {
+            holder.username.setText(displayName);
+        } else if (otherUserId != null && !otherUserId.isEmpty()) {
+            // Fetch display name from Firestore if not in userNameMap
+            com.google.firebase.firestore.FirebaseFirestore.getInstance().collection("users").document(otherUserId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    String fetchedName = documentSnapshot.getString("displayName");
+                    if (fetchedName != null && !fetchedName.isEmpty()) {
+                        holder.username.setText(fetchedName);
+                    } else {
+                        holder.username.setText("");
+                    }
+                })
+                .addOnFailureListener(e -> holder.username.setText(""));
+        } else {
+            holder.username.setText("");
+        }
+        android.util.Log.d("ChatListAdapter", "tv_chat_username: otherUserId=" + otherUserId + ", displayName=" + displayName);
         String lastMessage = chat.getLastMessage();
         String lastMessageType = null;
         // Try to detect if lastMessage is a listing type (simple heuristic)
@@ -117,6 +144,31 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
             holder.avatar.setImageResource(R.drawable.ic_person_24);
         }
         holder.itemView.setOnClickListener(v -> listener.onChatClick(chat));
+        // Highlight card if last message is unread and sent by other user
+        boolean isUnread = false;
+        int unreadCount = 0;
+        if (chat.getUnreadCount() != null) {
+            Integer unread = chat.getUnreadCount().get(currentUserId);
+            if (unread != null && unread > 0) {
+                isUnread = true;
+                unreadCount = unread;
+            }
+        }
+        if (isUnread) {
+            // WhatsApp-like: bold last message, show badge, use prominent color
+            holder.lastMessage.setTextColor(holder.itemView.getContext().getResources().getColor(R.color.md_theme_onSurface));
+            holder.lastMessage.setTypeface(null, android.graphics.Typeface.BOLD);
+            holder.unreadIndicator.setVisibility(View.VISIBLE);
+            holder.unreadCount.setText(String.valueOf(unreadCount));
+            // Change card background color for unread message
+            holder.itemView.setBackgroundColor(holder.itemView.getContext().getResources().getColor(R.color.unread_notification_background));
+        } else {
+            holder.lastMessage.setTextColor(holder.itemView.getContext().getResources().getColor(R.color.md_theme_onSurfaceVariant));
+            holder.lastMessage.setTypeface(null, android.graphics.Typeface.NORMAL);
+            holder.unreadIndicator.setVisibility(View.GONE);
+            // Reset card background color for read message
+            holder.itemView.setBackgroundColor(holder.itemView.getContext().getResources().getColor(R.color.cardBackground));
+        }
     }
 
     @Override

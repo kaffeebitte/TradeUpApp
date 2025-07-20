@@ -130,6 +130,11 @@
             app:destination="@id/publicProfileFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_itemDetailFragment_to_updateItemFragment"
+            app:destination="@id/updateItemFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
     <!-- Add item and preview fragments -->

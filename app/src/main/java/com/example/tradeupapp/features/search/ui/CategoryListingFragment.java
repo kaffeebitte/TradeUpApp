@@ -72,22 +72,54 @@ public class CategoryListingFragment extends Fragment {
         });
     }
 
+    private String normalizeCategory(String category) {
+        if (category == null) return "";
+        return category.trim().toLowerCase().replaceAll("[^a-z0-9]", "");
+    }
+
     private void loadListings() {
-        if (categoryName == null) {
-            showEmptyState();
-            return;
-        }
-        firebaseService.getListingsByCategory(categoryName, new FirebaseService.ListingsCallback() {
+        firebaseService.getAllListings(new FirebaseService.ListingsCallback() {
             @Override
             public void onSuccess(List<ListingModel> listings) {
-                if (listings.isEmpty()) {
+                if (listings == null || listings.isEmpty()) {
                     showEmptyState();
                     return;
                 }
-                listingAdapter = new ListingAdapter(requireContext(), listings, listing -> navigateToItemDetail(listing.getId()));
-                recyclerView.setAdapter(listingAdapter);
-                headerText.setText(categoryName);
-                headerText.setVisibility(View.VISIBLE);
+                firebaseService.getAllItems(new FirebaseService.ItemsCallback() {
+                    @Override
+                    public void onSuccess(List<ItemModel> items) {
+                        List<ListingModel> filtered = new ArrayList<>();
+                        String normalizedCategory = normalizeCategory(categoryName);
+                        for (ListingModel listing : listings) {
+                            for (ItemModel item : items) {
+                                if (item.getId().equals(listing.getItemId())) {
+                                    String itemCategory = normalizeCategory(item.getCategory());
+                                    // Partial match, robust normalization
+                                    if (!normalizedCategory.isEmpty() && !"allcategories".equals(normalizedCategory)) {
+                                        if (itemCategory.contains(normalizedCategory)) {
+                                            filtered.add(listing);
+                                        }
+                                    } else {
+                                        filtered.add(listing);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                        if (filtered.isEmpty()) {
+                            showEmptyState();
+                            return;
+                        }
+                        listingAdapter = new ListingAdapter(requireContext(), filtered, listing -> navigateToItemDetail(listing.getId()));
+                        recyclerView.setAdapter(listingAdapter);
+                        headerText.setText(categoryName);
+                        headerText.setVisibility(View.VISIBLE);
+                    }
+                    @Override
+                    public void onError(String error) {
+                        showEmptyState();
+                    }
+                });
             }
             @Override
             public void onError(String error) {

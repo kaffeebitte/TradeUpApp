@@ -58,6 +58,19 @@
                         android:textColor="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
 
+                <!-- Notification button -->
+                <ImageButton
+                    android:id="@+id/btn_notification"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_notification_24"
+                    android:contentDescription="@string/notifications"
+                    app:tint="?attr/colorPrimary"
+                    android:layout_marginStart="8dp"
+                    android:padding="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
             </LinearLayout>
         </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>

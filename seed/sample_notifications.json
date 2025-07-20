@@ -42,6 +42,7 @@
       "type": "chat_message",
       "relatedChatId": "chat_006",
       "relatedUserId": "user_006",
+      "message": "Xin chào, bạn có thể trả giá cho sản phẩm này không?",
       "isRead": false,
       "createdAt": "2025-06-30T17:30:00Z"
     },
@@ -125,6 +126,7 @@
       "type": "chat_message",
       "relatedChatId": "chat_007",
       "relatedUserId": "user_001",
+      "message": "Tôi đã gửi thông tin chuyển khoản cho bạn.",
       "isRead": false,
       "createdAt": "2025-07-03T11:20:00Z"
     }

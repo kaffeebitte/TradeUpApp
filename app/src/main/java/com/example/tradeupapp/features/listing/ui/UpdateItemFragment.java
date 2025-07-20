@@ -68,15 +68,53 @@ public class UpdateItemFragment extends Fragment implements PhotoUploadAdapter.O
         firestore = FirebaseFirestore.getInstance();
         setupTagAdapter(view);
         fetchTagsFromFirestore();
-        if (getArguments() != null) {
-            if (getArguments().containsKey("listing")) {
-                editingListing = (ListingModel) getArguments().getSerializable("listing");
+        // --- Handle arguments from ItemDetailFragment ---
+        Bundle args = getArguments();
+        if (args != null) {
+            if (args.containsKey("listingId")) {
+                String listingId = args.getString("listingId");
+                FirebaseService.getInstance().getAllListings(new FirebaseService.ListingsCallback() {
+                    @Override
+                    public void onSuccess(java.util.List<ListingModel> listings) {
+                        for (ListingModel l : listings) {
+                            if (l.getId() != null && l.getId().equals(listingId)) {
+                                editingListing = l;
+                                break;
+                            }
+                        }
+                        if (editingListing != null && editingListing.getItemId() != null) {
+                            FirebaseService.getInstance().getItemById(editingListing.getItemId(), new FirebaseService.ItemCallback() {
+                                @Override
+                                public void onSuccess(ItemModel item) {
+                                    editingItem = item;
+                                    prefillFormForUpdate();
+                                }
+                                @Override
+                                public void onError(String error) {
+                                    Toast.makeText(requireContext(), "Failed to load item", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    }
+                    @Override
+                    public void onError(String error) {
+                        Toast.makeText(requireContext(), "Failed to load listing", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                // Fallback: support old argument passing
+                if (args.containsKey("listing")) {
+                    editingListing = (ListingModel) args.getSerializable("listing");
+                }
+                if (args.containsKey("item")) {
+                    editingItem = args.getParcelable("item");
+                }
+                prefillFormForUpdate();
             }
-            if (getArguments().containsKey("item")) {
-                editingItem = getArguments().getParcelable("item");
-            }
-            prefillFormForUpdate();
         }
+        // Hide Save button for update mode
+        MaterialButton btnSave = view.findViewById(R.id.btn_save);
+        if (btnSave != null) btnSave.setVisibility(View.GONE);
         return view;
     }
 
@@ -111,6 +149,23 @@ public class UpdateItemFragment extends Fragment implements PhotoUploadAdapter.O
             etTagInput.setText(TextUtils.join(", ", selectedTags));
         });
         recyclerTags.setAdapter(tagAdapter);
+        // Listen for tag input changes to update chips in adapter (tách tag giống AddItemFragment)
+        etTagInput.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(android.text.Editable s) {
+                String tagsRaw = s.toString();
+                List<String> tags = new ArrayList<>();
+                for (String tag : tagsRaw.split(",")) {
+                    String trimmed = tag.trim();
+                    if (!trimmed.isEmpty()) tags.add(trimmed);
+                }
+                tagAdapter.setSelectedTags(tags);
+            }
+        });
     }
 
     private void setupDropdowns() {
@@ -131,7 +186,9 @@ public class UpdateItemFragment extends Fragment implements PhotoUploadAdapter.O
     private void setupClickListeners() {
         etLocation.setOnClickListener(v -> {
             NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
-            navController.navigate(R.id.action_updateItemFragment_to_mapPickerFragment);
+            Bundle args = new Bundle();
+            args.putBoolean("isFullAddress", true);
+            navController.navigate(R.id.action_updateItemFragment_to_mapPickerFragment, args);
         });
         btnContinue.setText("Update Listing"); // Use hardcoded string for now
         btnContinue.setOnClickListener(v -> {
@@ -159,20 +216,20 @@ public class UpdateItemFragment extends Fragment implements PhotoUploadAdapter.O
                     if (uriStr != null) photoAdapter.addPhoto(Uri.parse(uriStr));
                 }
             }
-            // Set tags to tag input field as comma separated
+            // Ghép các tag thành 1 string, nối bằng dấu phẩy
             if (editingItem.getTags() != null && !editingItem.getTags().isEmpty()) {
-                etTagInput.setText(android.text.TextUtils.join(", ", editingItem.getTags()));
+                String joinedTags = android.text.TextUtils.join(", ", editingItem.getTags());
+                etTagInput.setText(joinedTags);
+            } else {
+                etTagInput.setText("");
             }
         }
         if (editingListing != null) {
-            // Format price with grouping and no scientific notation
-            java.text.NumberFormat nf = java.text.NumberFormat.getInstance(new java.util.Locale("vi", "VN"));
-            nf.setGroupingUsed(true);
-            nf.setMaximumFractionDigits(0);
-            String formattedPrice = nf.format(editingListing.getPrice());
-            etPrice.setText(formattedPrice);
+            // Parse price from editingListing and set to etPrice (raw, no formatting)
+            double rawPrice = editingListing.getPrice();
+            etPrice.setText(String.valueOf((long) rawPrice));
             // Always set allowOffers and allowReturns with default if missing
-            boolean allowOffers = editingListing.isAllowOffers();
+            boolean allowOffers = editingListing.getAllowOffers();
             boolean allowReturns = editingListing.isAllowReturns();
             switchAllowOffers.setChecked(allowOffers);
             switchAllowReturns.setChecked(allowReturns);
@@ -182,15 +239,30 @@ public class UpdateItemFragment extends Fragment implements PhotoUploadAdapter.O
 
     private void updateListing() {
         if (editingListing == null || editingItem == null) return;
-        editingItem.setTitle(etTitle.getText() != null ? etTitle.getText().toString().trim() : "");
-        editingItem.setDescription(etDescription.getText() != null ? etDescription.getText().toString().trim() : "");
-        editingItem.setCategory(actvCategory.getText().toString());
-        editingItem.setCondition(actvCondition.getText().toString());
-        // Set location as a map with address string
+        // Title
+        String title = etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
+        editingItem.setTitle(title);
+        // Description
+        String description = etDescription.getText() != null ? etDescription.getText().toString().trim() : "";
+        editingItem.setDescription(description);
+        // Category
+        String category = actvCategory.getText() != null ? actvCategory.getText().toString().trim() : "";
+        editingItem.setCategory(category);
+        // Condition
+        String condition = actvCondition.getText() != null ? actvCondition.getText().toString().trim() : "";
+        editingItem.setCondition(condition);
+        // Location
         String address = etLocation.getText() != null ? etLocation.getText().toString().trim() : "";
         java.util.Map<String, Object> location = new java.util.HashMap<>();
         location.put("address", address);
+        Object tag = etLocation.getTag();
+        if (tag instanceof double[]) {
+            double[] latLng = (double[]) tag;
+            location.put("latitude", latLng[0]);
+            location.put("longitude", latLng[1]);
+        }
         editingItem.setLocation(location);
+        // Photos
         if (photoAdapter != null) {
             java.util.List<Uri> uriList = photoAdapter.getPhotoUris();
             java.util.List<String> stringList = new java.util.ArrayList<>();
@@ -199,32 +271,35 @@ public class UpdateItemFragment extends Fragment implements PhotoUploadAdapter.O
             }
             editingItem.setPhotoUris(stringList);
         }
+        // Tags
         String tagsRaw = etTagInput.getText() != null ? etTagInput.getText().toString() : "";
         java.util.List<String> tags = new java.util.ArrayList<>();
-        for (String tag : tagsRaw.split(",")) {
-            if (!tag.trim().isEmpty()) tags.add(tag.trim());
+        for (String tagStr : tagsRaw.split(",")) {
+            String trimmed = tagStr.trim();
+            if (!trimmed.isEmpty()) tags.add(trimmed);
         }
-        // TODO: Uncomment if setTags exists in ItemModel
-        // editingItem.setTags(tags);
+        editingItem.setTags(tags);
+        editingListing.setTags(tags); // Ensure tags are also set on listing
+        // Price
         double price = 0.0;
         try {
-            price = Double.parseDouble(etPrice.getText() != null ? etPrice.getText().toString().trim() : "0");
+            String priceStr = etPrice.getText() != null ? etPrice.getText().toString().replace(",", "").trim() : "0";
+            price = Double.parseDouble(priceStr);
         } catch (NumberFormatException ignored) {}
         editingListing.setPrice(price);
-        // Always set allowOffers and allowReturns with default if missing
-        boolean allowOffers = switchAllowOffers != null ? switchAllowOffers.isChecked() : true;
-        boolean allowReturns = switchAllowReturns != null ? switchAllowReturns.isChecked() : false;
+        // Allow Offers
+        boolean allowOffers = switchAllowOffers != null && switchAllowOffers.isChecked();
         editingListing.setAllowOffers(allowOffers);
+        // Allow Returns
+        boolean allowReturns = switchAllowReturns != null && switchAllowReturns.isChecked();
         editingListing.setAllowReturns(allowReturns);
-        // editingListing.setFeatured(switchFeatured.isChecked()); // Uncomment if needed
-
         // Save changes to Firestore
         FirebaseService.getInstance().updateListingAndItem(editingListing, editingItem, new FirebaseService.SimpleCallback() {
             @Override
             public void onSuccess() {
                 Toast.makeText(requireContext(), "Listing updated successfully!", Toast.LENGTH_SHORT).show();
                 NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
-                navController.popBackStack();
+                navController.navigate(R.id.nav_my_store); // Quay về trang MyStore sau khi update
             }
             @Override
             public void onError(String error) {
@@ -287,10 +362,12 @@ public class UpdateItemFragment extends Fragment implements PhotoUploadAdapter.O
                 getViewLifecycleOwner(), result -> {
                     if (result != null && result instanceof Bundle) {
                         Bundle locationData = (Bundle) result;
+                        String address = locationData.getString("address");
+                        if (address != null) {
+                            etLocation.setText(address);
+                        }
                         double latitude = locationData.getDouble("latitude");
                         double longitude = locationData.getDouble("longitude");
-                        String address = locationData.getString("address");
-                        etLocation.setText(address);
                         etLocation.setTag(new double[]{latitude, longitude});
                         navController.getCurrentBackStackEntry().getSavedStateHandle().set("location_data", null);
                     }
@@ -325,26 +402,12 @@ public class UpdateItemFragment extends Fragment implements PhotoUploadAdapter.O
         super.onViewCreated(view, savedInstanceState);
         // Prefill tags if editing (for update or draft)
         if (editingItem != null && editingItem.getTags() != null && !editingItem.getTags().isEmpty()) {
-            etTagInput.setText(TextUtils.join(", ", editingItem.getTags()));
+            etTagInput.setText(android.text.TextUtils.join(", ", editingItem.getTags()));
             tagAdapter.setSelectedTags(new ArrayList<>(editingItem.getTags()));
         }
-        // Listen for tag input changes to update chips in adapter
-        etTagInput.addTextChangedListener(new android.text.TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-            @Override
-            public void afterTextChanged(android.text.Editable s) {
-                // Only update chips if user is typing, not when chips are checked
-                String tagsRaw = s.toString();
-                List<String> tags = new ArrayList<>();
-                for (String tag : tagsRaw.split(",")) {
-                    String trimmed = tag.trim();
-                    if (!trimmed.isEmpty()) tags.add(trimmed);
-                }
-                tagAdapter.setSelectedTags(tags);
-            }
+        // Always update etTagInput when tagAdapter changes (ensure comma-separated string)
+        tagAdapter.setOnTagsChangedListener(selectedTags -> {
+            etTagInput.setText(android.text.TextUtils.join(", ", selectedTags));
         });
     }
 

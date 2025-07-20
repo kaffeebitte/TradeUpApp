@@ -238,4 +238,36 @@ public class OfferModel implements Serializable {
     public boolean isWithdrawn() {
         return Status.WITHDRAWN.getValue().equals(this.status);
     }
+
+    // Add helper methods for notification display
+    public String getBuyerName() {
+        // Deprecated: returns buyerId. Use getBuyerName(Map<String, User>) for display name.
+        return buyerId;
+    }
+    public String getBuyerName(java.util.Map<String, User> userMap) {
+        if (userMap != null && userMap.containsKey(buyerId)) {
+            User user = userMap.get(buyerId);
+            if (user != null && user.getDisplayName() != null) {
+                return user.getDisplayName();
+            }
+        }
+        return buyerId;
+    }
+    public String getSellerName() {
+        // Deprecated: returns sellerId. Use getSellerName(Map<String, User>) for display name.
+        return sellerId;
+    }
+    public String getSellerName(java.util.Map<String, User> userMap) {
+        if (userMap != null && userMap.containsKey(sellerId)) {
+            User user = userMap.get(sellerId);
+            if (user != null && user.getDisplayName() != null) {
+                return user.getDisplayName();
+            }
+        }
+        return sellerId;
+    }
+    public String getItemTitle() {
+        // This requires access to the ItemModel, so return listingId for now
+        return listingId;
+    }
 }

@@ -15,6 +15,7 @@ public class TagAdapter extends RecyclerView.Adapter<TagAdapter.TagViewHolder> {
     private List<String> tags = new ArrayList<>();
     private List<String> selectedTags = new ArrayList<>();
     private final OnTagSelectedListener listener;
+    private OnTagSelectedListener onTagsChangedListener;
 
     public interface OnTagSelectedListener {
         void onTagSelectionChanged(List<String> selectedTags);
@@ -38,6 +39,10 @@ public class TagAdapter extends RecyclerView.Adapter<TagAdapter.TagViewHolder> {
         return new ArrayList<>(selectedTags);
     }
 
+    public void setOnTagsChangedListener(OnTagSelectedListener listener) {
+        this.onTagsChangedListener = listener;
+    }
+
     @NonNull
     @Override
     public TagViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -59,6 +64,7 @@ public class TagAdapter extends RecyclerView.Adapter<TagAdapter.TagViewHolder> {
                 selectedTags.remove(removedTag);
                 notifyItemRemoved(pos);
                 if (listener != null) listener.onTagSelectionChanged(getSelectedTags());
+                if (onTagsChangedListener != null) onTagsChangedListener.onTagSelectionChanged(getSelectedTags());
             }
         });
         holder.chip.setOnCheckedChangeListener((CompoundButton buttonView, boolean isChecked) -> {
@@ -68,6 +74,7 @@ public class TagAdapter extends RecyclerView.Adapter<TagAdapter.TagViewHolder> {
                 selectedTags.remove(tag);
             }
             if (listener != null) listener.onTagSelectionChanged(getSelectedTags());
+            if (onTagsChangedListener != null) onTagsChangedListener.onTagSelectionChanged(getSelectedTags());
         });
     }
 

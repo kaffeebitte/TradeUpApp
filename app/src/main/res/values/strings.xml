@@ -154,4 +154,14 @@
     <string name="purchased_on">Purchased on %1$s</string>
     <string name="status_completed">Completed</string>
     <string name="unknown_item">Unknown Item</string>
+
+    <!-- Home Fragment Strings -->
+    <string name="location">Location</string>
+    <string name="location_city">Ho Chi Minh</string>
+    <string name="explore_by_category">Explore by Category</string>
+    <string name="see_all">See All</string>
+    <string name="recommended_for_you">Recommended for You</string>
+    <string name="near_you">Near You</string>
+    <string name="recently_added">Recently Added</string>
+    <string name="chat_count_zero">0</string>
 </resources>

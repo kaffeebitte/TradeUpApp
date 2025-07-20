@@ -158,6 +158,19 @@ public class ChatFragment extends Fragment {
             // Set chat title to other user's name if available
             if (otherUserName != null && !otherUserName.isEmpty()) {
                 toolbar.setTitle(otherUserName);
+            } else if (otherUserId != null && !otherUserId.isEmpty()) {
+                // Fetch display name from Firestore
+                FirebaseFirestore.getInstance().collection("users").document(otherUserId)
+                        .get()
+                        .addOnSuccessListener(documentSnapshot -> {
+                            String displayName = documentSnapshot.getString("displayName");
+                            if (displayName != null && !displayName.isEmpty()) {
+                                toolbar.setTitle(displayName);
+                            } else {
+                                toolbar.setTitle("Chat");
+                            }
+                        })
+                        .addOnFailureListener(e -> toolbar.setTitle("Chat"));
             } else {
                 toolbar.setTitle("Chat");
             }
@@ -569,7 +582,7 @@ public class ChatFragment extends Fragment {
         updates.put("lastMessage", lastMsg);
         updates.put("lastMessageTime", Timestamp.now());
         updates.put("lastMessageSenderId", currentUserId);
-        // Increment unreadCount for the other user
+        // Set unreadCount for the other user to previous value + 1 (never negative)
         if (otherUserId != null && !otherUserId.isEmpty()) {
             updates.put("unreadCount." + otherUserId, FieldValue.increment(1));
         }
@@ -578,13 +591,17 @@ public class ChatFragment extends Fragment {
 
     private void markMessagesAsRead() {
         if (messagesRef == null) return;
+        boolean hasUnread = false;
         for (ChatMessage msg : messageList) {
             if (!msg.isRead() && !msg.getSenderId().equals(currentUserId)) {
                 messagesRef.document(msg.getId()).update("isRead", true);
-                // Decrement unreadCount for current user in chat
-                DocumentReference chatRef = db.collection("chats").document(chatId);
-                chatRef.update("unreadCount." + currentUserId, FieldValue.increment(-1));
+                hasUnread = true;
             }
+        }
+        if (hasUnread) {
+            // Set unreadCount for current user to 0 (not decrement)
+            DocumentReference chatRef = db.collection("chats").document(chatId);
+            chatRef.update("unreadCount." + currentUserId, 0);
         }
     }
 

@@ -154,7 +154,7 @@
                         android:layout_marginTop="8dp"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/iv_location_icon">
+                        app:layout_constraintTop_toBottomOf="@+id/tv_item_location">
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -169,38 +169,40 @@
                                 android:id="@+id/tv_view_count"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                app:drawableStartCompat="@drawable/ic_eye_24"
                                 android:drawablePadding="4dp"
-                                android:paddingEnd="16dp"
                                 android:paddingStart="16dp"
+                                android:paddingEnd="16dp"
                                 android:text="@string/view_count_zero"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
+                                app:drawableStartCompat="@drawable/ic_eye_24"
                                 tools:text="245" />
 
                             <TextView
                                 android:id="@+id/tv_save_count"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                app:drawableStartCompat="@drawable/ic_bookmark_24"
                                 android:drawablePadding="4dp"
-                                android:paddingEnd="16dp"
                                 android:paddingStart="16dp"
+                                android:paddingEnd="16dp"
                                 android:text="@string/save_count_zero"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
+                                app:drawableStartCompat="@drawable/ic_bookmark_24"
                                 tools:text="12" />
 
                             <TextView
                                 android:id="@+id/tv_share_count"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                app:drawableLeftCompat="@drawable/ic_share_24"
                                 android:drawablePadding="4dp"
                                 android:text="@string/share_count_zero"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
+                                app:drawableLeftCompat="@drawable/ic_share_24"
                                 tools:text="3" />
+
+                            <!-- Chat count for seller -->
                         </LinearLayout>
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -235,14 +237,14 @@
                     <TextView
                         android:id="@+id/tv_item_location"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="0dp"
                         android:layout_marginStart="8dp"
+                        android:gravity="top"
                         android:textAppearance="?attr/textAppearanceBodyLarge"
                         android:textColor="?attr/colorOnSurfaceVariant"
+                        app:layout_constraintBaseline_toBaselineOf="@id/iv_location_icon"
                         app:layout_constraintStart_toEndOf="@id/iv_location_icon"
                         app:layout_constraintTop_toBottomOf="@id/tv_item_price"
-                        app:layout_constraintBottom_toBottomOf="@id/iv_location_icon"
-                        app:layout_constraintBaseline_toBaselineOf="@id/iv_location_icon"
                         tools:text="Ho Chi Minh City" />
 
                     <!-- Remove posted date and category if not used in fragment logic -->
@@ -513,15 +515,17 @@
                     style="@style/Widget.Material3.Button.ElevatedButton"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:enabled="true"
                     android:text="@string/make_offer"
+                    android:textColor="?attr/colorOnPrimary"
+                    app:backgroundTint="?attr/colorPrimary"
                     app:icon="@drawable/ic_local_offer_24"
                     app:iconTint="?attr/colorOnPrimary"
                     app:layout_constraintEnd_toStartOf="@id/btn_message"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintWidth_percent="0.48"
-                    app:backgroundTint="?attr/colorPrimary"
-                    android:textColor="?attr/colorOnPrimary" />
+                    app:layout_constraintWidth_percent="0.48" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_message"
@@ -557,11 +561,11 @@
 
                 <!-- Owner action buttons (hidden by default) -->
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_view_offers"
+                    android:id="@+id/btn_analytics_offers"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/view_offers"
+                    android:text="Analytics &amp; Offers"
                     android:visibility="gone"
                     app:icon="@drawable/ic_local_offer_24"
                     app:iconTint="?attr/colorPrimary"
@@ -582,7 +586,7 @@
                     app:icon="@drawable/ic_edit_24"
                     app:iconTint="?attr/colorPrimary"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/btn_view_offers"
+                    app:layout_constraintStart_toEndOf="@id/btn_analytics_offers"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintWidth_percent="0.48"
                     app:backgroundTint="?attr/colorSurface"

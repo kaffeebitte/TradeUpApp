@@ -186,6 +186,10 @@ public class MyStoreFragment extends Fragment {
                 builder.setNegativeButton("Cancel", null);
                 builder.show();
             }
+            @Override
+            public void onMakeOffer(OfferModel offer, ListingModel listing) {
+                // No action for store owner; required for interface
+            }
         });
         rvStoreOffers.setAdapter(offerAdapter);
         tvOfferEmptyState = view.findViewById(R.id.tv_offer_empty_state);

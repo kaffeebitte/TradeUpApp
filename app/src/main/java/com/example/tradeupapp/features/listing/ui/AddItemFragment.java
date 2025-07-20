@@ -109,7 +109,7 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
         // etLocation cho nhập liệu tự do, chỉ mở map picker khi bấm icon định vị
         tilLocation.setEndIconOnClickListener(v -> {
             Bundle args = new Bundle();
-            args.putBoolean("isFullAddress", true);
+            args.putBoolean("isFullAddress", true); // Always request full address
             Navigation.findNavController(requireActivity(), R.id.nav_host_fragment)
                 .navigate(R.id.action_nav_add_to_mapPickerFragment, args);
         });
@@ -655,11 +655,12 @@ public class AddItemFragment extends Fragment implements PhotoUploadAdapter.OnPh
             getViewLifecycleOwner(), result -> {
                 if (result != null && result instanceof Bundle) {
                     Bundle locationData = (Bundle) result;
+                    String address = locationData.getString("address");
                     double latitude = locationData.getDouble("latitude");
                     double longitude = locationData.getDouble("longitude");
-                    String address = locationData.getString("address");
                     selectedLatitude = latitude;
                     selectedLongitude = longitude;
+                    // Always use full address if available
                     if (address != null && !address.isEmpty()) {
                         etLocation.setText(address);
                     } else {

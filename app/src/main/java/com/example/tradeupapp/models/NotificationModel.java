@@ -255,8 +255,8 @@ public class NotificationModel implements Serializable {
      * @return a new notification object
      */
     public static NotificationModel createOfferNotification(String userId, String buyerName, String itemTitle, String offerId) {
-        String title = "New offer on " + itemTitle;
-        String body = buyerName + " made an offer on your item";
+        String title = "Offer update for " + itemTitle;
+        String body = "There is an update for your offer. Tap to view details.";
         return new NotificationModel(userId, title, body, Type.OFFER, offerId);
     }
 }

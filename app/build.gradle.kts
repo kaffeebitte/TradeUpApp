@@ -94,4 +94,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    // Replace unresolved version catalog reference with direct dependency string
+    implementation("com.google.firebase:firebase-messaging:23.4.0")
 }

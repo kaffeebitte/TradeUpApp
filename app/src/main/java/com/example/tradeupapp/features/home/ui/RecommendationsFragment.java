@@ -30,6 +30,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,6 +60,10 @@ public class RecommendationsFragment extends Fragment {
     private ListingAdapter recentAdapter;
 
     private FloatingActionButton fabAddItem;
+
+    // Store all listings and items for filtering
+    private List<ListingModel> allListings = new ArrayList<>();
+    private List<ItemModel> allItems = new ArrayList<>();
 
     @Nullable
     @Override
@@ -93,6 +98,9 @@ public class RecommendationsFragment extends Fragment {
 
         // Load real data from Firestore
         loadDataFromFirestore();
+
+        // Load static categories
+        loadStaticCategories();
 
         // Listen for location result from MapPickerFragment
         NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
@@ -129,6 +137,13 @@ public class RecommendationsFragment extends Fragment {
         tvLocation = view.findViewById(R.id.tv_location);
 
         locationIndicator = view.findViewById(R.id.location_indicator);
+        // Add notification button
+        View btnNotification = view.findViewById(R.id.btn_notification);
+        if (btnNotification != null) {
+            btnNotification.setOnClickListener(v -> {
+                navController.navigate(R.id.action_nav_recommendations_to_notificationFragment);
+            });
+        }
     }
 
     private void updateFabForUserRole() {
@@ -294,6 +309,7 @@ public class RecommendationsFragment extends Fragment {
         firebaseService.getAllListings(new FirebaseService.ListingsCallback() {
             @Override
             public void onSuccess(List<ListingModel> listings) {
+                allListings = new ArrayList<>(listings); // Store for filtering
                 String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
                 // Filter out listings where sellerId == currentUserId and only available listings (transactionStatus == "available")
                 List<ListingModel> filteredListings = new ArrayList<>();
@@ -313,7 +329,8 @@ public class RecommendationsFragment extends Fragment {
                 }
                 firebaseService.getAllItems(new FirebaseService.ItemsCallback() {
                     @Override
-                    public void onSuccess(List<ItemModel> allItems) {
+                    public void onSuccess(List<ItemModel> items) {
+                        allItems = new ArrayList<>(items); // Store for filtering
                         String userId = currentUserId;
                         if (userId == null) {
                             // fallback: show popular listings
@@ -535,6 +552,59 @@ public class RecommendationsFragment extends Fragment {
                 }
             }
         });
+    }
+
+    private void loadStaticCategories() {
+        // Match sample_items.json categories
+        String[] categories = {
+            "Electronics",
+            "Clothing",
+            "Home & Garden",
+            "Toys & Games",
+            "Sports & Outdoors",
+            "Vehicles",
+            "Books",
+            "Other"
+        };
+        List<CategoryModel> staticCategories = new ArrayList<>();
+        for (String cat : categories) {
+            CategoryModel model = new CategoryModel();
+            model.setId(cat.toLowerCase().replace(" ", "_").replace("&", "and"));
+            model.setName(cat);
+            model.setIconResourceId(R.drawable.ic_category_24);
+            staticCategories.add(model);
+        }
+        CategoryAdapter categoryAdapter = new CategoryAdapter(staticCategories, category -> {
+            filterListingsByCategory(category.getName());
+        });
+        categoriesRecyclerView.setAdapter(categoryAdapter);
+    }
+
+    private String normalizeCategory(String category) {
+        if (category == null) return "";
+        return category.trim().toLowerCase().replaceAll("[^a-z0-9]", "");
+    }
+
+    private void filterListingsByCategory(String categoryName) {
+        String normalizedCategoryName = normalizeCategory(categoryName);
+        List<ListingModel> filtered = new ArrayList<>();
+        for (ListingModel listing : allListings) {
+            for (ItemModel item : allItems) {
+                String normalizedItemCategory = normalizeCategory(item.getCategory());
+                if (item.getId().equals(listing.getItemId()) &&
+                    !normalizedCategoryName.isEmpty() &&
+                    normalizedItemCategory.contains(normalizedCategoryName)) {
+                    filtered.add(listing);
+                    break;
+                }
+            }
+        }
+        personalizedAdapter = new ListingAdapter(
+            requireContext(),
+            filtered,
+            listing -> navigateToItemDetail(listing.getId())
+        );
+        personalizedRecyclerView.setAdapter(personalizedAdapter);
     }
 
     private void navigateToCategoryListing(CategoryModel category) {

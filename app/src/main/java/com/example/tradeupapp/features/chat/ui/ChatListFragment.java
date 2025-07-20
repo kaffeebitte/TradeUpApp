@@ -61,7 +61,7 @@ public class ChatListFragment extends Fragment implements ChatListAdapter.OnChat
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     chatList.clear();
                     int foundCount = 0;
-                    Set<String> userIdsToFetch = new java.util.HashSet<>();
+                    java.util.Set<String> userIdsToFetch = new java.util.HashSet<>();
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         List<String> participants = (List<String>) doc.get("participants");
                         if (participants != null && participants.contains(currentUserId)) {
@@ -70,8 +70,8 @@ public class ChatListFragment extends Fragment implements ChatListAdapter.OnChat
                             ChatModel chat = doc.toObject(ChatModel.class);
                             chat.setId(doc.getId());
                             chatList.add(chat);
-                            String otherUserId = chat.getOtherUserId(currentUserId);
-                            if (otherUserId != null) userIdsToFetch.add(otherUserId);
+                            // Collect all participant userIds (including currentUserId)
+                            userIdsToFetch.addAll(participants);
                         }
                     }
                     android.util.Log.d("ChatListFragment", "Total chats found for user " + currentUserId + ": " + foundCount);
@@ -80,7 +80,7 @@ public class ChatListFragment extends Fragment implements ChatListAdapter.OnChat
                             .addOnSuccessListener(usersSnapshot -> {
                                 userNameMap.clear();
                                 for (QueryDocumentSnapshot userDoc : usersSnapshot) {
-                                    String id = userDoc.getString("id");
+                                    String id = userDoc.getId(); // Use Firestore document ID as key
                                     String name = userDoc.getString("displayName");
                                     String avatar = userDoc.getString("photoUrl");
                                     if (id != null && name != null) userNameMap.put(id, name);

@@ -257,7 +257,7 @@ public class ListingModel implements Serializable {
         this.distanceRadius = distanceRadius;
     }
 
-    public boolean isAllowOffers() {
+    public boolean getAllowOffers() {
         return allowOffers;
     }
 

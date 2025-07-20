@@ -35,6 +35,10 @@ import com.example.tradeupapp.shared.adapters.OfferAdapter;
 import com.example.tradeupapp.shared.adapters.ReviewAdapter;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.io.InputStream;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -48,7 +52,7 @@ public class ListingDetailFragment extends Fragment {
     private TextView tvItemTitle, tvItemPrice, tvDescription, tvCondition, tvItemLocation;
     private ViewPager2 itemImagesViewPager;
     private com.google.android.material.tabs.TabLayout imageIndicator;
-    private com.google.android.material.button.MaterialButton btnBuyNow, btnMakeOffer, btnMessage, btnViewOffers, btnUpdateListing;
+    private com.google.android.material.button.MaterialButton btnBuyNow, btnMakeOffer, btnMessage, btnAnalyticsOffers, btnUpdateListing;
     private FirebaseService firebaseService;
     private CartService cartService;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -113,6 +117,10 @@ public class ListingDetailFragment extends Fragment {
             @Override
             public void onCounter(OfferModel offer, ListingModel listing) {
                 // No counter-offer logic for buyers in this screen. (Required by interface)
+            }
+            @Override
+            public void onMakeOffer(OfferModel offer, ListingModel listing) {
+                showMakeOfferDialog();
             }
         });
         rvOffers.setAdapter(offerAdapter);
@@ -330,25 +338,21 @@ public class ListingDetailFragment extends Fragment {
             }
         }
         // Show/hide Buy Now and Make Offer buttons based on listing availability and allowOffers
-        boolean isAvailable = isListingAvailableForPurchase(listing);
-        boolean allowOffers = false;
-        try {
-            java.lang.reflect.Method getAllowOffersMethod = listing.getClass().getMethod("getAllowOffers");
-            allowOffers = (boolean) getAllowOffersMethod.invoke(listing);
-        } catch (Exception e) {
-            try {
-                java.lang.reflect.Field allowOffersField = listing.getClass().getField("allowOffers");
-                allowOffers = allowOffersField.getBoolean(listing);
-            } catch (Exception ignored) {}
-        }
-        // Disable Buy Now button if not available
+        boolean allowOffers = listing != null && listing.getAllowOffers();
+        String transactionStatus = listing != null ? listing.getTransactionStatus() : null;
+        boolean isAvailable = "available".equalsIgnoreCase(transactionStatus);
         if (btnBuyNow != null) {
             btnBuyNow.setEnabled(isAvailable);
+            btnBuyNow.setVisibility(isAvailable ? View.VISIBLE : View.GONE);
         }
-        // Disable Make Offer button if not available or not allowed
         if (btnMakeOffer != null) {
-            // Disable if not available or not allowed
-            btnMakeOffer.setEnabled(isAvailable && allowOffers);
+            // Chỉ hiện nút nếu available và allowOffers đều true, ngược lại ẩn
+            if (isAvailable && allowOffers && !isCurrentUserSeller()) {
+                btnMakeOffer.setVisibility(View.VISIBLE);
+                btnMakeOffer.setEnabled(true);
+            } else {
+                btnMakeOffer.setVisibility(View.GONE);
+            }
         }
         // Always show chat button
         if (btnMessage != null) {
@@ -356,17 +360,7 @@ public class ListingDetailFragment extends Fragment {
         }
         // Hide Make Offer button if not allowed or user is seller
         if (btnMakeOffer != null) {
-            boolean allowOffersHide = false;
-            try {
-                java.lang.reflect.Method getAllowOffersMethod = listing.getClass().getMethod("getAllowOffers");
-                allowOffersHide = (boolean) getAllowOffersMethod.invoke(listing);
-            } catch (Exception e) {
-                try {
-                    java.lang.reflect.Field allowOffersField = listing.getClass().getField("allowOffers");
-                    allowOffersHide = allowOffersField.getBoolean(listing);
-                } catch (Exception ignored) {}
-            }
-            if (!allowOffersHide || isCurrentUserSeller()) {
+            if (!allowOffers || isCurrentUserSeller()) {
                 btnMakeOffer.setVisibility(View.GONE);
             }
         }
@@ -434,7 +428,7 @@ public class ListingDetailFragment extends Fragment {
         btnBuyNow = view.findViewById(R.id.btn_buy_now);
         btnMakeOffer = view.findViewById(R.id.btn_make_offer);
         btnMessage = view.findViewById(R.id.btn_message);
-        btnViewOffers = view.findViewById(R.id.btn_view_offers);
+        btnAnalyticsOffers = view.findViewById(R.id.btn_analytics_offers);
         btnUpdateListing = view.findViewById(R.id.btn_update_listing);
         sellerContainer = view.findViewById(R.id.seller_container);
         ivSellerAvatar = view.findViewById(R.id.iv_seller_avatar);
@@ -461,18 +455,18 @@ public class ListingDetailFragment extends Fragment {
         boolean isOwner = currentUserId != null && currentUserId.equals(listing.getSellerId());
         if (isOwner) {
             // Show owner buttons, hide buyer buttons
-            if (btnViewOffers != null) btnViewOffers.setVisibility(View.VISIBLE);
+            if (btnAnalyticsOffers != null) btnAnalyticsOffers.setVisibility(View.VISIBLE);
             if (btnUpdateListing != null) btnUpdateListing.setVisibility(View.VISIBLE);
             if (btnMakeOffer != null) btnMakeOffer.setVisibility(View.GONE);
             if (btnMessage != null) btnMessage.setVisibility(View.GONE);
             if (btnBuyNow != null) btnBuyNow.setVisibility(View.GONE);
         } else {
             // Show buyer buttons, hide owner buttons
-            if (btnViewOffers != null) btnViewOffers.setVisibility(View.GONE);
+            if (btnAnalyticsOffers != null) btnAnalyticsOffers.setVisibility(View.GONE);
             if (btnUpdateListing != null) btnUpdateListing.setVisibility(View.GONE);
             if (btnMakeOffer != null) btnMakeOffer.setVisibility(View.VISIBLE);
             if (btnMessage != null) btnMessage.setVisibility(View.VISIBLE);
-            // btnBuyNow visibility handled by availability
+            if (btnBuyNow != null) btnBuyNow.setVisibility(View.VISIBLE);
         }
     }
 
@@ -512,16 +506,24 @@ public class ListingDetailFragment extends Fragment {
                 navController.navigate(R.id.action_itemDetailFragment_to_publicProfileFragment, args);
             });
         }
-        if (btnViewOffers != null) {
-            btnViewOffers.setOnClickListener(v -> {
-                Toast.makeText(requireContext(), "View Offers clicked", Toast.LENGTH_SHORT).show();
-                showOffersDialog();
+        if (btnAnalyticsOffers != null) {
+            btnAnalyticsOffers.setOnClickListener(v -> {
+                showAnalyticsOffersDialog();
             });
         }
         if (btnUpdateListing != null) {
             btnUpdateListing.setOnClickListener(v -> {
                 Toast.makeText(requireContext(), "Update Listing clicked", Toast.LENGTH_SHORT).show();
-                // TODO: Navigate to update listing screen
+                // Pass ListingModel and ItemModel directly, like ManageListingsFragment
+                Bundle args = new Bundle();
+                if (listing != null) {
+                    args.putSerializable("listing", listing);
+                }
+                if (item != null) {
+                    args.putParcelable("item", item);
+                }
+                androidx.navigation.NavController navController = androidx.navigation.Navigation.findNavController(requireView());
+                navController.navigate(R.id.action_itemDetailFragment_to_updateItemFragment, args);
             });
         }
         if (btnMessage != null && listing != null) {
@@ -573,11 +575,22 @@ public class ListingDetailFragment extends Fragment {
         double price = 0;
         try {
             java.lang.reflect.Method getAllowOffersMethod = listing.getClass().getMethod("getAllowOffers");
-            allowOffers = (boolean) getAllowOffersMethod.invoke(listing);
+            Object result = getAllowOffersMethod.invoke(listing);
+            if (result instanceof Boolean) {
+                allowOffers = (Boolean) result;
+            } else if (result != null) {
+                allowOffers = Boolean.parseBoolean(result.toString());
+            }
         } catch (Exception e) {
+            // Fallback to field access
             try {
                 java.lang.reflect.Field allowOffersField = listing.getClass().getField("allowOffers");
-                allowOffers = allowOffersField.getBoolean(listing);
+                Object fieldValue = allowOffersField.get(listing);
+                if (fieldValue instanceof Boolean) {
+                    allowOffers = (Boolean) fieldValue;
+                } else if (fieldValue != null) {
+                    allowOffers = Boolean.parseBoolean(fieldValue.toString());
+                }
             } catch (Exception ignored) {}
         }
         try {
@@ -756,6 +769,10 @@ public class ListingDetailFragment extends Fragment {
                     public void onCounter(OfferModel offer, ListingModel listing) {
                         // No counter-offer logic for buyers in this screen. (Required by interface)
                     }
+                    @Override
+                    public void onMakeOffer(OfferModel offer, ListingModel listing) {
+                        // No action needed in this dialog
+                    }
                 });
                 rvOffers.setAdapter(adapter);
             }
@@ -871,5 +888,118 @@ public class ListingDetailFragment extends Fragment {
                 });
             }
         });
+    }
+
+
+    private void showAnalyticsOffersDialog() {
+        if (listing == null || item == null) {
+            Toast.makeText(requireContext(), "Listing not loaded", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+        View dialogView = inflater.inflate(R.layout.dialog_listing_analytics_offers, null);
+        TextView tvViews = dialogView.findViewById(R.id.tv_analytics_views);
+        TextView tvSaves = dialogView.findViewById(R.id.tv_analytics_saves);
+        TextView tvShares = dialogView.findViewById(R.id.tv_analytics_shares);
+        TextView tvChats = dialogView.findViewById(R.id.tv_analytics_chats);
+        TextView tvOffers = dialogView.findViewById(R.id.tv_analytics_offers);
+        RecyclerView rvOffers = dialogView.findViewById(R.id.rv_offers);
+        rvOffers.setLayoutManager(new LinearLayoutManager(requireContext()));
+        AlertDialog analyticsOffersDialog = new AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .setCancelable(true)
+            .create();
+        dialogView.findViewById(R.id.btn_close_analytics_offers).setOnClickListener(v -> analyticsOffersDialog.dismiss());
+        analyticsOffersDialog.show();
+        // Analytics data
+        if (listing.getInteractions() != null && listing.getInteractions().getAggregate() != null) {
+            tvViews.setText(String.valueOf(listing.getInteractions().getAggregate().getTotalViews()));
+            tvSaves.setText(String.valueOf(listing.getInteractions().getAggregate().getTotalSaves()));
+            tvShares.setText(String.valueOf(listing.getInteractions().getAggregate().getTotalShares()));
+        } else {
+            tvViews.setText("0");
+            tvSaves.setText("0");
+            tvShares.setText("0");
+        }
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("chats")
+            .whereEqualTo("relatedItemId", item.getId())
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                tvChats.setText(String.valueOf(querySnapshot.size()));
+            })
+            .addOnFailureListener(e -> {
+                tvChats.setText("0");
+            });
+        db.collection("offers")
+            .whereEqualTo("listingId", listing.getId())
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                tvOffers.setText(String.valueOf(querySnapshot.size()));
+            })
+            .addOnFailureListener(e -> {
+                tvOffers.setText("0");
+            });
+        // Offers list
+        Map<String, ListingModel> offerListingMap = new HashMap<>();
+        Map<String, ItemModel> offerItemMap = new HashMap<>();
+        offerListingMap.put(listing.getId(), listing);
+        if (item != null) offerItemMap.put(item.getId(), item);
+        db.collection("offers")
+            .whereEqualTo("listingId", listing.getId())
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                List<OfferModel> offers = new ArrayList<>();
+                for (com.google.firebase.firestore.QueryDocumentSnapshot doc : querySnapshot) {
+                    OfferModel offer = doc.toObject(OfferModel.class);
+                    offers.add(offer);
+                }
+                OfferAdapter adapter = new OfferAdapter(requireContext(), offers, offerListingMap, offerItemMap, new OfferAdapter.OnOfferActionListener() {
+                    @Override
+                    public void onViewDetail(ListingModel listing) {}
+                    @Override
+                    public void onAccept(OfferModel offer, ListingModel listing) {
+                        offer.setStatus(OfferModel.Status.ACCEPTED.getValue());
+                        offer.setRespondedAt(new java.util.Date());
+                        firebaseService.updateOffer(offer, new FirebaseService.SimpleCallback() {
+                            @Override
+                            public void onSuccess() {
+                                Toast.makeText(requireContext(), "Offer accepted!", Toast.LENGTH_SHORT).show();
+                                analyticsOffersDialog.dismiss();
+                            }
+                            @Override
+                            public void onError(String error) {
+                                Toast.makeText(requireContext(), "Failed: " + error, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                    @Override
+                    public void onReject(OfferModel offer, ListingModel listing) {
+                        offer.setStatus(OfferModel.Status.DECLINED.getValue());
+                        offer.setRespondedAt(new java.util.Date());
+                        firebaseService.updateOffer(offer, new FirebaseService.SimpleCallback() {
+                            @Override
+                            public void onSuccess() {
+                                Toast.makeText(requireContext(), "Offer rejected!", Toast.LENGTH_SHORT).show();
+                                analyticsOffersDialog.dismiss();
+                            }
+                            @Override
+                            public void onError(String error) {
+                                Toast.makeText(requireContext(), "Failed: " + error, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                    @Override
+                    public void onCounter(OfferModel offer, ListingModel listing) {}
+                    @Override
+                    public void onMakeOffer(OfferModel offer, ListingModel listing) {
+                        // No action needed in analytics dialog
+                    }
+                });
+                rvOffers.setAdapter(adapter);
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(requireContext(), "Failed to load offers: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
     }
 }

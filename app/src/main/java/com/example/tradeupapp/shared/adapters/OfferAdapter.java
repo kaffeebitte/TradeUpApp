@@ -31,6 +31,7 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
         void onAccept(OfferModel offer, ListingModel listing);
         void onReject(OfferModel offer, ListingModel listing);
         void onCounter(OfferModel offer, ListingModel listing);
+        void onMakeOffer(OfferModel offer, ListingModel listing); // New callback
     }
 
     public OfferAdapter(Context context, List<OfferModel> offers, Map<String, ListingModel> listingMap, Map<String, ItemModel> itemMap, OnOfferActionListener actionListener) {
@@ -126,6 +127,10 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
         });
         // Offer actions container visibility
         holder.offerActionsContainer.setVisibility(isPending ? View.VISIBLE : View.GONE);
+        // Trigger onMakeOffer callback on item click
+        holder.itemView.setOnClickListener(v -> {
+            if (actionListener != null && listing != null) actionListener.onMakeOffer(offer, listing);
+        });
     }
 
     @Override
