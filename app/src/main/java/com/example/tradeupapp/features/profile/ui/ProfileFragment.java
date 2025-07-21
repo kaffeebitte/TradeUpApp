@@ -184,7 +184,8 @@ public class ProfileFragment extends Fragment {
         });
 
         paymentMethodsCard.setOnClickListener(v -> {
-            Toast.makeText(requireContext(), "Payment methods coming soon", Toast.LENGTH_SHORT).show();
+            NavController navController = NavHostFragment.findNavController(this);
+            navController.navigate(R.id.action_nav_profile_to_paymentMethodsFragment);
         });
 
         addressesCard.setOnClickListener(v -> {

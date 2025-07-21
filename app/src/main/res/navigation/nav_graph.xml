@@ -282,6 +282,11 @@
             app:destination="@id/accountPrivacyFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim" />
+        <action
+            android:id="@+id/action_nav_profile_to_paymentMethodsFragment"
+            app:destination="@id/paymentMethodsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
 
     <fragment
@@ -656,4 +661,10 @@
             app:argType="string"
             android:defaultValue="seller" />
     </fragment>
+
+    <fragment
+        android:id="@+id/paymentMethodsFragment"
+        android:name="com.example.tradeupapp.features.profile.PaymentMethodsFragment"
+        android:label="Payment Methods"
+        tools:layout="@layout/fragment_payment_methods" />
 </navigation>

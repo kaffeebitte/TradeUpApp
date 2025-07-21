@@ -1,6 +1,5 @@
 package com.example.tradeupapp.core.services;
 
-import android.net.Uri;
 import android.util.Log;
 
 import com.example.tradeupapp.models.CategoryModel;
@@ -20,7 +19,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Service class for handling Firebase operations
@@ -192,73 +190,6 @@ public class FirebaseService {
                 });
     }
 
-    // Get user's items
-    public void getUserItems(String userId, ItemsCallback callback) {
-        db.collection("items")
-                .whereEqualTo("userId", userId)
-                .orderBy("dateAdded", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<ItemModel> items = new ArrayList<>();
-                    for (DocumentSnapshot document : queryDocumentSnapshots) {
-                        ItemModel item = documentToItemModel(document);
-                        if (item != null) {
-                            items.add(item);
-                        }
-                    }
-                    callback.onSuccess(items);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error getting user items", e);
-                    callback.onError(e.getMessage());
-                });
-    }
-
-    // Get user's purchased items (items that the user has bought)
-    public void getUserPurchasedItems(String userId, ItemsCallback callback) {
-        db.collection("items")
-                .whereEqualTo("buyerId", userId)
-                .whereIn("status", java.util.Arrays.asList("Purchased", "Delivered", "Shipped", "Completed"))
-                .orderBy("dateAdded", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<ItemModel> items = new ArrayList<>();
-                    for (DocumentSnapshot document : queryDocumentSnapshots) {
-                        ItemModel item = documentToItemModel(document);
-                        if (item != null) {
-                            items.add(item);
-                        }
-                    }
-                    callback.onSuccess(items);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error getting purchased items", e);
-                    callback.onError(e.getMessage());
-                });
-    }
-
-    // Get items by seller
-    public void getItemsBySeller(String sellerId, ItemsCallback callback) {
-        db.collection("items")
-                .whereEqualTo("userId", sellerId)
-                .orderBy("dateAdded", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<ItemModel> items = new ArrayList<>();
-                    for (DocumentSnapshot document : queryDocumentSnapshots) {
-                        ItemModel item = documentToItemModel(document);
-                        if (item != null) {
-                            items.add(item);
-                        }
-                    }
-                    callback.onSuccess(items);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error getting seller items", e);
-                    callback.onError(e.getMessage());
-                });
-    }
-
     // Get notifications for current user
     public void getUserNotifications(NotificationsCallback callback) {
         String currentUserId = getCurrentUserId();
@@ -284,57 +215,6 @@ public class FirebaseService {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error getting notifications", e);
-                    callback.onError(e.getMessage());
-                });
-    }
-
-    // Get notifications for any user by userId
-    public void getNotificationsByUserId(String userId, NotificationsCallback callback) {
-        if (userId == null) {
-            callback.onError("User ID is null");
-            return;
-        }
-        db.collection("notifications")
-                .whereEqualTo("userId", userId)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
-                .limit(50)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<NotificationModel> notifications = new ArrayList<>();
-                    for (DocumentSnapshot document : queryDocumentSnapshots) {
-                        NotificationModel notification = documentToNotificationModel(document);
-                        if (notification != null) {
-                            notifications.add(notification);
-                        }
-                    }
-                    callback.onSuccess(notifications);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error getting notifications by userId", e);
-                    callback.onError(e.getMessage());
-                });
-    }
-
-    // Search items
-    public void searchItems(String query, ItemsCallback callback) {
-        db.collection("items")
-                .whereEqualTo("status", "Available")
-                .orderBy("title")
-                .startAt(query)
-                .endAt(query + "\uf8ff")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<ItemModel> items = new ArrayList<>();
-                    for (DocumentSnapshot document : queryDocumentSnapshots) {
-                        ItemModel item = documentToItemModel(document);
-                        if (item != null) {
-                            items.add(item);
-                        }
-                    }
-                    callback.onSuccess(items);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error searching items", e);
                     callback.onError(e.getMessage());
                 });
     }
