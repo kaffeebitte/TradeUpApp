@@ -298,12 +298,25 @@ public class UpdateItemFragment extends Fragment implements PhotoUploadAdapter.O
             @Override
             public void onSuccess() {
                 Toast.makeText(requireContext(), "Listing updated successfully!", Toast.LENGTH_SHORT).show();
-                NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
-                navController.navigate(R.id.nav_my_store); // Quay về trang MyStore sau khi update
+                // Send notification to users who saved this listing
+                FirebaseService.getInstance().sendListingUpdateNotificationToSavedUsers(editingListing, new FirebaseService.SimpleCallback() {
+                    @Override
+                    public void onSuccess() {
+                        // Optionally, show a toast or log
+                        android.util.Log.d("UpdateItemFragment", "Listing update notification sent to saved users");
+                    }
+                    @Override
+                    public void onError(String error) {
+                        android.util.Log.e("UpdateItemFragment", "Failed to send update notification: " + error);
+                    }
+                });
+                // Navigate back to MyStore after update
+                androidx.navigation.NavController navController = androidx.navigation.Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+                navController.popBackStack(R.id.nav_my_store, false);
             }
             @Override
             public void onError(String error) {
-                Toast.makeText(requireContext(), "Update failed: " + error, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Failed to update listing: " + error, Toast.LENGTH_SHORT).show();
             }
         });
     }

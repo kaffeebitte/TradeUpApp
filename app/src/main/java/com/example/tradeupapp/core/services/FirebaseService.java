@@ -1790,11 +1790,11 @@ public class FirebaseService {
                                     String itemTitle = offer.getListingId();
                                     String offerId = documentReference.getId();
                                     sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, "make_offer", new SimpleCallback() {
-                                        @Override
-                                        public void onSuccess() { /* Notification sent */ }
-                                        @Override
-                                        public void onError(String error) { /* Handle notification error if needed */ }
-                                    });
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
                                     if (callback != null) callback.onSuccess();
                                 }
                             }
@@ -1803,13 +1803,13 @@ public class FirebaseService {
                                 String itemTitle = offer.getListingId();
                                 String offerId = documentReference.getId();
                                 sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, "make_offer", new SimpleCallback() {
-                                    @Override
-                                    public void onSuccess() { /* Notification sent */ }
-                                    @Override
-                                    public void onError(String error) { /* Handle notification error if needed */ }
-                                });
-                                if (callback != null) callback.onSuccess();
-                            }
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
+                                    if (callback != null) callback.onSuccess();
+                                }
                         });
                     }
                     @Override
@@ -1849,11 +1849,11 @@ public class FirebaseService {
                                     String itemTitle = offer.getListingId();
                                     String offerId = documentReference.getId();
                                     sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, "make_offer", new SimpleCallback() {
-                                        @Override
-                                        public void onSuccess() { /* Notification sent */ }
-                                        @Override
-                                        public void onError(String error) { /* Handle notification error if needed */ }
-                                    });
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
                                     if (callback != null) callback.onSuccess();
                                 }
                             }
@@ -1862,11 +1862,11 @@ public class FirebaseService {
                                 String itemTitle = offer.getListingId();
                                 String offerId = documentReference.getId();
                                 sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, "make_offer", new SimpleCallback() {
-                                    @Override
-                                    public void onSuccess() { /* Notification sent */ }
-                                    @Override
-                                    public void onError(String error) { /* Handle notification error if needed */ }
-                                });
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
                                 if (callback != null) callback.onSuccess();
                             }
                         });
@@ -2463,5 +2463,78 @@ public class FirebaseService {
             .addOnFailureListener(e -> {
                 if (callback != null) callback.onError(e.getMessage());
             });
+    }
+
+    // Send notification to all users who saved the listing when it is updated
+    public void sendListingUpdateNotificationToSavedUsers(ListingModel listing, SimpleCallback callback) {
+        if (listing == null || listing.getId() == null) {
+            if (callback != null) callback.onError("Invalid listing");
+            return;
+        }
+        ListingModel.Interactions interactions = listing.getInteractions();
+        if (interactions == null || interactions.getUserInteractions() == null) {
+            if (callback != null) callback.onSuccess(); // No users to notify
+            return;
+        }
+        List<String> userIds = new ArrayList<>();
+        for (ListingModel.UserInteraction ui : interactions.getUserInteractions()) {
+            if (ui.getUserId() != null && ui.getSavedAt() != null) {
+                userIds.add(ui.getUserId());
+            }
+        }
+        if (userIds.isEmpty()) {
+            if (callback != null) callback.onSuccess();
+            return;
+        }
+        // Send notification to each user with correct structure
+        String itemTitle = listing.getItemId(); // fallback if item title not available
+        // Try to get item title if possible
+        getItemById(listing.getItemId(), new ItemCallback() {
+            @Override
+            public void onSuccess(ItemModel item) {
+                String title = "Listing Updated";
+                String body = "An item you saved has been updated.";
+                if (item != null && item.getTitle() != null) {
+                    title = "Update: " + item.getTitle();
+                    body = "The listing '" + item.getTitle() + "' you saved has been updated. Tap to view.";
+                }
+                int[] completed = {0};
+                for (String userId : userIds) {
+                    NotificationModel notification = new NotificationModel(userId, title, body, NotificationModel.Type.SYSTEM, listing.getId());
+                    notification.setType("listing_update");
+                    db.collection("notifications")
+                        .add(notification)
+                        .addOnSuccessListener(documentReference -> {
+                            completed[0]++;
+                            if (completed[0] == userIds.size() && callback != null) callback.onSuccess();
+                        })
+                        .addOnFailureListener(e -> {
+                            completed[0]++;
+                            if (completed[0] == userIds.size() && callback != null) callback.onSuccess();
+                        });
+                }
+            }
+            @Override
+            public void onError(String error) {
+                // Fallback to generic title/body
+                String title = "Listing Updated";
+                String body = "An item you saved has been updated.";
+                int[] completed = {0};
+                for (String userId : userIds) {
+                    NotificationModel notification = new NotificationModel(userId, title, body, NotificationModel.Type.SYSTEM, listing.getId());
+                    notification.setType("listing_update");
+                    db.collection("notifications")
+                        .add(notification)
+                        .addOnSuccessListener(documentReference -> {
+                            completed[0]++;
+                            if (completed[0] == userIds.size() && callback != null) callback.onSuccess();
+                        })
+                        .addOnFailureListener(e -> {
+                            completed[0]++;
+                            if (completed[0] == userIds.size() && callback != null) callback.onSuccess();
+                        });
+                }
+            }
+        });
     }
 }

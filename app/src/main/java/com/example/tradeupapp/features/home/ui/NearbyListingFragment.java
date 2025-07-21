@@ -19,6 +19,7 @@ import com.example.tradeupapp.core.services.FirebaseService;
 import com.example.tradeupapp.models.ItemModel;
 import com.example.tradeupapp.models.ListingModel;
 import com.example.tradeupapp.shared.adapters.ListingAdapter;
+import com.example.tradeupapp.utils.ListingFilterUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,26 +85,10 @@ public class NearbyListingFragment extends Fragment {
                     @Override
                     public void onSuccess(List<ItemModel> items) {
                         allItems = new ArrayList<>(items);
-                        List<ListingModel> filtered = new ArrayList<>();
-                        java.util.Map<String, ItemModel> itemMap = new java.util.HashMap<>();
-                        for (ItemModel item : allItems) {
-                            itemMap.put(item.getId(), item);
-                        }
-                        if (selectedCategories.contains("All Categories")) {
-                            for (ListingModel listing : allListings) {
-                                if (listing.getTransactionStatus() != null && listing.getTransactionStatus().equalsIgnoreCase("available")) {
-                                    filtered.add(listing);
-                                }
-                            }
-                        } else {
-                            for (ListingModel listing : allListings) {
-                                if (listing.getTransactionStatus() == null || !listing.getTransactionStatus().equalsIgnoreCase("available")) continue;
-                                ItemModel item = itemMap.get(listing.getItemId());
-                                if (item != null && item.getCategory() != null && selectedCategories.contains(item.getCategory().trim())) {
-                                    filtered.add(listing);
-                                }
-                            }
-                        }
+                        // Refactored: use ListingFilterUtil for category filtering
+                        List<ListingModel> filtered = ListingFilterUtil.filterListingsByCategoriesForList(
+                                allListings, selectedCategories, allItems
+                        );
                         ListingAdapter adapter = new ListingAdapter(
                                 requireContext(),
                                 filtered,

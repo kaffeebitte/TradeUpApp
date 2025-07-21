@@ -167,6 +167,14 @@ public class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.ViewHold
         listingList.addAll(newListings);
         notifyDataSetChanged();
     }
+    public List<ListingModel> getListings() {
+        return listingList;
+    }
+    public void setListings(List<ListingModel> listings) {
+        listingList.clear();
+        listingList.addAll(listings);
+        notifyDataSetChanged();
+    }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView image;

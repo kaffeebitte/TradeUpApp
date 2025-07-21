@@ -24,6 +24,7 @@ import com.example.tradeupapp.models.CategoryModel;
 import com.example.tradeupapp.models.ItemModel;
 import com.example.tradeupapp.models.ListingModel;
 import com.example.tradeupapp.shared.adapters.ListingAdapter;
+import com.example.tradeupapp.utils.ListingFilterUtil;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -66,6 +67,10 @@ public class RecommendationsFragment extends Fragment {
     private List<ListingModel> allListings = new ArrayList<>();
     private List<ItemModel> allItems = new ArrayList<>();
     private List<String> selectedCategories = new ArrayList<>(java.util.Collections.singletonList("All Categories"));
+
+    // Store all nearby and recent listings separately
+    private List<ListingModel> allNearbyListings = new ArrayList<>();
+    private List<ListingModel> allRecentListings = new ArrayList<>();
 
     @Nullable
     @Override
@@ -286,10 +291,11 @@ public class RecommendationsFragment extends Fragment {
         firebaseService.getAllListings(new FirebaseService.ListingsCallback() {
             @Override
             public void onSuccess(List<ListingModel> listings) {
-                // Filter only available listings
+                String currentUserId = firebaseService.getCurrentUserId();
                 List<ListingModel> availableListings = new ArrayList<>();
                 for (ListingModel l : listings) {
-                    if (l.getTransactionStatus() != null && l.getTransactionStatus().equalsIgnoreCase("available")) {
+                    if (l.getTransactionStatus() != null && l.getTransactionStatus().equalsIgnoreCase("available")
+                            && l.getSellerId() != null && !l.getSellerId().equals(currentUserId)) {
                         availableListings.add(l);
                     }
                 }
@@ -457,7 +463,9 @@ public class RecommendationsFragment extends Fragment {
                                     for (ListingWithDistance lwd : filteredWithDistance) {
                                         sortedNearby.add(lwd.listing);
                                     }
-                                    List<ListingModel> nearbyListings = sortedNearby.size() > 5 ? sortedNearby.subList(0, 5) : sortedNearby;
+                                    // Filter by category
+                                    List<ListingModel> nearbyListings = ListingFilterUtil.filterListingsByCategoriesForList(sortedNearby, selectedCategories, allItems);
+                                    if (nearbyListings.size() > 5) nearbyListings = nearbyListings.subList(0, 5);
                                     nearbyAdapter = new ListingAdapter(
                                             requireContext(),
                                             nearbyListings,
@@ -475,7 +483,9 @@ public class RecommendationsFragment extends Fragment {
                                     for (ListingWithDistance lwd : filteredWithDistance) {
                                         sortedNearby.add(lwd.listing);
                                     }
-                                    List<ListingModel> nearbyListings = sortedNearby.size() > 5 ? sortedNearby.subList(0, 5) : sortedNearby;
+                                    // Filter by category
+                                    List<ListingModel> nearbyListings = ListingFilterUtil.filterListingsByCategoriesForList(sortedNearby, selectedCategories, allItems);
+                                    if (nearbyListings.size() > 5) nearbyListings = nearbyListings.subList(0, 5);
                                     nearbyAdapter = new ListingAdapter(
                                             requireContext(),
                                             nearbyListings,
@@ -517,7 +527,9 @@ public class RecommendationsFragment extends Fragment {
                     }
                 }
                 if (getActivity() != null && isAdded()) {
-                    List<ListingModel> recentListings = filteredListings.size() > 3 ? filteredListings.subList(0, 3) : filteredListings;
+                    // Filter by category
+                    List<ListingModel> recentListings = ListingFilterUtil.filterListingsByCategoriesForList(filteredListings, selectedCategories, allItems);
+                    if (recentListings.size() > 3) recentListings = recentListings.subList(0, 3);
                     recentAdapter = new ListingAdapter(
                             requireContext(),
                             recentListings,
@@ -575,9 +587,94 @@ public class RecommendationsFragment extends Fragment {
                         Chip c = (Chip) chipGroupCategories.getChildAt(i);
                         c.setChecked(selectedCategories.contains(c.getText().toString()));
                     }
-                    filterListingsByCategories(selectedCategories);
+                    filterAllListsByCategories();
                 });
                 chipGroupCategories.addView(chip);
+            }
+        }
+    }
+
+    private void filterAllListsByCategories() {
+        // Lọc theo category trước
+        List<ListingModel> filteredByCategory = ListingFilterUtil.filterListingsByCategoriesForList(
+            allListings, selectedCategories, allItems
+        );
+
+        // Personalized
+        filterListingsByCategories(selectedCategories);
+
+        // Nearby
+        if (nearbyRecyclerView != null) {
+            // Lọc theo khoảng cách từ filteredByCategory
+            Double userLat = homeViewModel.getLatitude().getValue();
+            Double userLng = homeViewModel.getLongitude().getValue();
+            if (userLat == null || userLng == null) {
+                userLat = 10.8021; userLng = 106.6944;
+            }
+            final Double finalUserLat = userLat;
+            final Double finalUserLng = userLng;
+            List<ListingModel> filteredNearby = new ArrayList<>();
+            for (ListingModel listing : filteredByCategory) {
+                ItemModel item = null;
+                for (ItemModel i : allItems) {
+                    if (i.getId().equals(listing.getItemId())) { item = i; break; }
+                }
+                if (item != null && item.getLocationLatitude() != null && item.getLocationLongitude() != null) {
+                    double distance = haversine(finalUserLat, finalUserLng, item.getLocationLatitude(), item.getLocationLongitude());
+                    if (distance <= 30.0) {
+                        filteredNearby.add(listing);
+                    }
+                }
+            }
+            // Sắp xếp theo khoảng cách
+            filteredNearby.sort((a, b) -> {
+                ItemModel ia = null, ib = null;
+                for (ItemModel i : allItems) {
+                    if (i.getId().equals(a.getItemId())) ia = i;
+                    if (i.getId().equals(b.getItemId())) ib = i;
+                }
+                double da = ia != null ? haversine(finalUserLat, finalUserLng, ia.getLocationLatitude(), ia.getLocationLongitude()) : Double.MAX_VALUE;
+                double db = ib != null ? haversine(finalUserLat, finalUserLng, ib.getLocationLatitude(), ib.getLocationLongitude()) : Double.MAX_VALUE;
+                return Double.compare(da, db);
+            });
+            if (filteredNearby.size() > 5) filteredNearby = filteredNearby.subList(0, 5);
+            if (nearbyAdapter == null) {
+                nearbyAdapter = new ListingAdapter(
+                    requireContext(),
+                    filteredNearby,
+                    listing -> navigateToItemDetail(listing.getId())
+                );
+                nearbyRecyclerView.setAdapter(nearbyAdapter);
+            } else {
+                nearbyAdapter.setListings(filteredNearby);
+            }
+        }
+
+        // Recent
+        if (recentRecyclerView != null) {
+            // Sắp xếp theo ngày đăng từ filteredByCategory
+            List<ListingModel> filteredRecent = new ArrayList<>(filteredByCategory);
+            filteredRecent.sort((a, b) -> {
+                long aCreated = 0L;
+                long bCreated = 0L;
+                try {
+                    aCreated = a.getCreatedAtTimestamp().getSeconds();
+                } catch (Exception e) {}
+                try {
+                    bCreated = b.getCreatedAtTimestamp().getSeconds();
+                } catch (Exception e) {}
+                return Long.compare(bCreated, aCreated);
+            });
+            if (filteredRecent.size() > 3) filteredRecent = filteredRecent.subList(0, 3);
+            if (recentAdapter == null) {
+                recentAdapter = new ListingAdapter(
+                    requireContext(),
+                    filteredRecent,
+                    listing -> navigateToItemDetail(listing.getId())
+                );
+                recentRecyclerView.setAdapter(recentAdapter);
+            } else {
+                recentAdapter.setListings(filteredRecent);
             }
         }
     }
@@ -585,42 +682,19 @@ public class RecommendationsFragment extends Fragment {
     // Filter listings by all selected categories (multi-select)
     private void filterListingsByCategories(List<String> categoryNames) {
         Log.d("CategoryFilter", "Filtering for categories: " + categoryNames);
-        List<ListingModel> filtered = new ArrayList<>();
-        java.util.Map<String, ItemModel> itemMap = new java.util.HashMap<>();
-        for (ItemModel item : allItems) {
-            itemMap.put(item.getId(), item);
-        }
-        if (categoryNames.contains("All Categories")) {
-            for (ListingModel listing : allListings) {
-                if (listing.getTransactionStatus() != null && listing.getTransactionStatus().equalsIgnoreCase("available") && listing.isActive()) {
-                    filtered.add(listing);
-                }
-            }
-        } else {
-            for (ListingModel listing : allListings) {
-                if (listing.getTransactionStatus() == null || !listing.getTransactionStatus().equalsIgnoreCase("available") || !listing.isActive()) continue;
-                ItemModel item = itemMap.get(listing.getItemId());
-                if (item != null && item.getCategory() != null) {
-                    String itemCategory = item.getCategory().trim();
-                    for (String selectedCat : categoryNames) {
-                        if (itemCategory.equalsIgnoreCase(selectedCat)
-                            || itemCategory.toLowerCase().contains(selectedCat.toLowerCase())
-                            || selectedCat.toLowerCase().contains(itemCategory.toLowerCase())) {
-                            filtered.add(listing);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        Log.d("CategoryFilter", "Filtered size: " + filtered.size());
+        // Personalized
+        List<ListingModel> filteredPersonalized = ListingFilterUtil.filterListingsByCategoriesForList(
+            allListings, categoryNames, allItems
+        );
+        Log.d("CategoryFilter", "Filtered personalized size: " + filteredPersonalized.size());
         personalizedAdapter = new ListingAdapter(
             requireContext(),
-            filtered,
+            filteredPersonalized,
             listing -> navigateToItemDetail(listing.getId())
         );
         personalizedRecyclerView.setAdapter(personalizedAdapter);
     }
+
 
     private void navigateToCategoryListing(CategoryModel category) {
         Bundle args = new Bundle();
