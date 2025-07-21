@@ -55,7 +55,6 @@ public class ListingDetailFragment extends Fragment {
     private Toolbar toolbar;
     private TextView tvItemTitle, tvItemPrice, tvDescription, tvCondition, tvItemLocation;
     private ViewPager2 itemImagesViewPager;
-    private com.google.android.material.tabs.TabLayout imageIndicator;
     private com.google.android.material.button.MaterialButton btnBuyNow, btnMakeOffer, btnMessage, btnAnalyticsOffers, btnUpdateListing;
     private FirebaseService firebaseService;
     private CartService cartService;
@@ -103,7 +102,6 @@ public class ListingDetailFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         initViews(view);
         itemImagesViewPager.setAdapter(new ImageSliderAdapter(requireContext(), new ArrayList<>()));
-        new com.google.android.material.tabs.TabLayoutMediator(imageIndicator, itemImagesViewPager, (tab, position) -> {}).attach();
         setupToolbar();
         setupMenuProvider();
         rvOffers.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -240,7 +238,6 @@ public class ListingDetailFragment extends Fragment {
                 }
             };
             itemImagesViewPager.setAdapter(imageAdapter);
-            new com.google.android.material.tabs.TabLayoutMediator(imageIndicator, itemImagesViewPager, (tab, position) -> {}).attach();
         } else {
             // Nếu không có ảnh, hiển thị ảnh mặc định
             List<Uri> defaultList = new ArrayList<>();
@@ -257,7 +254,6 @@ public class ListingDetailFragment extends Fragment {
                 }
             };
             itemImagesViewPager.setAdapter(imageAdapter);
-            new com.google.android.material.tabs.TabLayoutMediator(imageIndicator, itemImagesViewPager, (tab, position) -> {}).attach();
         }
         // Seller info
         if (listing.getSellerId() != null) {
@@ -430,7 +426,6 @@ public class ListingDetailFragment extends Fragment {
         tvCondition = view.findViewById(R.id.chip_condition);
         tvItemLocation = view.findViewById(R.id.tv_item_location);
         itemImagesViewPager = view.findViewById(R.id.item_images_viewpager);
-        imageIndicator = view.findViewById(R.id.image_indicator);
         btnBuyNow = view.findViewById(R.id.btn_buy_now);
         btnMakeOffer = view.findViewById(R.id.btn_make_offer);
         btnMessage = view.findViewById(R.id.btn_message);

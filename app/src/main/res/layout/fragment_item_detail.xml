@@ -40,27 +40,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <!-- Image ViewPager for multiple item images -->
+                <!-- Image Slider (ViewPager2) -->
                 <androidx.viewpager2.widget.ViewPager2
                     android:id="@+id/item_images_viewpager"
-                    android:layout_width="0dp"
-                    android:layout_height="300dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="240dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    android:contentDescription="@string/cd_item_images" />
-
-                <!-- Image Indicator -->
-                <com.google.android.material.tabs.TabLayout
-                    android:id="@+id/image_indicator"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    app:layout_constraintBottom_toBottomOf="@id/item_images_viewpager"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:tabBackground="@drawable/tab_selector"
-                    app:tabGravity="center"
-                    app:tabIndicatorHeight="0dp" />
+                    android:contentDescription="@string/cd_item_images"
+                    android:background="?attr/colorSurfaceVariant"
+                    android:clipToPadding="false"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp" />
 
                 <!-- Favorites and Share buttons -->
                 <com.google.android.material.card.MaterialCardView
@@ -96,6 +88,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_gravity="center"
+                        android:importantForAccessibility="no"
                         android:src="@drawable/ic_share_24"
                         app:tint="?attr/colorPrimary" />
                 </com.google.android.material.card.MaterialCardView>
