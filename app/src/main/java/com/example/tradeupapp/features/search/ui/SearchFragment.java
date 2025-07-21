@@ -291,6 +291,8 @@ public class SearchFragment extends Fragment {
         List<ListingModel> result = new ArrayList<>();
         for (ListingWithItem li : allListingWithItems) {
             if (li.item == null) continue;
+            // Only include listings with status "available"
+            if (li.listing == null || li.listing.getTransactionStatus() == null || !"available".equalsIgnoreCase(li.listing.getTransactionStatus())) continue;
             boolean matches = lowerKeyword.isEmpty() || simpleMatch(li, lowerKeyword);
             // Category filter
             if (!"All Categories".equals(currentCategory) && !currentCategory.equalsIgnoreCase(li.item.getCategory())) matches = false;

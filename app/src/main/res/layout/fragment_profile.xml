@@ -189,14 +189,6 @@
             </LinearLayout>
 
             <!-- Toolbar -->
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:layout_collapseMode="pin"
-                app:menu="@menu/profile_menu"
-                app:title="Profile"
-                app:titleTextColor="?attr/colorOnSurface" />
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 

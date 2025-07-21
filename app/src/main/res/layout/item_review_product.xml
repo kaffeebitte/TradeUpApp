@@ -64,7 +64,7 @@
                 android:theme="@style/Widget.AppCompat.RatingBar"
                 android:layout_gravity="start" />
 
-            <TextView
+            <EditText
                 android:id="@+id/et_review_comment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -75,7 +75,7 @@
                 android:maxLines="4"
                 android:minLines="1"
                 android:padding="10dp"
-                android:text="Review comment goes here."
+                android:hint="Review comment goes here."
                 android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                 android:textColor="@color/md_theme_onSurface" />
 

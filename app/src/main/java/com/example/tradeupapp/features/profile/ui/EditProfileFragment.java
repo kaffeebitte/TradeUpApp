@@ -34,6 +34,7 @@ public class EditProfileFragment extends Fragment {
     private ShapeableImageView avatarImageView;
     private TextView changeAvatarText;
     private TextInputEditText nameEditText;
+    private TextInputEditText emailEditText; // Add this line
     private TextInputEditText bioEditText;
     private TextInputEditText contactEditText;
     private TextInputEditText locationEditText;
@@ -114,6 +115,7 @@ public class EditProfileFragment extends Fragment {
         avatarImageView = view.findViewById(R.id.iv_avatar);
         changeAvatarText = view.findViewById(R.id.tv_change_avatar);
         nameEditText = view.findViewById(R.id.et_name);
+        emailEditText = view.findViewById(R.id.et_email); // Add this line
         bioEditText = view.findViewById(R.id.et_bio);
         contactEditText = view.findViewById(R.id.et_contact);
         locationEditText = view.findViewById(R.id.et_location);
@@ -129,6 +131,9 @@ public class EditProfileFragment extends Fragment {
             if (user != null) {
                 // Set user data to UI elements
                 nameEditText.setText(user.getDisplayName());
+                if (emailEditText != null) {
+                    emailEditText.setText(user.getEmail()); // Set email if available
+                }
                 bioEditText.setText(user.getBio());
                 contactEditText.setText(user.getPhoneNumber());
 

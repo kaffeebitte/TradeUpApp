@@ -29,21 +29,14 @@ import java.util.Map;
 
 public class ReviewProductsFragment extends Fragment {
     private RecyclerView rvProducts;
-    private Button btnSubmit;
-    private Button btnExit;
     private ReviewProductsAdapter adapter;
     private List<ListingModel> listings;
     private Map<String, ItemModel> itemMap;
     private Map<String, User> userMap;
-    private String transactionId;
     private String revieweeRole; // "seller" or "buyer"
-    private String toUserId;
 
-    private List<String> transactionIds;
     private List<String> sellerIds;
     private List<String> listingIds;
-    private Map<String, String> listingIdToTransactionId;
-    private Map<String, String> listingIdToSellerId;
 
     private List<String> bannedWords = new ArrayList<>();
 
@@ -65,10 +58,8 @@ public class ReviewProductsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         fetchBannedWords();
         if (getArguments() != null) {
-            String[] txnArr = getArguments().getStringArray("transactionIds");
             String[] listingArr = getArguments().getStringArray("listingIds");
             String[] sellerArr = getArguments().getStringArray("sellerIds");
-            transactionIds = txnArr != null ? Arrays.asList(txnArr) : new ArrayList<>();
             listingIds = listingArr != null ? Arrays.asList(listingArr) : new ArrayList<>();
             sellerIds = sellerArr != null ? Arrays.asList(sellerArr) : new ArrayList<>();
             revieweeRole = getArguments().getString("revieweeRole", "seller");
@@ -83,12 +74,12 @@ public class ReviewProductsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_review_products, container, false);
         rvProducts = view.findViewById(R.id.rv_review_products);
-        btnSubmit = view.findViewById(R.id.btn_submit_reviews);
-        btnExit = view.findViewById(R.id.btn_exit_review);
+        Button btnSubmit = view.findViewById(R.id.btn_submit_reviews);
+        Button btnExit = view.findViewById(R.id.btn_exit_review);
         rvProducts.setLayoutManager(new LinearLayoutManager(getContext()));
         fetchDataAndSetupAdapter();
         btnSubmit.setOnClickListener(v -> submitReviews());
-        btnExit.setOnClickListener(v -> requireActivity().onBackPressed());
+        btnExit.setOnClickListener(v -> requireActivity().getOnBackPressedDispatcher().onBackPressed());
         return view;
     }
 
@@ -98,19 +89,32 @@ public class ReviewProductsFragment extends Fragment {
         service.getListingsByIds(listingIds, new FirebaseService.ListingsCallback() {
             @Override
             public void onSuccess(List<ListingModel> fetchedListings) {
-                listings = fetchedListings;
+                // Defensive: filter out nulls and only keep listings with itemId and sellerId
+                List<ListingModel> validListings = new ArrayList<>();
                 List<String> itemIds = new ArrayList<>();
-                for (ListingModel l : listings) itemIds.add(l.getItemId());
+                for (ListingModel l : fetchedListings) {
+                    if (l != null && l.getItemId() != null && l.getSellerId() != null) {
+                        validListings.add(l);
+                        itemIds.add(l.getItemId());
+                    }
+                }
+                listings = validListings;
+                if (listings.isEmpty()) {
+                    Toast.makeText(getContext(), "No products to review.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 service.getItemsByIds(itemIds, new FirebaseService.ItemsByIdsCallback() {
                     @Override
                     public void onSuccess(Map<String, ItemModel> fetchedItemMap) {
-                        itemMap = fetchedItemMap;
+                        itemMap = fetchedItemMap != null ? fetchedItemMap : new HashMap<>();
                         service.getUsersByIds(sellerIds, new FirebaseService.UsersByIdsCallback() {
                             @Override
                             public void onSuccess(Map<String, User> fetchedUserMap) {
-                                userMap = fetchedUserMap;
-                                adapter = new ReviewProductsAdapter(getContext(), listings, itemMap, userMap, revieweeRole);
-                                rvProducts.setAdapter(adapter);
+                                userMap = fetchedUserMap != null ? fetchedUserMap : new HashMap<>();
+                                if (getContext() != null && rvProducts != null) {
+                                    adapter = new ReviewProductsAdapter(getContext(), listings, itemMap, userMap, revieweeRole);
+                                    rvProducts.setAdapter(adapter);
+                                }
                             }
                             @Override
                             public void onError(String error) {
@@ -155,20 +159,8 @@ public class ReviewProductsFragment extends Fragment {
                 Toast.makeText(getContext(), "Your review contains inappropriate language. Please revise your comment.", Toast.LENGTH_LONG).show();
                 return;
             }
-            String revieweeId = null;
-            String txnId = null;
-            if (listingIdToSellerId != null && listingIdToSellerId.containsKey(listing.getId())) {
-                revieweeId = listingIdToSellerId.get(listing.getId());
-            } else if (toUserId != null) {
-                revieweeId = toUserId;
-            } else if (listing.getSellerId() != null) {
-                revieweeId = listing.getSellerId();
-            }
-            if (listingIdToTransactionId != null && listingIdToTransactionId.containsKey(listing.getId())) {
-                txnId = listingIdToTransactionId.get(listing.getId());
-            } else if (transactionId != null) {
-                txnId = transactionId;
-            }
+            String revieweeId = listing.getSellerId();
+            String txnId = null; // Not used, can be set if needed
             ReviewModel review = new ReviewModel(
                     txnId,
                     fromUserId,
@@ -177,7 +169,6 @@ public class ReviewProductsFragment extends Fragment {
                     input.rating,
                     input.comment
             );
-            // Moderate abusive content
             review.setVerified(true); // Only allow verified reviews to be submitted
             reviews.add(review);
         }
@@ -195,6 +186,6 @@ public class ReviewProductsFragment extends Fragment {
             });
         }
         Toast.makeText(getContext(), "Thank you for your reviews!", Toast.LENGTH_SHORT).show();
-        requireActivity().onBackPressed();
+        requireActivity().getOnBackPressedDispatcher().onBackPressed();
     }
 }
