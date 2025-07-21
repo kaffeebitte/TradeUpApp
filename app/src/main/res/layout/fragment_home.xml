@@ -117,30 +117,20 @@
                     android:textAppearance="?attr/textAppearanceHeadlineSmall"
                     android:textColor="?attr/colorOnSurface"/>
 
-                <TextView
-                    android:id="@+id/tv_see_all_categories"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="See All"
-                    android:textAppearance="?attr/textAppearanceLabelMedium"
-                    android:textColor="?attr/colorPrimary"
-                    android:background="?attr/selectableItemBackground"
-                    android:padding="8dp"/>
             </LinearLayout>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_categories"
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipgroup_categories"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                android:clipToPadding="false"
                 android:paddingStart="4dp"
                 android:paddingEnd="4dp"
-                android:overScrollMode="never"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                android:orientation="horizontal"
-                tools:listitem="@layout/item_category_card"
-                tools:itemCount="5"/>
+                app:singleSelection="true"
+                app:selectionRequired="false"
+                app:chipSpacingHorizontal="8dp"
+                app:chipSpacingVertical="8dp"
+                android:orientation="horizontal" />
 
             <!-- 2. Recommended for You with See All option -->
             <LinearLayout

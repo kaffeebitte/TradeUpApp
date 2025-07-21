@@ -45,10 +45,9 @@ public class FirebaseService {
 
     // Get all items - simplified query that doesn't require composite index
     public void getAllItems(ItemsCallback callback) {
-        // First try the optimized query with index
         db.collection("items")
-                .whereEqualTo("status", "Available")
-                .orderBy("dateAdded", Query.Direction.DESCENDING)
+                // .whereEqualTo("status", "Available") // Removed status filter for compatibility with sample data
+                // .orderBy("dateAdded", Query.Direction.DESCENDING) // Optional: keep if you want ordering
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<ItemModel> items = new ArrayList<>();
@@ -62,7 +61,6 @@ public class FirebaseService {
                 })
                 .addOnFailureListener(e -> {
                     Log.w(TAG, "Indexed query failed, falling back to simple query", e);
-                    // Fallback to simple query without ordering
                     getAllItemsSimple(callback);
                 });
     }
@@ -70,7 +68,7 @@ public class FirebaseService {
     // Fallback method for getting all items without complex indexing
     private void getAllItemsSimple(ItemsCallback callback) {
         db.collection("items")
-                .whereEqualTo("status", "Available")
+                // .whereEqualTo("status", "Available") // Removed status filter for compatibility with sample data
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<ItemModel> items = new ArrayList<>();
@@ -80,7 +78,6 @@ public class FirebaseService {
                             items.add(item);
                         }
                     }
-                    // Remove sorting by getDateAdded() since ItemModel no longer has this field
                     callback.onSuccess(items);
                 })
                 .addOnFailureListener(e -> {

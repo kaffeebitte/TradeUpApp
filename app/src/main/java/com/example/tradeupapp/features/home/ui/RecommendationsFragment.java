@@ -1,6 +1,7 @@
 package com.example.tradeupapp.features.home.ui;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,8 +23,9 @@ import com.example.tradeupapp.features.home.viewmodel.HomeViewModel;
 import com.example.tradeupapp.models.CategoryModel;
 import com.example.tradeupapp.models.ItemModel;
 import com.example.tradeupapp.models.ListingModel;
-import com.example.tradeupapp.shared.adapters.CategoryAdapter;
 import com.example.tradeupapp.shared.adapters.ListingAdapter;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -37,12 +39,11 @@ import java.util.Set;
 
 public class RecommendationsFragment extends Fragment {
 
-    private RecyclerView categoriesRecyclerView;
+    private ChipGroup chipGroupCategories;
     private RecyclerView personalizedRecyclerView;
     private RecyclerView nearbyRecyclerView;
     private RecyclerView recentRecyclerView;
 
-    private TextView seeAllCategories;
     private TextView seeAllRecommended;
     private TextView seeAllNearby;
     private TextView seeAllRecent;
@@ -64,6 +65,7 @@ public class RecommendationsFragment extends Fragment {
     // Store all listings and items for filtering
     private List<ListingModel> allListings = new ArrayList<>();
     private List<ItemModel> allItems = new ArrayList<>();
+    private List<String> selectedCategories = new ArrayList<>(java.util.Collections.singletonList("All Categories"));
 
     @Nullable
     @Override
@@ -101,6 +103,7 @@ public class RecommendationsFragment extends Fragment {
 
         // Load static categories
         loadStaticCategories();
+        // Removed premature call to filterListingsByCategories(selectedCategories)
 
         // Listen for location result from MapPickerFragment
         NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
@@ -121,14 +124,14 @@ public class RecommendationsFragment extends Fragment {
     }
 
     private void initViews(View view) {
+        // ChipGroup for categories
+        chipGroupCategories = view.findViewById(R.id.chipgroup_categories);
         // RecyclerViews
-        categoriesRecyclerView = view.findViewById(R.id.recycler_categories);
         personalizedRecyclerView = view.findViewById(R.id.recycler_personalized);
         nearbyRecyclerView = view.findViewById(R.id.recycler_nearby);
         recentRecyclerView = view.findViewById(R.id.recycler_recent);
 
         // "See All" TextView buttons
-        seeAllCategories = view.findViewById(R.id.tv_see_all_categories);
         seeAllRecommended = view.findViewById(R.id.tv_see_all_recommended);
         seeAllNearby = view.findViewById(R.id.tv_see_all_nearby);
         seeAllRecent = view.findViewById(R.id.tv_see_all_recent);
@@ -163,11 +166,6 @@ public class RecommendationsFragment extends Fragment {
 
     private void setupClickListeners() {
         // "See All" buttons to navigate to respective listing pages
-        seeAllCategories.setOnClickListener(v -> {
-            // Navigate to all categories page
-            navController.navigate(R.id.action_nav_recommendations_to_allCategoriesFragment);
-        });
-
         seeAllRecommended.setOnClickListener(v -> {
             // Navigate to all recommended items
             navController.navigate(R.id.action_nav_recommendations_to_recommendedListingFragment);
@@ -203,9 +201,6 @@ public class RecommendationsFragment extends Fragment {
     }
 
     private void loadDataFromFirestore() {
-        // Load categories (can be static or from Firestore)
-        loadCategories();
-
         // Load recommended items (all available items for now, can be enhanced with ML)
         loadRecommendedItems();
 
@@ -214,24 +209,6 @@ public class RecommendationsFragment extends Fragment {
 
         // Load recent items (recently added items)
         loadRecentItems();
-    }
-
-    private void loadCategories() {
-        firebaseService.getAllCategories(new FirebaseService.CategoriesCallback() {
-            @Override
-            public void onSuccess(List<CategoryModel> categoryList) {
-                if (getActivity() != null && isAdded()) {
-                    CategoryAdapter categoryAdapter = new CategoryAdapter(categoryList, category -> navigateToCategoryListing(category));
-                    categoriesRecyclerView.setAdapter(categoryAdapter);
-                }
-            }
-            @Override
-            public void onError(String error) {
-                if (getActivity() != null && isAdded()) {
-                    Toast.makeText(getActivity(), "Error loading categories: " + error, Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
     }
 
     // Extract user's viewed categories from listings' interactions (local, not Firestore)
@@ -309,35 +286,38 @@ public class RecommendationsFragment extends Fragment {
         firebaseService.getAllListings(new FirebaseService.ListingsCallback() {
             @Override
             public void onSuccess(List<ListingModel> listings) {
-                allListings = new ArrayList<>(listings); // Store for filtering
-                String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
-                // Filter out listings where sellerId == currentUserId and only available listings (transactionStatus == "available")
-                List<ListingModel> filteredListings = new ArrayList<>();
+                // Filter only available listings
+                List<ListingModel> availableListings = new ArrayList<>();
                 for (ListingModel l : listings) {
-                    boolean isAvailable = false;
-                    try {
-                        java.lang.reflect.Method getStatusMethod = l.getClass().getMethod("getTransactionStatus");
-                        String status = (String) getStatusMethod.invoke(l);
-                        isAvailable = "available".equalsIgnoreCase(status);
-                    } catch (Exception e) {
-                        // If method does not exist, assume not available
-                        isAvailable = false;
-                    }
-                    if ((currentUserId == null || !l.getSellerId().equals(currentUserId)) && isAvailable) {
-                        filteredListings.add(l);
+                    if (l.getTransactionStatus() != null && l.getTransactionStatus().equalsIgnoreCase("available")) {
+                        availableListings.add(l);
                     }
                 }
+                allListings = new ArrayList<>(availableListings); // Store for filtering
                 firebaseService.getAllItems(new FirebaseService.ItemsCallback() {
                     @Override
                     public void onSuccess(List<ItemModel> items) {
+                        Log.d("CategoryDebug", "onSuccess getAllItems, items.size=" + items.size());
                         allItems = new ArrayList<>(items); // Store for filtering
-                        String userId = currentUserId;
+                        // Log all items and their categories for debugging
+                        for (ItemModel item : items) {
+                            Log.d("CategoryDebug", "Item id: " + item.getId() + ", title: " + item.getTitle() + ", category: " + item.getCategory());
+                        }
+                        // Log all unique categories from items
+                        java.util.Set<String> uniqueCategories = new java.util.HashSet<>();
+                        for (ItemModel item : allItems) {
+                            if (item.getCategory() != null) uniqueCategories.add(item.getCategory());
+                        }
+                        Log.d("CategoryFilter", "All categories in DB: " + uniqueCategories);
+                        // Call filterListingsByCategories only after allListings and allItems are loaded
+                        filterListingsByCategories(selectedCategories);
+                        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
                         if (userId == null) {
                             // fallback: show popular listings
-                            showPersonalizedByPopularity(filteredListings);
+                            showPersonalizedByPopularity(allListings);
                             return;
                         }
-                        getUserViewedCategoriesFromListings(filteredListings, allItems, userId, viewedCategories -> {
+                        getUserViewedCategoriesFromListings(allListings, allItems, userId, viewedCategories -> {
                             Double userLat = homeViewModel.getLatitude().getValue();
                             Double userLng = homeViewModel.getLongitude().getValue();
                             if (userLat == null || userLng == null) {
@@ -352,7 +332,7 @@ public class RecommendationsFragment extends Fragment {
                                 ListingWithMeta(ListingModel l, ItemModel i, double d) { listing = l; item = i; distance = d; }
                             }
                             List<ListingWithMeta> metaList = new ArrayList<>();
-                            for (ListingModel listing : filteredListings) {
+                            for (ListingModel listing : allListings) {
                                 ItemModel item = null;
                                 for (ItemModel i : allItems) {
                                     if (i.getId().equals(listing.getItemId())) { item = i; break; }
@@ -387,7 +367,8 @@ public class RecommendationsFragment extends Fragment {
                     }
                     @Override
                     public void onError(String error) {
-                        showPersonalizedByPopularity(filteredListings);
+                        Log.e("CategoryDebug", "onError getAllItems: " + error);
+                        showPersonalizedByPopularity(allListings);
                     }
                 });
             }
@@ -555,17 +536,7 @@ public class RecommendationsFragment extends Fragment {
     }
 
     private void loadStaticCategories() {
-        // Match sample_items.json categories
-        String[] categories = {
-            "Electronics",
-            "Clothing",
-            "Home & Garden",
-            "Toys & Games",
-            "Sports & Outdoors",
-            "Vehicles",
-            "Books",
-            "Other"
-        };
+        String[] categories = {"All Categories", "Electronics", "Clothing", "Home & Garden", "Toys", "Books", "Sports", "Automotive", "Other"};
         List<CategoryModel> staticCategories = new ArrayList<>();
         for (String cat : categories) {
             CategoryModel model = new CategoryModel();
@@ -574,31 +545,75 @@ public class RecommendationsFragment extends Fragment {
             model.setIconResourceId(R.drawable.ic_category_24);
             staticCategories.add(model);
         }
-        CategoryAdapter categoryAdapter = new CategoryAdapter(staticCategories, category -> {
-            filterListingsByCategory(category.getName());
-        });
-        categoriesRecyclerView.setAdapter(categoryAdapter);
+        if (chipGroupCategories != null) {
+            chipGroupCategories.removeAllViews();
+            for (CategoryModel category : staticCategories) {
+                Chip chip = (Chip) LayoutInflater.from(getContext()).inflate(R.layout.item_tag_chip, chipGroupCategories, false);
+                chip.setText(category.getName());
+                chip.setCheckable(true);
+                chip.setChecked(selectedCategories.contains(category.getName()));
+                chip.setOnClickListener(v -> {
+                    String catName = category.getName();
+                    if ("All Categories".equals(catName)) {
+                        selectedCategories.clear();
+                        selectedCategories.add("All Categories");
+                    } else {
+                        if (selectedCategories.contains("All Categories")) {
+                            selectedCategories.remove("All Categories");
+                        }
+                        if (selectedCategories.contains(catName)) {
+                            selectedCategories.remove(catName);
+                        } else {
+                            selectedCategories.add(catName);
+                        }
+                        if (selectedCategories.isEmpty()) {
+                            selectedCategories.add("All Categories");
+                        }
+                    }
+                    // Update chip checked state
+                    for (int i = 0; i < chipGroupCategories.getChildCount(); i++) {
+                        Chip c = (Chip) chipGroupCategories.getChildAt(i);
+                        c.setChecked(selectedCategories.contains(c.getText().toString()));
+                    }
+                    filterListingsByCategories(selectedCategories);
+                });
+                chipGroupCategories.addView(chip);
+            }
+        }
     }
 
-    private String normalizeCategory(String category) {
-        if (category == null) return "";
-        return category.trim().toLowerCase().replaceAll("[^a-z0-9]", "");
-    }
-
-    private void filterListingsByCategory(String categoryName) {
-        String normalizedCategoryName = normalizeCategory(categoryName);
+    // Filter listings by all selected categories (multi-select)
+    private void filterListingsByCategories(List<String> categoryNames) {
+        Log.d("CategoryFilter", "Filtering for categories: " + categoryNames);
         List<ListingModel> filtered = new ArrayList<>();
-        for (ListingModel listing : allListings) {
-            for (ItemModel item : allItems) {
-                String normalizedItemCategory = normalizeCategory(item.getCategory());
-                if (item.getId().equals(listing.getItemId()) &&
-                    !normalizedCategoryName.isEmpty() &&
-                    normalizedItemCategory.contains(normalizedCategoryName)) {
+        java.util.Map<String, ItemModel> itemMap = new java.util.HashMap<>();
+        for (ItemModel item : allItems) {
+            itemMap.put(item.getId(), item);
+        }
+        if (categoryNames.contains("All Categories")) {
+            for (ListingModel listing : allListings) {
+                if (listing.getTransactionStatus() != null && listing.getTransactionStatus().equalsIgnoreCase("available") && listing.isActive()) {
                     filtered.add(listing);
-                    break;
+                }
+            }
+        } else {
+            for (ListingModel listing : allListings) {
+                if (listing.getTransactionStatus() == null || !listing.getTransactionStatus().equalsIgnoreCase("available") || !listing.isActive()) continue;
+                ItemModel item = itemMap.get(listing.getItemId());
+                if (item != null && item.getCategory() != null) {
+                    String itemCategory = item.getCategory().trim();
+                    for (String selectedCat : categoryNames) {
+                        if (itemCategory.equalsIgnoreCase(selectedCat)
+                            || itemCategory.toLowerCase().contains(selectedCat.toLowerCase())
+                            || selectedCat.toLowerCase().contains(itemCategory.toLowerCase())) {
+                            filtered.add(listing);
+                            break;
+                        }
+                    }
                 }
             }
         }
+        Log.d("CategoryFilter", "Filtered size: " + filtered.size());
         personalizedAdapter = new ListingAdapter(
             requireContext(),
             filtered,

@@ -15,8 +15,10 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tradeupapp.R;
-import com.example.tradeupapp.shared.adapters.ListingAdapter;
+import com.example.tradeupapp.core.services.FirebaseService;
+import com.example.tradeupapp.models.ItemModel;
 import com.example.tradeupapp.models.ListingModel;
+import com.example.tradeupapp.shared.adapters.ListingAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,10 @@ public class RecommendedListingFragment extends Fragment {
     private RecyclerView recyclerView;
     private TextView headerText;
     private NavController navController;
+    private FirebaseService firebaseService;
+    private List<ListingModel> allListings = new ArrayList<>();
+    private List<ItemModel> allItems = new ArrayList<>();
+    private List<String> selectedCategories = new ArrayList<>();
 
     @Nullable
     @Override
@@ -36,14 +42,15 @@ public class RecommendedListingFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // Initialize navigation controller
         navController = Navigation.findNavController(view);
-
-        // Initialize views
         initViews(view);
-
-        // Load recommended listings
+        firebaseService = FirebaseService.getInstance();
+        // Lấy selectedCategories từ arguments nếu có
+        if (getArguments() != null && getArguments().containsKey("selectedCategories")) {
+            selectedCategories = getArguments().getStringArrayList("selectedCategories");
+        } else {
+            selectedCategories.add("All Categories");
+        }
         loadRecommendedListings();
     }
 
@@ -70,30 +77,55 @@ public class RecommendedListingFragment extends Fragment {
     }
 
     private void loadRecommendedListings() {
-        // Dummy data for demonstration (replace with real data from Firestore in production)
-        List<ListingModel> recommendedListings = getDummyRecommendedListings();
-        ListingAdapter adapter = new ListingAdapter(
-                requireContext(),
-                recommendedListings,
-                listing -> {
-                    Bundle args = new Bundle();
-                    args.putString("listingId", listing.getId());
-                    navController.navigate(R.id.action_recommendedListingFragment_to_itemDetailFragment, args);
-                }
-        );
-        recyclerView.setAdapter(adapter);
-    }
-
-    private List<ListingModel> getDummyRecommendedListings() {
-        List<ListingModel> listings = new ArrayList<>();
-        for (int i = 0; i < 12; i++) {
-            ListingModel listing = new ListingModel();
-            listing.setId("recommended_listing_" + (i + 1));
-            listing.setPrice(200000 + i * 60000);
-            listing.setSellerId("seller_" + (i + 1));
-            listing.setItemId("item_" + (i + 1));
-            listings.add(listing);
-        }
-        return listings;
+        firebaseService.getAllListings(new FirebaseService.ListingsCallback() {
+            @Override
+            public void onSuccess(List<ListingModel> listings) {
+                allListings = new ArrayList<>(listings);
+                firebaseService.getAllItems(new FirebaseService.ItemsCallback() {
+                    @Override
+                    public void onSuccess(List<ItemModel> items) {
+                        allItems = new ArrayList<>(items);
+                        List<ListingModel> filtered = new ArrayList<>();
+                        java.util.Map<String, ItemModel> itemMap = new java.util.HashMap<>();
+                        for (ItemModel item : allItems) {
+                            itemMap.put(item.getId(), item);
+                        }
+                        if (selectedCategories.contains("All Categories")) {
+                            for (ListingModel listing : allListings) {
+                                if (listing.getTransactionStatus() != null && listing.getTransactionStatus().equalsIgnoreCase("available")) {
+                                    filtered.add(listing);
+                                }
+                            }
+                        } else {
+                            for (ListingModel listing : allListings) {
+                                if (listing.getTransactionStatus() == null || !listing.getTransactionStatus().equalsIgnoreCase("available")) continue;
+                                ItemModel item = itemMap.get(listing.getItemId());
+                                if (item != null && item.getCategory() != null && selectedCategories.contains(item.getCategory().trim())) {
+                                    filtered.add(listing);
+                                }
+                            }
+                        }
+                        ListingAdapter adapter = new ListingAdapter(
+                                requireContext(),
+                                filtered,
+                                listing -> {
+                                    Bundle args = new Bundle();
+                                    args.putString("listingId", listing.getId());
+                                    navController.navigate(R.id.action_recommendedListingFragment_to_itemDetailFragment, args);
+                                }
+                        );
+                        recyclerView.setAdapter(adapter);
+                    }
+                    @Override
+                    public void onError(String error) {
+                        // handle error
+                    }
+                });
+            }
+            @Override
+            public void onError(String error) {
+                // handle error
+            }
+        });
     }
 }
