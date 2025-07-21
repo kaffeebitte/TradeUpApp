@@ -1,5 +1,6 @@
 package com.example.tradeupapp.features.auth.ui;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -8,6 +9,8 @@ import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +51,10 @@ public class LoginFragment extends Fragment {
     private GoogleSignInClient mGoogleSignInClient;
     private ActivityResultLauncher<Intent> googleSignInLauncher;
 
+    private int logoClickCount = 0;
+    private long lastLogoClickTime = 0;
+    private static final int LOGO_CLICK_RESET_MS = 1500;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -61,6 +68,7 @@ public class LoginFragment extends Fragment {
         initViews(view);
         setupTextWatchers();
         setupClickListeners(view);
+        setupLogoSecret(view);
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
@@ -364,5 +372,45 @@ public class LoginFragment extends Fragment {
         Intent intent = new Intent(requireContext(), MainActivity.class);
         startActivity(intent);
         requireActivity().finish();
+    }
+
+    private void setupLogoSecret(View view) {
+        View logo = view.findViewById(R.id.iv_logo);
+        logo.setOnClickListener(v -> {
+            long now = System.currentTimeMillis();
+            if (now - lastLogoClickTime > LOGO_CLICK_RESET_MS) {
+                logoClickCount = 0;
+            }
+            lastLogoClickTime = now;
+            logoClickCount++;
+            if (logoClickCount == 3) {
+                logoClickCount = 0;
+                showAdminPasswordDialog();
+            }
+        });
+    }
+
+    private void showAdminPasswordDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        LayoutInflater inflater = requireActivity().getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_admin_password, null);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        EditText etPassword = dialogView.findViewById(R.id.et_admin_password);
+        Button btnSubmit = dialogView.findViewById(R.id.btn_submit_password);
+
+        btnSubmit.setOnClickListener(v -> {
+            String input = etPassword.getText().toString();
+            if ("tradeup".equals(input)) {
+                dialog.dismiss();
+                // Navigate to admin dashboard
+                Navigation.findNavController(requireView()).navigate(R.id.action_loginFragment_to_adminDashboardFragment);
+            } else {
+                dialog.dismiss();
+                Toast.makeText(requireContext(), "Sai mật khẩu admin!", Toast.LENGTH_SHORT).show();
+            }
+        });
+        dialog.show();
     }
 }

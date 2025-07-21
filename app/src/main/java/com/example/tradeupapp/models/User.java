@@ -81,6 +81,9 @@ public class User implements Serializable {
 
     private String id; // sample id, e.g. "user_001"
 
+    private String status; // e.g. "active", "flagged", "suspended"
+    private int warningCount; // number of warnings
+
     /**
      * Custom serialization method
      */
@@ -356,6 +359,19 @@ public class User implements Serializable {
     }
     public Double getLocationLongitude() {
         return locationLongitude;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+    public void setStatus(String status) {
+        this.status = status;
+    }
+    public int getWarningCount() {
+        return warningCount;
+    }
+    public void setWarningCount(int warningCount) {
+        this.warningCount = warningCount;
     }
 
     /**

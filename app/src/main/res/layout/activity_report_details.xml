@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/md_theme_background"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="32dp"
+        android:paddingBottom="32dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp">
+
+        <TextView
+            android:id="@+id/tv_report_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.TradeUp.LabelMedium"
+            android:textColor="@color/md_theme_onSurfaceVariant"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"
+            android:text="@string/report_id" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/report_details"
+            style="@style/TextAppearance.TradeUp.TitleLarge"
+            android:layout_marginBottom="20dp"
+            android:textColor="?attr/colorPrimary"/>
+
+        <!-- Report Info -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/report_type"
+            style="@style/TextAppearance.TradeUp.BodyMedium"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/tv_report_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.TradeUp.BodyLarge"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/reported_item_id"
+            style="@style/TextAppearance.TradeUp.BodyMedium"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/tv_reported_item_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.TradeUp.BodyLarge"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/date_reported"
+            style="@style/TextAppearance.TradeUp.BodyMedium"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/tv_report_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.TradeUp.BodyLarge"
+            android:layout_marginBottom="8dp" />
+
+        <!-- User Info -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/reported_by"
+            style="@style/TextAppearance.TradeUp.BodyMedium"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/tv_reporter_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.TradeUp.BodyLarge"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/reported_user"
+            style="@style/TextAppearance.TradeUp.BodyMedium"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/tv_reported_user_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.TradeUp.BodyLarge"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Reason & Details -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/reason"
+            style="@style/TextAppearance.TradeUp.BodyMedium"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/tv_report_reason"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.TradeUp.BodyLarge"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/details"
+            style="@style/TextAppearance.TradeUp.BodyMedium"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/tv_report_details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.TradeUp.BodyLarge"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Evidence -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/evidence"
+            style="@style/TextAppearance.TradeUp.BodyMedium"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/tv_evidence"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.TradeUp.BodyLarge"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Admin Notes -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/admin_notes"
+            style="@style/TextAppearance.TradeUp.BodyMedium"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/tv_admin_notes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.TradeUp.BodyLarge"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Status -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/status"
+            style="@style/TextAppearance.TradeUp.BodyMedium"
+            android:textStyle="bold" />
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_marginBottom="16dp">
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/spinner_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                android:focusable="false"
+                android:clickable="true"
+                android:hint="@string/select_status" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_marginBottom="12dp">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_update_status"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/update_status"
+                style="@style/Widget.Material3.Button"
+                android:backgroundTint="?attr/colorPrimary"
+                android:textColor="?attr/colorOnPrimary"
+                android:layout_marginEnd="8dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_close"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/close"
+                style="@style/Widget.Material3.Button"
+                app:strokeColor="?attr/colorPrimary"
+                app:strokeWidth="1dp"
+                android:backgroundTint="@android:color/transparent"
+                android:textColor="?attr/colorPrimary" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Admin Actions -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/admin_actions"
+            style="@style/TextAppearance.TradeUp.BodyMedium"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp" />
+        <GridLayout
+            android:id="@+id/grid_admin_actions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:alignmentMode="alignMargins"
+            android:useDefaultMargins="true"
+            android:layout_marginBottom="8dp">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_suspend_user"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="@string/suspend_user"
+                style="@style/Widget.Material3.Button"
+                android:backgroundTint="?attr/colorPrimary"
+                android:textColor="?attr/colorOnPrimary" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_warn_user"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="@string/warn_user"
+                style="@style/Widget.Material3.Button"
+                android:backgroundTint="?attr/colorPrimary"
+                android:textColor="?attr/colorOnPrimary" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_delete_user"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="@string/delete_user"
+                style="@style/Widget.Material3.Button"
+                android:backgroundTint="@color/md_theme_error"
+                android:textColor="@color/md_theme_onError" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_delete_listing"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="@string/delete_listing"
+                style="@style/Widget.Material3.Button"
+                android:backgroundTint="@color/md_theme_error"
+                android:textColor="@color/md_theme_onError" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_suspend_listing"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="@string/suspend_listing"
+                style="@style/Widget.Material3.Button"
+                android:backgroundTint="?attr/colorPrimary"
+                android:textColor="?attr/colorOnPrimary" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_warn_listing"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="@string/warn_listing"
+                style="@style/Widget.Material3.Button"
+                android:backgroundTint="?attr/colorPrimary"
+                android:textColor="?attr/colorOnPrimary" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_delete_report"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="@string/delete_report"
+                style="@style/Widget.Material3.Button"
+                android:backgroundTint="@color/md_theme_error"
+                android:textColor="@color/md_theme_onError" />
+        </GridLayout>
+
+        <!-- Listing Admin Actions -->
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -1,7 +1,6 @@
 package com.example.tradeupapp.models;
 
 import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.Exclude;
 
 import java.io.Serializable;
@@ -66,15 +65,18 @@ public class ReportModel implements Serializable {
         }
     }
 
-    @DocumentId
     private String id; // optional - Firestore auto ID
     private String reporterId; // required - user filing the report
-    private String targetUserId; // required - user being reported
-    private String listingId; // optional - listing being reported (if applicable)
+    private String reportedUserId; // required - user being reported
+    private String reportedItemId; // optional - listing being reported (if applicable)
+    private String reportType; // optional - type of report
     private String reason; // required - "spam", "fraud", "abuse", etc.
     private String description; // optional - additional notes
     private String status; // required - "pending", "reviewed"
     private Timestamp createdAt; // required - when report was submitted
+    private Timestamp resolvedAt; // optional - when report was resolved
+    private String adminNotes; // optional - notes from admin
+    private java.util.List<String> evidence; // optional - list of evidence URLs
 
     /**
      * Default constructor required for Firebase Firestore
@@ -88,9 +90,9 @@ public class ReportModel implements Serializable {
     /**
      * Constructor for reporting a user (without specific listing)
      */
-    public ReportModel(String reporterId, String targetUserId, String reason, String description) {
+    public ReportModel(String reporterId, String reportedUserId, String reason, String description) {
         this.reporterId = reporterId;
-        this.targetUserId = targetUserId;
+        this.reportedUserId = reportedUserId;
         this.reason = reason;
         this.description = description;
         this.status = Status.PENDING.getValue();
@@ -100,9 +102,9 @@ public class ReportModel implements Serializable {
     /**
      * Constructor for reporting a user with enum reason
      */
-    public ReportModel(String reporterId, String targetUserId, Reason reason, String description) {
+    public ReportModel(String reporterId, String reportedUserId, Reason reason, String description) {
         this.reporterId = reporterId;
-        this.targetUserId = targetUserId;
+        this.reportedUserId = reportedUserId;
         this.reason = reason.getValue();
         this.description = description;
         this.status = Status.PENDING.getValue();
@@ -112,11 +114,11 @@ public class ReportModel implements Serializable {
     /**
      * Constructor for reporting a specific listing
      */
-    public ReportModel(String reporterId, String targetUserId, String listingId,
+    public ReportModel(String reporterId, String reportedUserId, String reportedItemId,
                       String reason, String description) {
         this.reporterId = reporterId;
-        this.targetUserId = targetUserId;
-        this.listingId = listingId;
+        this.reportedUserId = reportedUserId;
+        this.reportedItemId = reportedItemId;
         this.reason = reason;
         this.description = description;
         this.status = Status.PENDING.getValue();
@@ -126,11 +128,11 @@ public class ReportModel implements Serializable {
     /**
      * Constructor for reporting a specific listing with enum reason
      */
-    public ReportModel(String reporterId, String targetUserId, String listingId,
+    public ReportModel(String reporterId, String reportedUserId, String reportedItemId,
                       Reason reason, String description) {
         this.reporterId = reporterId;
-        this.targetUserId = targetUserId;
-        this.listingId = listingId;
+        this.reportedUserId = reportedUserId;
+        this.reportedItemId = reportedItemId;
         this.reason = reason.getValue();
         this.description = description;
         this.status = Status.PENDING.getValue();
@@ -140,16 +142,20 @@ public class ReportModel implements Serializable {
     /**
      * Full constructor with all report properties
      */
-    public ReportModel(String id, String reporterId, String targetUserId, String listingId,
-                     String reason, String description, String status, Timestamp createdAt) {
+    public ReportModel(String id, String reporterId, String reportedUserId, String reportedItemId,
+                     String reason, String description, String status, Timestamp createdAt, Timestamp resolvedAt,
+                     String adminNotes, java.util.List<String> evidence) {
         this.id = id;
         this.reporterId = reporterId;
-        this.targetUserId = targetUserId;
-        this.listingId = listingId;
+        this.reportedUserId = reportedUserId;
+        this.reportedItemId = reportedItemId;
         this.reason = reason;
         this.description = description;
         this.status = status != null ? status : Status.PENDING.getValue();
         this.createdAt = createdAt != null ? createdAt : Timestamp.now();
+        this.resolvedAt = resolvedAt;
+        this.adminNotes = adminNotes;
+        this.evidence = evidence;
     }
 
     // Getters and Setters
@@ -170,20 +176,28 @@ public class ReportModel implements Serializable {
         this.reporterId = reporterId;
     }
 
-    public String getTargetUserId() {
-        return targetUserId;
+    public String getReportedUserId() {
+        return reportedUserId;
     }
 
-    public void setTargetUserId(String targetUserId) {
-        this.targetUserId = targetUserId;
+    public void setReportedUserId(String reportedUserId) {
+        this.reportedUserId = reportedUserId;
     }
 
-    public String getListingId() {
-        return listingId;
+    public String getReportedItemId() {
+        return reportedItemId;
     }
 
-    public void setListingId(String listingId) {
-        this.listingId = listingId;
+    public void setReportedItemId(String reportedItemId) {
+        this.reportedItemId = reportedItemId;
+    }
+
+    public String getReportType() {
+        return reportType;
+    }
+
+    public void setReportType(String reportType) {
+        this.reportType = reportType;
     }
 
     public String getReason() {
@@ -240,13 +254,37 @@ public class ReportModel implements Serializable {
         this.createdAt = createdAt != null ? createdAt : Timestamp.now();
     }
 
+    public Timestamp getResolvedAt() {
+        return resolvedAt;
+    }
+
+    public void setResolvedAt(Timestamp resolvedAt) {
+        this.resolvedAt = resolvedAt;
+    }
+
+    public String getAdminNotes() {
+        return adminNotes;
+    }
+
+    public void setAdminNotes(String adminNotes) {
+        this.adminNotes = adminNotes;
+    }
+
+    public java.util.List<String> getEvidence() {
+        return evidence;
+    }
+
+    public void setEvidence(java.util.List<String> evidence) {
+        this.evidence = evidence;
+    }
+
     /**
      * Check if this report is for a listing
      * @return true if report includes a listing ID, false otherwise
      */
     @Exclude // Not stored in Firestore, computed
     public boolean isListingReport() {
-        return listingId != null && !listingId.isEmpty();
+        return reportedItemId != null && !reportedItemId.isEmpty();
     }
 
     /**

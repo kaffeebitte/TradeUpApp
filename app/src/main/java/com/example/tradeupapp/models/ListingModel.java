@@ -59,6 +59,8 @@ public class ListingModel implements Serializable {
     private Double longitude; // longitude of the listing location
     // Location field (address, lat, lng)
     private java.util.Map<String, Object> location;
+    private Boolean isBanned; // optional - whether the listing is banned
+    private Long warningCount; // optional - number of warnings
 
     /**
      * Default constructor required for Firebase Firestore
@@ -74,6 +76,7 @@ public class ListingModel implements Serializable {
         this.allowOffers = true;
         this.allowReturns = false;
         this.interactions = new Interactions();
+        this.warningCount = 0L;
     }
 
     /**
@@ -93,6 +96,7 @@ public class ListingModel implements Serializable {
         this.allowOffers = true;
         this.allowReturns = false;
         this.interactions = new Interactions();
+        this.warningCount = 0L;
     }
 
     /**
@@ -102,7 +106,7 @@ public class ListingModel implements Serializable {
                       Object createdAt, Object updatedAt, int viewCount,
                       List<String> tags, String transactionStatus, double distanceRadius,
                       boolean allowOffers, boolean allowReturns, Interactions interactions,
-                      Double latitude, Double longitude) {
+                      Double latitude, Double longitude, Boolean isBanned, Long warningCount) {
         this.id = id;
         this.itemId = itemId;
         this.price = price;
@@ -119,6 +123,8 @@ public class ListingModel implements Serializable {
         this.interactions = interactions != null ? interactions : new Interactions();
         this.latitude = latitude;
         this.longitude = longitude;
+        this.isBanned = isBanned;
+        this.warningCount = warningCount != null ? warningCount : 0L;
     }
 
     // Getters and Setters
@@ -303,6 +309,22 @@ public class ListingModel implements Serializable {
 
     public void setLocation(java.util.Map<String, Object> location) {
         this.location = location;
+    }
+
+    public Boolean getIsBanned() {
+        return isBanned;
+    }
+
+    public void setIsBanned(Boolean isBanned) {
+        this.isBanned = isBanned;
+    }
+
+    public Long getWarningCount() {
+        return warningCount != null ? warningCount : 0L;
+    }
+
+    public void setWarningCount(Long warningCount) {
+        this.warningCount = warningCount;
     }
 
     // Helper methods for transaction status

@@ -1,331 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    android:background="@android:color/background_light">
 
-    <!-- Top App Bar -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
-        android:layout_width="match_parent"
+    <!-- Toolbar -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/admin_toolbar"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:title="@string/admin_dashboard_title"
+        android:titleTextColor="?attr/colorOnPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:titleCentered="true" />
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="Admin Dashboard"
-            app:menu="@menu/menu_admin_dashboard" />
+    <!-- Logo -->
 
-    </com.google.android.material.appbar.AppBarLayout>
+    <!-- Headline -->
+    <TextView
+        android:id="@+id/tv_admin_headline"
+        style="@style/TextAppearance.TradeUp.DisplaySmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/admin_dashboard_headline"
+        android:textColor="?attr/colorPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/admin_toolbar" />
+
+    <!-- Subtitle -->
+    <TextView
+        android:id="@+id/tv_admin_subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/admin_dashboard_subtitle"
+        style="@style/TextAppearance.TradeUp.TitleLarge"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintTop_toBottomOf="@id/tv_admin_headline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="4dp" />
 
     <!-- Main Content -->
     <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:id="@+id/admin_scroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/tv_admin_subtitle"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:gravity="center_horizontal">
 
-            <!-- Dashboard Overview Cards -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Dashboard Overview"
-                android:textAppearance="?attr/textAppearanceTitleLarge"
-                android:layout_marginBottom="16dp" />
+                android:text="@string/admin_dashboard_reported_content"
+                style="@style/TextAppearance.TradeUp.TitleLarge"
+                android:textColor="?attr/colorOnSurface"
+                android:layout_marginBottom="8dp"
+                android:layout_marginTop="8dp"/>
 
-            <androidx.gridlayout.widget.GridLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:columnCount="2"
-                app:rowCount="2"
-                app:useDefaultMargins="true">
-
-                <!-- Active Users Card -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/card_active_users"
-                    android:layout_width="0dp"
-                    app:layout_columnWeight="1"
-                    android:layout_height="wrap_content"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_person_24"
-                            app:tint="?attr/colorPrimary" />
-
-                        <TextView
-                            android:id="@+id/tv_active_users_count"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                            android:textStyle="bold"
-                            tools:text="1,245" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Active Users"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?attr/colorOnSurfaceVariant" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Active Listings Card -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/card_active_listings"
-                    android:layout_width="0dp"
-                    app:layout_columnWeight="1"
-                    android:layout_height="wrap_content"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_local_offer_24"
-                            app:tint="?attr/colorPrimary" />
-
-                        <TextView
-                            android:id="@+id/tv_active_listings_count"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                            android:textStyle="bold"
-                            tools:text="3,781" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Active Listings"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?attr/colorOnSurfaceVariant" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Pending Reports Card -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/card_pending_reports"
-                    android:layout_width="0dp"
-                    app:layout_columnWeight="1"
-                    android:layout_height="wrap_content"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_report_24"
-                            app:tint="?attr/colorError" />
-
-                        <TextView
-                            android:id="@+id/tv_pending_reports_count"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                            android:textStyle="bold"
-                            tools:text="24" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Pending Reports"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?attr/colorOnSurfaceVariant" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Completed Transactions Card -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/card_completed_transactions"
-                    android:layout_width="0dp"
-                    app:layout_columnWeight="1"
-                    android:layout_height="wrap_content"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_check_circle_24"
-                            app:tint="?attr/colorPrimary" />
-
-                        <TextView
-                            android:id="@+id/tv_completed_transactions_count"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                            android:textStyle="bold"
-                            tools:text="1,589" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Completed Transactions"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?attr/colorOnSurfaceVariant" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-            </androidx.gridlayout.widget.GridLayout>
-
-            <!-- Reports Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Pending Reports"
-                android:textAppearance="?attr/textAppearanceTitleLarge"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="8dp" />
-
-            <!-- Tab Layout for Report Types -->
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tab_layout_reports"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:tabMode="scrollable">
-
-                <com.google.android.material.tabs.TabItem
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="All" />
-
-                <com.google.android.material.tabs.TabItem
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Spam" />
-
-                <com.google.android.material.tabs.TabItem
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Fraud" />
-
-                <com.google.android.material.tabs.TabItem
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Abuse" />
-
-                <com.google.android.material.tabs.TabItem
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Inappropriate" />
-            </com.google.android.material.tabs.TabLayout>
-
-            <!-- Reports RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_reports"
+                android:id="@+id/rvReports"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                tools:listitem="@layout/item_report"
-                tools:itemCount="3" />
+                android:minHeight="120dp"
+                android:background="@color/cardBackground"
+                android:clipToPadding="false"
+                android:paddingBottom="8dp"
+                android:layout_marginBottom="24dp"
+                android:overScrollMode="ifContentScrolls"/>
 
-            <!-- Admin Actions Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Admin Actions"
-                android:textAppearance="?attr/textAppearanceTitleLarge"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="16dp" />
+                android:text="@string/admin_dashboard_flagged_users"
+                style="@style/TextAppearance.TradeUp.TitleLarge"
+                android:textColor="?attr/colorOnSurface"
+                android:layout_marginBottom="8dp"
+                android:layout_marginTop="8dp"/>
 
-            <!-- Action Buttons -->
-            <LinearLayout
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFlaggedUsers"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <!-- Manage Users Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_manage_users"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Manage Users"
-                    app:icon="@drawable/ic_person_24"
-                    android:layout_marginBottom="8dp" />
-
-                <!-- Manage Categories Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_manage_categories"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Manage Categories"
-                    app:icon="@drawable/ic_category_24"
-                    android:layout_marginBottom="8dp" />
-
-                <!-- View Activity Logs Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_view_logs"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="View Admin Logs"
-                    app:icon="@drawable/ic_admin_panel_24"
-                    android:layout_marginBottom="8dp" />
-
-                <!-- System Settings Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_system_settings"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="System Settings"
-                    app:icon="@drawable/ic_settings_24" />
-            </LinearLayout>
+                android:minHeight="120dp"
+                android:background="@color/cardBackground"
+                android:clipToPadding="false"
+                android:paddingBottom="8dp"
+                android:layout_marginBottom="24dp"
+                android:overScrollMode="ifContentScrolls"/>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
-    <!-- FAB for Quick Actions -->
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/fab_add_announcement"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:text="Send Announcement"
-        app:icon="@drawable/ic_send_24" />
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

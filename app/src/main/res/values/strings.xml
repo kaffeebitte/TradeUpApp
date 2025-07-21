@@ -164,4 +164,36 @@
     <string name="near_you">Near You</string>
     <string name="recently_added">Recently Added</string>
     <string name="chat_count_zero">0</string>
+
+    <!-- Admin Dashboard Strings -->
+    <string name="admin_dashboard_title">Admin Dashboard</string>
+    <string name="admin_dashboard_headline">Admin Dashboard</string>
+    <string name="admin_dashboard_subtitle">Moderation &amp; Safety</string>
+    <string name="admin_dashboard_reported_content">Reported Content</string>
+    <string name="admin_dashboard_flagged_users">Flagged Users</string>
+
+    <!-- Report Details Strings -->
+    <string name="report_details">Report Details</string>
+    <string name="report_type">Report Type:</string>
+    <string name="reported_item_id">Reported Item ID:</string>
+    <string name="date_reported">Date Reported:</string>
+    <string name="reported_by">Reported By:</string>
+    <string name="reported_user">Reported User:</string>
+    <string name="reason">Reason:</string>
+    <string name="details">Details:</string>
+    <string name="evidence">Evidence:</string>
+    <string name="admin_notes">Admin Notes:</string>
+    <string name="status">Status:</string>
+    <string name="select_status">Select status</string>
+    <string name="update_status">Update Status</string>
+    <string name="close">Close</string>
+    <string name="admin_actions">Admin Actions</string>
+    <string name="suspend_user">Suspend User</string>
+    <string name="warn_user">Warn User</string>
+    <string name="delete_user">Delete User</string>
+    <string name="delete_listing">Delete Listing</string>
+    <string name="delete_report">Delete Report</string>
+    <string name="report_id">Report ID:</string>
+    <string name="suspend_listing">Suspend Listing</string>
+    <string name="warn_listing">Warn Listing</string>
 </resources>
