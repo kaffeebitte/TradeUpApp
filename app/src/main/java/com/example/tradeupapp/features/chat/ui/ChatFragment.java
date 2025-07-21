@@ -175,9 +175,9 @@ public class ChatFragment extends Fragment {
                 toolbar.setTitle("Chat");
             }
             toolbar.setNavigationOnClickListener(v -> {
-                // Navigate back to chat list
+                // Always navigate to chat list fragment
                 androidx.navigation.NavController navController = androidx.navigation.Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
-                navController.popBackStack(R.id.chatListFragment, false);
+                navController.navigate(R.id.chatListFragment);
             });
         }
 
@@ -541,6 +541,77 @@ public class ChatFragment extends Fragment {
                 updateChatLastMessage(message, attachments, messageType);
                 // Save to top-level chat_messages collection
                 saveMessageToTopLevelCollection(chatMessage);
+                // --- Send notification to recipient ---
+                if (otherUserId != null && !otherUserId.isEmpty() && !currentUserId.equals(otherUserId)) {
+                    // Fetch sender name from Firestore if not available
+                    String senderName = null;
+                    if (FirebaseAuth.getInstance().getCurrentUser() != null && FirebaseAuth.getInstance().getCurrentUser().getDisplayName() != null) {
+                        senderName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+                    }
+                    if (senderName == null || senderName.isEmpty()) {
+                        FirebaseFirestore.getInstance().collection("users").document(currentUserId)
+                                .get()
+                                .addOnSuccessListener(documentSnapshot -> {
+                                    String displayName = documentSnapshot.getString("displayName");
+                                    String finalSenderName = (displayName != null && !displayName.isEmpty()) ? displayName : currentUserId;
+                                    String messagePreview = message;
+                                    com.example.tradeupapp.core.services.FirebaseService.getInstance().sendChatNotificationToUser(
+                                            otherUserId,
+                                            finalSenderName,
+                                            messagePreview,
+                                            chatId,
+                                            new com.example.tradeupapp.core.services.FirebaseService.SimpleCallback() {
+                                                @Override
+                                                public void onSuccess() {
+                                                    android.util.Log.d("ChatFragment", "Chat notification sent to user: " + otherUserId);
+                                                }
+                                                @Override
+                                                public void onError(String error) {
+                                                    android.util.Log.e("ChatFragment", "Failed to send chat notification: " + error);
+                                                }
+                                            }
+                                    );
+                                })
+                                .addOnFailureListener(e -> {
+                                    // Fallback to userId if failed
+                                    String messagePreview = message;
+                                    com.example.tradeupapp.core.services.FirebaseService.getInstance().sendChatNotificationToUser(
+                                            otherUserId,
+                                            currentUserId,
+                                            messagePreview,
+                                            chatId,
+                                            new com.example.tradeupapp.core.services.FirebaseService.SimpleCallback() {
+                                                @Override
+                                                public void onSuccess() {
+                                                    android.util.Log.d("ChatFragment", "Chat notification sent to user: " + otherUserId);
+                                                }
+                                                @Override
+                                                public void onError(String error) {
+                                                    android.util.Log.e("ChatFragment", "Failed to send chat notification: " + error);
+                                                }
+                                            }
+                                    );
+                                });
+                    } else {
+                        String messagePreview = message;
+                        com.example.tradeupapp.core.services.FirebaseService.getInstance().sendChatNotificationToUser(
+                                otherUserId,
+                                senderName,
+                                messagePreview,
+                                chatId,
+                                new com.example.tradeupapp.core.services.FirebaseService.SimpleCallback() {
+                                    @Override
+                                    public void onSuccess() {
+                                        android.util.Log.d("ChatFragment", "Chat notification sent to user: " + otherUserId);
+                                    }
+                                    @Override
+                                    public void onError(String error) {
+                                        android.util.Log.e("ChatFragment", "Failed to send chat notification: " + error);
+                                    }
+                                }
+                        );
+                    }
+                }
             })
             .addOnFailureListener(e -> {
                 Toast.makeText(requireContext(), "Failed to send message", Toast.LENGTH_SHORT).show();

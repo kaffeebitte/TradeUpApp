@@ -1546,7 +1546,204 @@ public class FirebaseService {
                 });
     }
 
-    // Create a new offer in Firestore
+    /**
+     * Send a chat message to Firestore (chats/{chatId}/messages)
+     */
+    public void sendChatMessage(String chatId, String senderId, String message, String messageType, List<String> attachments, SendMessageCallback callback) {
+        if (chatId == null || chatId.isEmpty() || senderId == null || senderId.isEmpty()) {
+            if (callback != null) callback.onError("chatId or senderId is empty");
+            return;
+        }
+        String messageId = "msg_" + java.util.UUID.randomUUID().toString().replace("-", "");
+        com.example.tradeupapp.models.ChatMessage chatMessage = new com.example.tradeupapp.models.ChatMessage(chatId, senderId, message, messageType, attachments);
+        chatMessage.setId(messageId);
+        chatMessage.setTimestamp(com.google.firebase.Timestamp.now());
+        chatMessage.setRead(false);
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("chats").document(chatId).collection("messages")
+            .document(messageId)
+            .set(chatMessage)
+            .addOnSuccessListener(aVoid -> {
+                if (callback != null) callback.onSuccess(messageId);
+            })
+            .addOnFailureListener(e -> {
+                if (callback != null) callback.onError(e.getMessage());
+            });
+    }
+
+    /**
+     * Send a chat message to Firestore (top-level chat_messages collection)
+     */
+    public void sendChatMessageToCollection(String chatId, String senderId, String message, String messageType, List<String> attachments, SendMessageCallback callback) {
+        if (chatId == null || chatId.isEmpty() || senderId == null || senderId.isEmpty()) {
+            if (callback != null) callback.onError("chatId or senderId is empty");
+            return;
+        }
+        String messageId = "msg_" + java.util.UUID.randomUUID().toString().replace("-", "");
+        com.example.tradeupapp.models.ChatMessage chatMessage = new com.example.tradeupapp.models.ChatMessage(chatId, senderId, message, messageType, attachments);
+        chatMessage.setId(messageId);
+        chatMessage.setTimestamp(com.google.firebase.Timestamp.now());
+        chatMessage.setRead(false);
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("chat_messages")
+            .document(messageId)
+            .set(chatMessage)
+            .addOnSuccessListener(aVoid -> {
+                if (callback != null) callback.onSuccess(messageId);
+            })
+            .addOnFailureListener(e -> {
+                if (callback != null) callback.onError(e.getMessage());
+            });
+    }
+
+    /**
+     * Get all messages for a chat from top-level chat_messages collection
+     */
+    public void getMessagesByChatId(String chatId, MessagesCallback callback) {
+        db.collection("chat_messages")
+            .whereEqualTo("chatId", chatId)
+            .orderBy("timestamp", Query.Direction.ASCENDING)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                List<com.example.tradeupapp.models.ChatMessage> messages = new ArrayList<>();
+                for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                    com.example.tradeupapp.models.ChatMessage msg = doc.toObject(com.example.tradeupapp.models.ChatMessage.class);
+                    if (msg != null) messages.add(msg);
+                }
+                callback.onSuccess(messages);
+            })
+            .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
+    /**
+     * Mark all unread messages as read for a chat in chat_messages collection
+     */
+    public void markMessagesAsReadInCollection(String chatId, String currentUserId) {
+        db.collection("chat_messages")
+            .whereEqualTo("chatId", chatId)
+            .whereEqualTo("isRead", false)
+            .whereNotEqualTo("senderId", currentUserId)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                    doc.getReference().update("isRead", true);
+                }
+            });
+    }
+
+    public interface MessagesCallback {
+        void onSuccess(List<com.example.tradeupapp.models.ChatMessage> messages);
+        void onError(String error);
+    }
+
+    public interface SendMessageCallback {
+        void onSuccess(String messageId);
+        void onError(String error);
+    }
+
+    /**
+     * Get or create a chat between two users for a specific item.
+     * Calls callback.onSuccess(chatId) with the chatId to use.
+     */
+    public void getOrCreateChat(String currentUserId, String sellerId, String itemId, ChatIdCallback callback) {
+        if (currentUserId == null || sellerId == null || itemId == null) {
+            if (callback != null) callback.onError("Missing user or item id");
+            return;
+        }
+        db.collection("chats")
+            .whereArrayContains("participants", currentUserId)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                String chatIdToUse = null;
+                for (com.google.firebase.firestore.QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                    java.util.List<String> participants = (java.util.List<String>) doc.get("participants");
+                    String relatedItemId = doc.getString("relatedItemId");
+                    if (participants != null && participants.contains(sellerId) && participants.contains(currentUserId)
+                        && itemId.equals(relatedItemId)) {
+                        chatIdToUse = doc.getId();
+                        break;
+                    }
+                }
+                if (chatIdToUse != null) {
+                    if (callback != null) callback.onSuccess(chatIdToUse);
+                } else {
+                    java.util.List<String> userIds = new java.util.ArrayList<>();
+                    userIds.add(currentUserId);
+                    userIds.add(sellerId);
+                    com.example.tradeupapp.models.ChatModel newChat = new com.example.tradeupapp.models.ChatModel();
+                    newChat.setParticipants(userIds);
+                    newChat.setRelatedItemId(itemId);
+                    newChat.setLastMessageTime(com.google.firebase.Timestamp.now());
+                    db.collection("chats")
+                        .add(newChat)
+                        .addOnSuccessListener(documentReference -> {
+                            String newChatId = documentReference.getId();
+                            if (callback != null) callback.onSuccess(newChatId);
+                        })
+                        .addOnFailureListener(e -> {
+                            if (callback != null) callback.onError("Failed to create chat: " + e.getMessage());
+                        });
+                }
+            })
+            .addOnFailureListener(e -> {
+                if (callback != null) callback.onError("Failed to check for existing chat: " + e.getMessage());
+            });
+    }
+
+    public interface ChatIdCallback {
+        void onSuccess(String chatId);
+        void onError(String error);
+    }
+
+    /**
+     * Create and send a notification for a new chat message
+     */
+    public void sendChatNotificationToUser(String recipientUserId, String senderName, String message, String chatId, SimpleCallback callback) {
+        NotificationModel notification = NotificationModel.createChatNotification(recipientUserId, senderName, message, chatId);
+        db.collection("notifications")
+            .add(notification)
+            .addOnSuccessListener(documentReference -> {
+                if (callback != null) callback.onSuccess();
+            })
+            .addOnFailureListener(e -> {
+                if (callback != null) callback.onError(e.getMessage());
+            });
+    }
+
+    /**
+     * Create and send a notification for a new price offer or offer update (customized for each action)
+     */
+    public void sendOfferNotificationToUser(String recipientUserId, String actorName, String itemTitle, String offerId, String action, SimpleCallback callback) {
+        String title = "Offer for " + itemTitle;
+        String body;
+        switch (action) {
+            case "make_offer":
+                body = actorName + " made an offer for your item: " + itemTitle + ".";
+                break;
+            case "accept":
+                body = "Your offer for " + itemTitle + " was accepted by " + actorName + ".";
+                break;
+            case "decline":
+                body = "Your offer for " + itemTitle + " was declined by " + actorName + ".";
+                break;
+            case "counter":
+                body = actorName + " sent you a counter offer for " + itemTitle + ".";
+                break;
+            default:
+                body = "There is an update for your offer on " + itemTitle + ".";
+        }
+        NotificationModel notification = new NotificationModel(recipientUserId, title, body, "offer", offerId);
+        db.collection("notifications")
+            .add(notification)
+            .addOnSuccessListener(documentReference -> {
+                if (callback != null) callback.onSuccess();
+            })
+            .addOnFailureListener(e -> {
+                if (callback != null) callback.onError(e.getMessage());
+            });
+    }
+
+    // Update createOffer to use the new notification method
     public void createOffer(OfferModel offer, SimpleCallback callback) {
         if (offer == null) {
             if (callback != null) callback.onError("Offer is null");
@@ -1555,12 +1752,10 @@ public class FirebaseService {
         db.collection("offers")
             .add(offer)
             .addOnSuccessListener(documentReference -> {
-                // Fetch buyer display name and item title for notification
                 getUserById(offer.getBuyerId(), new UserCallback() {
                     @Override
                     public void onSuccess(com.example.tradeupapp.models.User buyer) {
                         String buyerName = buyer != null && buyer.getDisplayName() != null ? buyer.getDisplayName() : offer.getBuyerId();
-                        // Fetch item title using listingId
                         getListingById(offer.getListingId(), new ListingCallback() {
                             @Override
                             public void onSuccess(ListingModel listing) {
@@ -1570,7 +1765,7 @@ public class FirebaseService {
                                         public void onSuccess(ItemModel item) {
                                             String itemTitle = item != null && item.getTitle() != null ? item.getTitle() : offer.getListingId();
                                             String offerId = documentReference.getId();
-                                            sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, new SimpleCallback() {
+                                            sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, "make_offer", new SimpleCallback() {
                                                 @Override
                                                 public void onSuccess() { /* Notification sent */ }
                                                 @Override
@@ -1582,7 +1777,7 @@ public class FirebaseService {
                                         public void onError(String error) {
                                             String itemTitle = offer.getListingId();
                                             String offerId = documentReference.getId();
-                                            sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, new SimpleCallback() {
+                                            sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, "make_offer", new SimpleCallback() {
                                                 @Override
                                                 public void onSuccess() { /* Notification sent */ }
                                                 @Override
@@ -1594,7 +1789,7 @@ public class FirebaseService {
                                 } else {
                                     String itemTitle = offer.getListingId();
                                     String offerId = documentReference.getId();
-                                    sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, new SimpleCallback() {
+                                    sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, "make_offer", new SimpleCallback() {
                                         @Override
                                         public void onSuccess() { /* Notification sent */ }
                                         @Override
@@ -1607,7 +1802,7 @@ public class FirebaseService {
                             public void onError(String error) {
                                 String itemTitle = offer.getListingId();
                                 String offerId = documentReference.getId();
-                                sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, new SimpleCallback() {
+                                sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, "make_offer", new SimpleCallback() {
                                     @Override
                                     public void onSuccess() { /* Notification sent */ }
                                     @Override
@@ -1629,7 +1824,7 @@ public class FirebaseService {
                                         public void onSuccess(ItemModel item) {
                                             String itemTitle = item != null && item.getTitle() != null ? item.getTitle() : offer.getListingId();
                                             String offerId = documentReference.getId();
-                                            sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, new SimpleCallback() {
+                                            sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, "make_offer", new SimpleCallback() {
                                                 @Override
                                                 public void onSuccess() { /* Notification sent */ }
                                                 @Override
@@ -1641,7 +1836,7 @@ public class FirebaseService {
                                         public void onError(String error) {
                                             String itemTitle = offer.getListingId();
                                             String offerId = documentReference.getId();
-                                            sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, new SimpleCallback() {
+                                            sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, "make_offer", new SimpleCallback() {
                                                 @Override
                                                 public void onSuccess() { /* Notification sent */ }
                                                 @Override
@@ -1653,7 +1848,7 @@ public class FirebaseService {
                                 } else {
                                     String itemTitle = offer.getListingId();
                                     String offerId = documentReference.getId();
-                                    sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, new SimpleCallback() {
+                                    sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, "make_offer", new SimpleCallback() {
                                         @Override
                                         public void onSuccess() { /* Notification sent */ }
                                         @Override
@@ -1666,7 +1861,7 @@ public class FirebaseService {
                             public void onError(String error) {
                                 String itemTitle = offer.getListingId();
                                 String offerId = documentReference.getId();
-                                sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, new SimpleCallback() {
+                                sendOfferNotificationToUser(offer.getSellerId(), buyerName, itemTitle, offerId, "make_offer", new SimpleCallback() {
                                     @Override
                                     public void onSuccess() { /* Notification sent */ }
                                     @Override
@@ -1683,7 +1878,7 @@ public class FirebaseService {
             });
     }
 
-    // Accept an offer (seller only)
+    // Update acceptOffer to use the new notification method
     public void acceptOffer(OfferModel offer, SimpleCallback callback) {
         if (offer == null || offer.getId() == null) {
             if (callback != null) callback.onError("Offer or Offer ID is null");
@@ -1701,40 +1896,120 @@ public class FirebaseService {
         db.collection("offers").document(offer.getId())
             .update(updates)
             .addOnSuccessListener(aVoid -> {
-                // Fetch seller display name for notification
                 getUserById(offer.getSellerId(), new UserCallback() {
                     @Override
                     public void onSuccess(com.example.tradeupapp.models.User seller) {
                         String sellerName = seller != null && seller.getDisplayName() != null ? seller.getDisplayName() : offer.getSellerId();
-                        String itemTitle = offer.getItemTitle();
                         String offerId = offer.getId();
-                        sendOfferNotificationToUser(offer.getBuyerId(), sellerName, itemTitle, offerId, new SimpleCallback() {
+                        // Fetch listing and item to get item title
+                        getListingById(offer.getListingId(), new ListingCallback() {
                             @Override
-                            public void onSuccess() { /* Notification sent */ }
+                            public void onSuccess(ListingModel listing) {
+                                if (listing != null && listing.getItemId() != null) {
+                                    getItemById(listing.getItemId(), new ItemCallback() {
+                                        @Override
+                                        public void onSuccess(ItemModel item) {
+                                            String itemTitle = item != null && item.getTitle() != null ? item.getTitle() : offer.getListingId();
+                                            sendOfferNotificationToUser(offer.getBuyerId(), sellerName, itemTitle, offerId, "accept", new SimpleCallback() {
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
+                                            if (callback != null) callback.onSuccess();
+                                        }
+                                        @Override
+                                        public void onError(String error) {
+                                            sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "accept", new SimpleCallback() {
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
+                                            if (callback != null) callback.onSuccess();
+                                        }
+                                    });
+                                } else {
+                                    sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "accept", new SimpleCallback() {
+                                        @Override
+                                        public void onSuccess() { /* Notification sent */ }
+                                        @Override
+                                        public void onError(String error) { /* Handle notification error if needed */ }
+                                    });
+                                    if (callback != null) callback.onSuccess();
+                                }
+                            }
                             @Override
-                            public void onError(String error) { /* Handle notification error if needed */ }
+                            public void onError(String error) {
+                                sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "accept", new SimpleCallback() {
+                                    @Override
+                                    public void onSuccess() { /* Notification sent */ }
+                                    @Override
+                                    public void onError(String error) { /* Handle notification error if needed */ }
+                                });
+                                if (callback != null) callback.onSuccess();
+                            }
                         });
-                        if (callback != null) callback.onSuccess();
                     }
                     @Override
                     public void onError(String error) {
                         String sellerName = offer.getSellerId();
-                        String itemTitle = offer.getItemTitle();
                         String offerId = offer.getId();
-                        sendOfferNotificationToUser(offer.getBuyerId(), sellerName, itemTitle, offerId, new SimpleCallback() {
+                        getListingById(offer.getListingId(), new ListingCallback() {
                             @Override
-                            public void onSuccess() { /* Notification sent */ }
+                            public void onSuccess(ListingModel listing) {
+                                if (listing != null && listing.getItemId() != null) {
+                                    getItemById(listing.getItemId(), new ItemCallback() {
+                                        @Override
+                                        public void onSuccess(ItemModel item) {
+                                            String itemTitle = item != null && item.getTitle() != null ? item.getTitle() : offer.getListingId();
+                                            sendOfferNotificationToUser(offer.getBuyerId(), sellerName, itemTitle, offerId, "accept", new SimpleCallback() {
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
+                                            if (callback != null) callback.onSuccess();
+                                        }
+                                        @Override
+                                        public void onError(String error) {
+                                            sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "accept", new SimpleCallback() {
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
+                                            if (callback != null) callback.onSuccess();
+                                        }
+                                    });
+                                } else {
+                                    sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "accept", new SimpleCallback() {
+                                        @Override
+                                        public void onSuccess() { /* Notification sent */ }
+                                        @Override
+                                        public void onError(String error) { /* Handle notification error if needed */ }
+                                    });
+                                    if (callback != null) callback.onSuccess();
+                                }
+                            }
                             @Override
-                            public void onError(String error) { /* Handle notification error if needed */ }
+                            public void onError(String error) {
+                                sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "accept", new SimpleCallback() {
+                                    @Override
+                                    public void onSuccess() { /* Notification sent */ }
+                                    @Override
+                                    public void onError(String error) { /* Handle notification error if needed */ }
+                                });
+                                if (callback != null) callback.onSuccess();
+                            }
                         });
-                        if (callback != null) callback.onSuccess();
                     }
                 });
             })
             .addOnFailureListener(e -> { if (callback != null) callback.onError(e.getMessage()); });
     }
 
-    // Reject an offer (seller only)
+    // Update rejectOffer to use the new notification method
     public void rejectOffer(OfferModel offer, SimpleCallback callback) {
         if (offer == null || offer.getId() == null) {
             if (callback != null) callback.onError("Offer or Offer ID is null");
@@ -1752,40 +2027,120 @@ public class FirebaseService {
         db.collection("offers").document(offer.getId())
             .update(updates)
             .addOnSuccessListener(aVoid -> {
-                // Fetch seller display name for notification
                 getUserById(offer.getSellerId(), new UserCallback() {
                     @Override
                     public void onSuccess(com.example.tradeupapp.models.User seller) {
                         String sellerName = seller != null && seller.getDisplayName() != null ? seller.getDisplayName() : offer.getSellerId();
-                        String itemTitle = offer.getItemTitle();
                         String offerId = offer.getId();
-                        sendOfferNotificationToUser(offer.getBuyerId(), sellerName, itemTitle, offerId, new SimpleCallback() {
+                        // Fetch listing and item to get item title
+                        getListingById(offer.getListingId(), new ListingCallback() {
                             @Override
-                            public void onSuccess() { /* Notification sent */ }
+                            public void onSuccess(ListingModel listing) {
+                                if (listing != null && listing.getItemId() != null) {
+                                    getItemById(listing.getItemId(), new ItemCallback() {
+                                        @Override
+                                        public void onSuccess(ItemModel item) {
+                                            String itemTitle = item != null && item.getTitle() != null ? item.getTitle() : offer.getListingId();
+                                            sendOfferNotificationToUser(offer.getBuyerId(), sellerName, itemTitle, offerId, "decline", new SimpleCallback() {
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
+                                            if (callback != null) callback.onSuccess();
+                                        }
+                                        @Override
+                                        public void onError(String error) {
+                                            sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "decline", new SimpleCallback() {
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
+                                            if (callback != null) callback.onSuccess();
+                                        }
+                                    });
+                                } else {
+                                    sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "decline", new SimpleCallback() {
+                                        @Override
+                                        public void onSuccess() { /* Notification sent */ }
+                                        @Override
+                                        public void onError(String error) { /* Handle notification error if needed */ }
+                                    });
+                                    if (callback != null) callback.onSuccess();
+                                }
+                            }
                             @Override
-                            public void onError(String error) { /* Handle notification error if needed */ }
+                            public void onError(String error) {
+                                sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "decline", new SimpleCallback() {
+                                    @Override
+                                    public void onSuccess() { /* Notification sent */ }
+                                    @Override
+                                    public void onError(String error) { /* Handle notification error if needed */ }
+                                });
+                                if (callback != null) callback.onSuccess();
+                            }
                         });
-                        if (callback != null) callback.onSuccess();
                     }
                     @Override
                     public void onError(String error) {
                         String sellerName = offer.getSellerId();
-                        String itemTitle = offer.getItemTitle();
                         String offerId = offer.getId();
-                        sendOfferNotificationToUser(offer.getBuyerId(), sellerName, itemTitle, offerId, new SimpleCallback() {
+                        getListingById(offer.getListingId(), new ListingCallback() {
                             @Override
-                            public void onSuccess() { /* Notification sent */ }
+                            public void onSuccess(ListingModel listing) {
+                                if (listing != null && listing.getItemId() != null) {
+                                    getItemById(listing.getItemId(), new ItemCallback() {
+                                        @Override
+                                        public void onSuccess(ItemModel item) {
+                                            String itemTitle = item != null && item.getTitle() != null ? item.getTitle() : offer.getListingId();
+                                            sendOfferNotificationToUser(offer.getBuyerId(), sellerName, itemTitle, offerId, "decline", new SimpleCallback() {
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
+                                            if (callback != null) callback.onSuccess();
+                                        }
+                                        @Override
+                                        public void onError(String error) {
+                                            sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "decline", new SimpleCallback() {
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
+                                            if (callback != null) callback.onSuccess();
+                                        }
+                                    });
+                                } else {
+                                    sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "decline", new SimpleCallback() {
+                                        @Override
+                                        public void onSuccess() { /* Notification sent */ }
+                                        @Override
+                                        public void onError(String error) { /* Handle notification error if needed */ }
+                                    });
+                                    if (callback != null) callback.onSuccess();
+                                }
+                            }
                             @Override
-                            public void onError(String error) { /* Handle notification error if needed */ }
+                            public void onError(String error) {
+                                sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "decline", new SimpleCallback() {
+                                    @Override
+                                    public void onSuccess() { /* Notification sent */ }
+                                    @Override
+                                    public void onError(String error) { /* Handle notification error if needed */ }
+                                });
+                                if (callback != null) callback.onSuccess();
+                            }
                         });
-                        if (callback != null) callback.onSuccess();
                     }
                 });
             })
             .addOnFailureListener(e -> { if (callback != null) callback.onError(e.getMessage()); });
     }
 
-    // Counter an offer (seller only)
+    // Update counterOffer to use the new notification method
     public void counterOffer(OfferModel offer, double counterAmount, String message, SimpleCallback callback) {
         Log.d(TAG, "counterOffer called. offer=" + (offer != null ? offer.getId() : "null") + ", counterAmount=" + counterAmount + ", message=" + message);
         if (offer == null || offer.getId() == null) {
@@ -1809,33 +2164,113 @@ public class FirebaseService {
             .update(updates)
             .addOnSuccessListener(aVoid -> {
                 Log.d(TAG, "counterOffer: update success for offerId=" + offer.getId());
-                // Fetch seller display name for notification
                 getUserById(offer.getSellerId(), new UserCallback() {
                     @Override
                     public void onSuccess(com.example.tradeupapp.models.User seller) {
                         String sellerName = seller != null && seller.getDisplayName() != null ? seller.getDisplayName() : offer.getSellerId();
-                        String itemTitle = offer.getItemTitle();
                         String offerId = offer.getId();
-                        sendOfferNotificationToUser(offer.getBuyerId(), sellerName, itemTitle, offerId, new SimpleCallback() {
+                        // Fetch listing and item to get item title
+                        getListingById(offer.getListingId(), new ListingCallback() {
                             @Override
-                            public void onSuccess() { /* Notification sent */ }
+                            public void onSuccess(ListingModel listing) {
+                                if (listing != null && listing.getItemId() != null) {
+                                    getItemById(listing.getItemId(), new ItemCallback() {
+                                        @Override
+                                        public void onSuccess(ItemModel item) {
+                                            String itemTitle = item != null && item.getTitle() != null ? item.getTitle() : offer.getListingId();
+                                            sendOfferNotificationToUser(offer.getBuyerId(), sellerName, itemTitle, offerId, "counter", new SimpleCallback() {
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
+                                            if (callback != null) callback.onSuccess();
+                                        }
+                                        @Override
+                                        public void onError(String error) {
+                                            sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "counter", new SimpleCallback() {
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
+                                            if (callback != null) callback.onSuccess();
+                                        }
+                                    });
+                                } else {
+                                    sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "counter", new SimpleCallback() {
+                                        @Override
+                                        public void onSuccess() { /* Notification sent */ }
+                                        @Override
+                                        public void onError(String error) { /* Handle notification error if needed */ }
+                                    });
+                                    if (callback != null) callback.onSuccess();
+                                }
+                            }
                             @Override
-                            public void onError(String error) { /* Handle notification error if needed */ }
+                            public void onError(String error) {
+                                sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "counter", new SimpleCallback() {
+                                    @Override
+                                    public void onSuccess() { /* Notification sent */ }
+                                    @Override
+                                    public void onError(String error) { /* Handle notification error if needed */ }
+                                });
+                                if (callback != null) callback.onSuccess();
+                            }
                         });
-                        if (callback != null) callback.onSuccess();
                     }
                     @Override
                     public void onError(String error) {
                         String sellerName = offer.getSellerId();
-                        String itemTitle = offer.getItemTitle();
                         String offerId = offer.getId();
-                        sendOfferNotificationToUser(offer.getBuyerId(), sellerName, itemTitle, offerId, new SimpleCallback() {
+                        getListingById(offer.getListingId(), new ListingCallback() {
                             @Override
-                            public void onSuccess() { /* Notification sent */ }
+                            public void onSuccess(ListingModel listing) {
+                                if (listing != null && listing.getItemId() != null) {
+                                    getItemById(listing.getItemId(), new ItemCallback() {
+                                        @Override
+                                        public void onSuccess(ItemModel item) {
+                                            String itemTitle = item != null && item.getTitle() != null ? item.getTitle() : offer.getListingId();
+                                            sendOfferNotificationToUser(offer.getBuyerId(), sellerName, itemTitle, offerId, "counter", new SimpleCallback() {
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
+                                            if (callback != null) callback.onSuccess();
+                                        }
+                                        @Override
+                                        public void onError(String error) {
+                                            sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "counter", new SimpleCallback() {
+                                                @Override
+                                                public void onSuccess() { /* Notification sent */ }
+                                                @Override
+                                                public void onError(String error) { /* Handle notification error if needed */ }
+                                            });
+                                            if (callback != null) callback.onSuccess();
+                                        }
+                                    });
+                                } else {
+                                    sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "counter", new SimpleCallback() {
+                                        @Override
+                                        public void onSuccess() { /* Notification sent */ }
+                                        @Override
+                                        public void onError(String error) { /* Handle notification error if needed */ }
+                                    });
+                                    if (callback != null) callback.onSuccess();
+                                }
+                            }
                             @Override
-                            public void onError(String error) { /* Handle notification error if needed */ }
+                            public void onError(String error) {
+                                sendOfferNotificationToUser(offer.getBuyerId(), sellerName, offer.getListingId(), offerId, "counter", new SimpleCallback() {
+                                    @Override
+                                    public void onSuccess() { /* Notification sent */ }
+                                    @Override
+                                    public void onError(String error) { /* Handle notification error if needed */ }
+                                });
+                                if (callback != null) callback.onSuccess();
+                            }
                         });
-                        if (callback != null) callback.onSuccess();
                     }
                 });
             })
@@ -2014,207 +2449,7 @@ public class FirebaseService {
             .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
-    /**
-     * Send a chat message to Firestore (chats/{chatId}/messages)
-     */
-    public void sendChatMessage(String chatId, String senderId, String message, String messageType, List<String> attachments, SendMessageCallback callback) {
-        if (chatId == null || chatId.isEmpty() || senderId == null || senderId.isEmpty()) {
-            if (callback != null) callback.onError("chatId or senderId is empty");
-            return;
-        }
-        String messageId = "msg_" + java.util.UUID.randomUUID().toString().replace("-", "");
-        com.example.tradeupapp.models.ChatMessage chatMessage = new com.example.tradeupapp.models.ChatMessage(chatId, senderId, message, messageType, attachments);
-        chatMessage.setId(messageId);
-        chatMessage.setTimestamp(com.google.firebase.Timestamp.now());
-        chatMessage.setRead(false);
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("chats").document(chatId).collection("messages")
-            .document(messageId)
-            .set(chatMessage)
-            .addOnSuccessListener(aVoid -> {
-                if (callback != null) callback.onSuccess(messageId);
-            })
-            .addOnFailureListener(e -> {
-                if (callback != null) callback.onError(e.getMessage());
-            });
-    }
-
-    /**
-     * Send a chat message to Firestore (top-level chat_messages collection)
-     */
-    public void sendChatMessageToCollection(String chatId, String senderId, String message, String messageType, List<String> attachments, SendMessageCallback callback) {
-        if (chatId == null || chatId.isEmpty() || senderId == null || senderId.isEmpty()) {
-            if (callback != null) callback.onError("chatId or senderId is empty");
-            return;
-        }
-        String messageId = "msg_" + java.util.UUID.randomUUID().toString().replace("-", "");
-        com.example.tradeupapp.models.ChatMessage chatMessage = new com.example.tradeupapp.models.ChatMessage(chatId, senderId, message, messageType, attachments);
-        chatMessage.setId(messageId);
-        chatMessage.setTimestamp(com.google.firebase.Timestamp.now());
-        chatMessage.setRead(false);
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("chat_messages")
-            .document(messageId)
-            .set(chatMessage)
-            .addOnSuccessListener(aVoid -> {
-                if (callback != null) callback.onSuccess(messageId);
-            })
-            .addOnFailureListener(e -> {
-                if (callback != null) callback.onError(e.getMessage());
-            });
-    }
-
-    /**
-     * Get all messages for a chat from top-level chat_messages collection
-     */
-    public void getMessagesByChatId(String chatId, MessagesCallback callback) {
-        db.collection("chat_messages")
-            .whereEqualTo("chatId", chatId)
-            .orderBy("timestamp", Query.Direction.ASCENDING)
-            .get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-                List<com.example.tradeupapp.models.ChatMessage> messages = new ArrayList<>();
-                for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                    com.example.tradeupapp.models.ChatMessage msg = doc.toObject(com.example.tradeupapp.models.ChatMessage.class);
-                    if (msg != null) messages.add(msg);
-                }
-                callback.onSuccess(messages);
-            })
-            .addOnFailureListener(e -> callback.onError(e.getMessage()));
-    }
-
-    /**
-     * Mark all unread messages as read for a chat in chat_messages collection
-     */
-    public void markMessagesAsReadInCollection(String chatId, String currentUserId) {
-        db.collection("chat_messages")
-            .whereEqualTo("chatId", chatId)
-            .whereEqualTo("isRead", false)
-            .whereNotEqualTo("senderId", currentUserId)
-            .get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-                for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                    doc.getReference().update("isRead", true);
-                }
-            });
-    }
-
-    public interface MessagesCallback {
-        void onSuccess(List<com.example.tradeupapp.models.ChatMessage> messages);
-        void onError(String error);
-    }
-
-    public interface SendMessageCallback {
-        void onSuccess(String messageId);
-        void onError(String error);
-    }
-
-    /**
-     * Get or create a chat between two users for a specific item.
-     * Calls callback.onSuccess(chatId) with the chatId to use.
-     */
-    public void getOrCreateChat(String currentUserId, String sellerId, String itemId, ChatIdCallback callback) {
-        if (currentUserId == null || sellerId == null || itemId == null) {
-            if (callback != null) callback.onError("Missing user or item id");
-            return;
-        }
-        db.collection("chats")
-            .whereArrayContains("participants", currentUserId)
-            .get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-                String chatIdToUse = null;
-                for (com.google.firebase.firestore.QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                    java.util.List<String> participants = (java.util.List<String>) doc.get("participants");
-                    String relatedItemId = doc.getString("relatedItemId");
-                    if (participants != null && participants.contains(sellerId) && participants.contains(currentUserId)
-                        && itemId.equals(relatedItemId)) {
-                        chatIdToUse = doc.getId();
-                        break;
-                    }
-                }
-                if (chatIdToUse != null) {
-                    if (callback != null) callback.onSuccess(chatIdToUse);
-                } else {
-                    java.util.List<String> userIds = new java.util.ArrayList<>();
-                    userIds.add(currentUserId);
-                    userIds.add(sellerId);
-                    com.example.tradeupapp.models.ChatModel newChat = new com.example.tradeupapp.models.ChatModel();
-                    newChat.setParticipants(userIds);
-                    newChat.setRelatedItemId(itemId);
-                    newChat.setLastMessageTime(com.google.firebase.Timestamp.now());
-                    db.collection("chats")
-                        .add(newChat)
-                        .addOnSuccessListener(documentReference -> {
-                            String newChatId = documentReference.getId();
-                            if (callback != null) callback.onSuccess(newChatId);
-                        })
-                        .addOnFailureListener(e -> {
-                            if (callback != null) callback.onError("Failed to create chat: " + e.getMessage());
-                        });
-                }
-            })
-            .addOnFailureListener(e -> {
-                if (callback != null) callback.onError("Failed to check for existing chat: " + e.getMessage());
-            });
-    }
-
-    public interface ChatIdCallback {
-        void onSuccess(String chatId);
-        void onError(String error);
-    }
-
-    /**
-     * Create and send a notification for a new chat message
-     */
-    public void sendChatNotificationToUser(String recipientUserId, String senderName, String message, String chatId, SimpleCallback callback) {
-        NotificationModel notification = NotificationModel.createChatNotification(recipientUserId, senderName, message, chatId);
-        db.collection("notifications")
-            .add(notification)
-            .addOnSuccessListener(documentReference -> {
-                if (callback != null) callback.onSuccess();
-            })
-            .addOnFailureListener(e -> {
-                if (callback != null) callback.onError(e.getMessage());
-            });
-    }
-
-    /**
-     * Create and send a notification for a new price offer
-     */
-    public void sendOfferNotificationToUser(String recipientUserId, String buyerName, String itemTitle, String offerId, SimpleCallback callback) {
-        NotificationModel notification = NotificationModel.createOfferNotification(recipientUserId, buyerName, itemTitle, offerId);
-        db.collection("notifications")
-            .add(notification)
-            .addOnSuccessListener(documentReference -> {
-                if (callback != null) callback.onSuccess();
-            })
-            .addOnFailureListener(e -> {
-                if (callback != null) callback.onError(e.getMessage());
-            });
-    }
-
-    /**
-     * Create and send a notification for a listing update (e.g., price drop)
-     */
-    public void sendListingUpdateNotificationToUser(String recipientUserId, String listingTitle, String updateMessage, String listingId, SimpleCallback callback) {
-        NotificationModel notification = new NotificationModel(
-            recipientUserId,
-            "Listing Update: " + listingTitle,
-            updateMessage,
-            "listing_update",
-            listingId
-        );
-        db.collection("notifications")
-            .add(notification)
-            .addOnSuccessListener(documentReference -> {
-                if (callback != null) callback.onSuccess();
-            })
-            .addOnFailureListener(e -> {
-                if (callback != null) callback.onError(e.getMessage());
-            });
-    }
-
-    // Update an offer in Firestore
+    // Add or update an offer in Firestore
     public void updateOffer(OfferModel offer, SimpleCallback callback) {
         if (offer == null || offer.getId() == null) {
             if (callback != null) callback.onError("Offer or Offer ID is null");
