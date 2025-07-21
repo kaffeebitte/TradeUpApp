@@ -23,7 +23,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:navigationIcon="@drawable/ic_arrow_back_24"
-                app:title="Item Details" />
+                app:title="Item Details"
+                app:menu="@menu/menu_listing" />
 
         </com.google.android.material.appbar.AppBarLayout>
 
@@ -56,6 +57,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     app:layout_constraintBottom_toBottomOf="@id/item_images_viewpager"
+                    app:layout_constraintStart_toStartOf="parent"
                     app:tabBackground="@drawable/tab_selector"
                     app:tabGravity="center"
                     app:tabIndicatorHeight="0dp" />
@@ -151,7 +153,7 @@
                         android:id="@+id/layout_interaction_counts"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="16dp"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/tv_item_location">
@@ -226,25 +228,23 @@
                         android:id="@+id/iv_location_icon"
                         android:layout_width="20dp"
                         android:layout_height="20dp"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="24dp"
+                        android:contentDescription="@string/cd_location"
                         android:src="@drawable/ic_location_24"
-                        app:layout_constraintBottom_toBottomOf="@id/tv_item_location"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/tv_item_price"
-                        app:tint="@color/md_theme_secondary"
-                        android:contentDescription="@string/cd_location" />
+                        app:layout_constraintTop_toBottomOf="@+id/tv_item_price"
+                        app:tint="@color/md_theme_secondary" />
 
                     <TextView
                         android:id="@+id/tv_item_location"
                         android:layout_width="wrap_content"
-                        android:layout_height="0dp"
+                        android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:gravity="top"
                         android:textAppearance="?attr/textAppearanceBodyLarge"
                         android:textColor="?attr/colorOnSurfaceVariant"
-                        app:layout_constraintBaseline_toBaselineOf="@id/iv_location_icon"
                         app:layout_constraintStart_toEndOf="@id/iv_location_icon"
-                        app:layout_constraintTop_toBottomOf="@id/tv_item_price"
+                        app:layout_constraintTop_toTopOf="@+id/iv_location_icon"
                         tools:text="Ho Chi Minh City" />
 
                     <!-- Remove posted date and category if not used in fragment logic -->

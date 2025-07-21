@@ -384,6 +384,19 @@
                 tools:listitem="@layout/item_listing"
                 app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                 app:spanCount="2" />
+
+            <!-- Report Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_report_profile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Report Profile"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="24dp"
+                app:icon="@drawable/ic_report_24"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

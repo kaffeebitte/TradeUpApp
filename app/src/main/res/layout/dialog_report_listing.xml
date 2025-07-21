@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/tv_report_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Why are you reporting this listing?"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:layout_marginBottom="16dp"/>
+
+    <RadioGroup
+        android:id="@+id/rg_report_reason"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RadioButton
+            android:id="@+id/rb_spam"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Spam or misleading"/>
+        <RadioButton
+            android:id="@+id/rb_scam"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Scam or fraud"/>
+        <RadioButton
+            android:id="@+id/rb_harassment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Harassment or hate speech"/>
+        <RadioButton
+            android:id="@+id/rb_inappropriate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Inappropriate content"/>
+        <RadioButton
+            android:id="@+id/rb_other"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Other"/>
+    </RadioGroup>
+
+    <EditText
+        android:id="@+id/et_report_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Describe the issue (required for 'Other')"
+        android:visibility="gone"
+        android:inputType="textMultiLine"
+        android:minLines="2"
+        android:maxLines="4"
+        android:layout_marginTop="12dp"/>
+
+</LinearLayout>
+

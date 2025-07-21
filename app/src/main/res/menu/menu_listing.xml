@@ -6,5 +6,5 @@
         android:id="@+id/action_report"
         android:title="Report"
         android:icon="@drawable/ic_report_24"
-        app:showAsAction="never" />
+        app:showAsAction="ifRoom" />
 </menu>

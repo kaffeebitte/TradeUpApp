@@ -1,5 +1,6 @@
 package com.example.tradeupapp.features.profile.ui;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,11 +19,13 @@ import com.example.tradeupapp.R;
 import com.example.tradeupapp.models.ListingModel;
 import com.example.tradeupapp.models.ItemModel;
 import com.example.tradeupapp.features.listing.adapter.UserListingsAdapter;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.GeoPoint;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import android.widget.Toast;
 
 public class PublicProfileFragment extends Fragment {
     private String userId;
@@ -70,6 +73,9 @@ public class PublicProfileFragment extends Fragment {
             userId = getArguments().getString("userId");
             loadUserProfile(userId);
         }
+        // Report Profile Button
+        View btnReportProfile = view.findViewById(R.id.btn_report_profile);
+        btnReportProfile.setOnClickListener(v -> showReportProfileDialog());
         return view;
     }
 
@@ -209,6 +215,68 @@ public class PublicProfileFragment extends Fragment {
                 listingsAdapter.notifyDataSetChanged();
             }
         });
+    }
+
+    private void showReportProfileDialog() {
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_report_profile, null);
+        final android.widget.RadioGroup reasonRadioGroup = dialogView.findViewById(R.id.rg_report_reason);
+        final android.widget.EditText descriptionEditText = dialogView.findViewById(R.id.et_report_description);
+        reasonRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.rb_other) {
+                descriptionEditText.setVisibility(View.VISIBLE);
+            } else {
+                descriptionEditText.setVisibility(View.GONE);
+            }
+        });
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Report Profile")
+            .setMessage("Select a reason for reporting this profile.")
+            .setView(dialogView)
+            .setPositiveButton("Report", (dialog, which) -> {
+                int checkedId = reasonRadioGroup.getCheckedRadioButtonId();
+                String reason = "";
+                if (checkedId == R.id.rb_spam) {
+                    reason = "Spam";
+                } else if (checkedId == R.id.rb_harassment) {
+                    reason = "Harassment";
+                } else if (checkedId == R.id.rb_scam) {
+                    reason = "Scam";
+                } else if (checkedId == R.id.rb_inappropriate) {
+                    reason = "Inappropriate Content";
+                } else if (checkedId == R.id.rb_other) {
+                    reason = "Other";
+                } else {
+                    reason = "Inappropriate profile";
+                }
+                String description = descriptionEditText.getText().toString().trim();
+                if (reason.equals("Other") && description.isEmpty()) {
+                    Toast.makeText(requireContext(), "Please describe the issue for 'Other' reason.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                submitProfileReport(reason, description);
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
+    private void submitProfileReport(String reason, String description) {
+        String reporterId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
+        Map<String, Object> report = new HashMap<>();
+        report.put("type", "profile");
+        report.put("reportedUserId", userId);
+        report.put("reporterId", reporterId);
+        report.put("reason", reason);
+        report.put("description", description);
+        report.put("timestamp", com.google.firebase.Timestamp.now());
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            .collection("reports")
+            .add(report)
+            .addOnSuccessListener(documentReference -> {
+                Toast.makeText(requireContext(), "Profile reported. Thank you!", Toast.LENGTH_SHORT).show();
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(requireContext(), "Failed to report profile. Please try again.", Toast.LENGTH_SHORT).show();
+            });
     }
 
     private boolean isValidUrl(String url) {

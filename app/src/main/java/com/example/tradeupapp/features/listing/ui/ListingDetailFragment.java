@@ -16,7 +16,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.MenuHost;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
@@ -25,6 +28,7 @@ import com.bumptech.glide.Glide;
 import com.example.tradeupapp.R;
 import com.example.tradeupapp.core.services.FirebaseService;
 import com.example.tradeupapp.core.services.CartService;
+import com.example.tradeupapp.core.session.UserSession;
 import com.example.tradeupapp.models.ItemModel;
 import com.example.tradeupapp.models.ListingModel;
 import com.example.tradeupapp.models.User;
@@ -75,6 +79,7 @@ public class ListingDetailFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         firebaseService = FirebaseService.getInstance();
         cartService = CartService.getInstance();
         // Get listingId from arguments
@@ -100,6 +105,7 @@ public class ListingDetailFragment extends Fragment {
         itemImagesViewPager.setAdapter(new ImageSliderAdapter(requireContext(), new ArrayList<>()));
         new com.google.android.material.tabs.TabLayoutMediator(imageIndicator, itemImagesViewPager, (tab, position) -> {}).attach();
         setupToolbar();
+        setupMenuProvider();
         rvOffers.setLayoutManager(new LinearLayoutManager(getContext()));
         offerAdapter = new OfferAdapter(getContext(), offerList, listingMap, itemMap, new OfferAdapter.OnOfferActionListener() {
             @Override
@@ -445,10 +451,108 @@ public class ListingDetailFragment extends Fragment {
         tvNoReviews = view.findViewById(R.id.tv_no_reviews);
     }
     private void setupToolbar() {
+        if (toolbar != null && getActivity() instanceof androidx.appcompat.app.AppCompatActivity) {
+            ((androidx.appcompat.app.AppCompatActivity) requireActivity()).setSupportActionBar(toolbar);
+        }
         if (toolbar != null) {
             toolbar.setNavigationOnClickListener(v -> requireActivity().onBackPressed());
         }
     }
+    private void setupMenuProvider() {
+        MenuHost menuHost = requireActivity();
+        menuHost.addMenuProvider(new MenuProvider() {
+            @Override
+            public void onCreateMenu(@NonNull android.view.Menu menu, @NonNull android.view.MenuInflater menuInflater) {
+                menuInflater.inflate(R.menu.menu_listing, menu); // Use menu_listing.xml
+            }
+            @Override
+            public boolean onMenuItemSelected(@NonNull android.view.MenuItem item) {
+                if (item.getItemId() == R.id.action_report) {
+                    showReportDialog();
+                    return true;
+                }
+                return false;
+            }
+        }, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
+    }
+
+    // Use the same logic as ChatFragment for showReportDialog
+    private void showReportDialog() {
+        android.util.Log.d("ListingDetailFragment", "showReportDialog called");
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_report_listing, null);
+        final android.widget.RadioGroup reasonRadioGroup = dialogView.findViewById(R.id.rg_report_reason);
+        final EditText descriptionEditText = dialogView.findViewById(R.id.et_report_description);
+        reasonRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.rb_other) {
+                descriptionEditText.setVisibility(View.VISIBLE);
+            } else {
+                descriptionEditText.setVisibility(View.GONE);
+            }
+        });
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Report Listing")
+            .setMessage("Select a reason for reporting this listing.")
+            .setView(dialogView)
+            .setPositiveButton("Report", (dialog, which) -> {
+                int checkedId = reasonRadioGroup.getCheckedRadioButtonId();
+                String reason = "";
+                if (checkedId == R.id.rb_spam) {
+                    reason = "Spam";
+                } else if (checkedId == R.id.rb_harassment) {
+                    reason = "Harassment";
+                } else if (checkedId == R.id.rb_scam) {
+                    reason = "Scam";
+                } else if (checkedId == R.id.rb_inappropriate) {
+                    reason = "Inappropriate Content";
+                } else if (checkedId == R.id.rb_other) {
+                    reason = "Other";
+                } else {
+                    reason = "Inappropriate listing";
+                }
+                String description = descriptionEditText.getText().toString().trim();
+                if (reason.equals("Other") && description.isEmpty()) {
+                    Toast.makeText(requireContext(), "Please describe the issue for 'Other' reason.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                String reportId = "report_" + java.util.UUID.randomUUID().toString().replace("-", "");
+                String reportType = checkedId == R.id.rb_scam ? "scam" : (checkedId == R.id.rb_harassment ? "harassment" : "inappropriate_listing");
+                String status = "pending";
+                com.google.firebase.Timestamp createdAt = com.google.firebase.Timestamp.now();
+                java.util.Map<String, Object> reportData = new java.util.HashMap<>();
+                String reporterId = com.example.tradeupapp.core.session.UserSession.getInstance().getUserIdOrUid();
+                String listingId = getArguments() != null ? getArguments().getString("listingId") : null;
+                String targetUserId = listing != null ? listing.getSellerId() : null;
+                reportData.put("id", reportId);
+                reportData.put("reporterId", reporterId);
+                reportData.put("reportedUserId", targetUserId);
+                reportData.put("reportedItemId", listingId);
+                reportData.put("chatId", null);
+                reportData.put("reportType", reportType);
+                reportData.put("reason", reason);
+                reportData.put("description", description);
+                reportData.put("status", status);
+                reportData.put("createdAt", createdAt);
+                reportData.put("resolvedAt", null);
+                reportData.put("adminNotes", null);
+                reportData.put("evidence", new java.util.ArrayList<String>());
+                com.google.firebase.firestore.FirebaseFirestore.getInstance().collection("reports").document(reportId).set(reportData)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(requireContext(), "Listing has been reported", Toast.LENGTH_SHORT).show();
+                        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                            .setTitle("Block Seller?")
+                            .setMessage("Do you also want to block this seller?")
+                            .setPositiveButton("Block", (blockDialog, blockWhich) -> blockSeller(targetUserId))
+                            .setNegativeButton("No", null)
+                            .show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(requireContext(), "Failed to submit report.", Toast.LENGTH_SHORT).show();
+                    });
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
     private void showOwnerOrBuyerButtons() {
         if (listing == null || firebaseService == null) return;
         String currentUserId = firebaseService.getCurrentUserId();
@@ -660,13 +764,13 @@ public class ListingDetailFragment extends Fragment {
                 return;
             }
             double minOffer = 0.5 * listing.getPrice();
-            double maxOffer = listing.getPrice();
+            double maxOffer = 1.5 * listing.getPrice();
             if (offerAmount < minOffer) {
                 etAmount.setError("Offer must be at least 50% of the product price");
                 return;
             }
             if (offerAmount > maxOffer) {
-                etAmount.setError("Offer cannot exceed the product price");
+                etAmount.setError("Offer cannot be set too high (max 150% of price)");
                 return;
             }
             if (offerAmount <= 0) {
@@ -1001,5 +1105,11 @@ public class ListingDetailFragment extends Fragment {
             .addOnFailureListener(e -> {
                 Toast.makeText(requireContext(), "Failed to load offers: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
+    }
+
+
+    private void blockSeller(String sellerId) {
+        // Implement your block logic here, e.g., add sellerId to user's block list in Firestore
+        Toast.makeText(getContext(), "Seller blocked.", Toast.LENGTH_SHORT).show();
     }
 }
