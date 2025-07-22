@@ -422,14 +422,17 @@ public class SearchFragment extends Fragment {
             return (Long) createdAt;
         } else if (createdAt instanceof com.google.firebase.Timestamp) {
             return ((com.google.firebase.Timestamp) createdAt).toDate().getTime();
+        } else if (createdAt instanceof java.sql.Timestamp) {
+            return ((java.sql.Timestamp) createdAt).getTime();
         } else if (createdAt instanceof String) {
+            String str = (String) createdAt;
             try {
-                // Try parse ISO8601 string using ThreeTenBP for API < 26
-                org.threeten.bp.Instant instant = org.threeten.bp.Instant.parse((String) createdAt);
+                org.threeten.bp.Instant instant = org.threeten.bp.Instant.parse(str);
                 return instant.toEpochMilli();
             } catch (Exception e) {
                 try {
-                    return Long.parseLong((String) createdAt);
+                    // Try parse as milliseconds string
+                    return Long.parseLong(str);
                 } catch (Exception ignored) {}
             }
         }
